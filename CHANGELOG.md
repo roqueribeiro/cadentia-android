@@ -2,6 +2,35 @@
 
 ## [Não lançado]
 
+### Fase 6 — Base 1.16 (2026-09-02)
+
+- i18n (e8ae9c2): catálogo da 1.16 — 631 chaves × 10 idiomas gerados do
+  Localizable.xcstrings da feat/cordas por scripts/gen-i18n.py, com
+  i18n/android-overrides.json para as substituições de plataforma. O
+  I18nMapCatalogTest resolve toda chave produzida em runtime (escalas,
+  vozes, presets, cliques, kits, pads, levadas, backing tracks).
+- Afinador (695729c): catálogo de 49 afinações (InstrumentPreset gerado do
+  Swift por scripts/gen-instruments.py), folha de busca com recentes e
+  seções, fileira de cordas com a alvo acesa.
+- Instrumentos (c8104d5): a Bateria cede a aba e vira card do hub; Piano
+  sai de Mais; Acordes/Escalas saem do Piano para a seção Estudo. Os
+  apelidos de QA (piano, drums, chords, scales) caem no destino novo. Tocar
+  de novo na aba atual volta à raiz dela. Cordas e Baixo só na fase 8: card
+  que leva a "em obra" é pior que card nenhum.
+- Mais (50cc704): ordem da 1.16 (Gravador, Tablaturas, Frequência, Som dos
+  instrumentos, Sobre). A folha de Som mostra o estado honesto deste build:
+  nenhum banco instalado, tudo em síntese. Bancos na fase 7.
+- Áudio (c9da322): aquecimento do Piano e da Bateria fora da thread
+  principal. QA no emulador media 243 frames pulados (~4 s de tela
+  congelada) ao abrir o Piano. Render fora do lock do cache; start/stop do
+  motor dentro do mesmo lock (sem use-after-free no C++). Números das
+  casas do braço da escala abaixo da última corda.
+- QA no emulador (Medium_Phone, API 36, v4c): hub, os quatro destinos, os
+  quatro apelidos de qa-tab, voltar à raiz pela aba, Mais e a folha de Som;
+  6 ciclos abrir Piano → tocar → voltar sem crash; Piano abre em <500 ms.
+- Pendente de aparelho: tudo que as fases anteriores listavam; o mic do
+  emulador segue mudo (permissão do macOS ao qemu).
+
 ### Fase 5 — Polimento (2026-09-02)
 
 - Sobre (0c8b1b1): tela real portada do AboutView.swift — cabeçalho com
