@@ -1,0 +1,22 @@
+*.iml
+.gradle/
+/local.properties
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx/
+**/build/
+# Assinatura da Play (Team, chave): fora do git.
+keystore.properties
+/keystore/
+# Modelo de separação (grande, gerado por scripts/convert-stem-model.py)
+*.onnx
+app/src/main/assets/models/
+# Config do RoqueOS (chave de cliente Firebase), gerada por gen-roqueos-config
+app/src/main/res/raw/roqueos_config.json
+# Loja
+store/out/
+fastlane/report.xml
+fastlane/Preview.html
+artifacts/

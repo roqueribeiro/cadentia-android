@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Os tokens vivem em ui/CzTokens.kt; aqui só o que o XML da janela e o
+         ícone adaptativo precisam antes do Compose subir. -->
+    <color name="stage_top">#12101C</color>
+    <color name="gold">#E2B457</color>
+</resources>
