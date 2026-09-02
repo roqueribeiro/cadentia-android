@@ -58,6 +58,16 @@ for f in kt_files:
         if re.search(r"[A-Za-zÀ-ÿ]{2,}", text):
             failures.append(f"literal exibido sem i18n: {f.relative_to(REPO)}:{i}: {text!r}")
 
+# 4. Nenhum especificador do iOS sobreviveu nos strings.xml gerados. O
+# `%1$lld` de "%1$lld de %2$lld" passou pelo gerador por meses (só `%lld`
+# era convertido) e o Java lança UnknownFormatConversionException em "%1$l"
+# na hora de formatar — um crash que só aparece na tela que formata.
+IOS_SPECIFIER = re.compile(r"%(\d+\$)?(l{1,2}d|@)")
+for xml in sorted((REPO / "app" / "src" / "main" / "res").glob("values*/strings.xml")):
+    for i, line in enumerate(xml.read_text().splitlines(), 1):
+        if IOS_SPECIFIER.search(line):
+            failures.append(f"especificador do iOS em recurso Android: {xml.relative_to(REPO)}:{i}")
+
 if failures:
     print("i18n-audit REPROVOU:")
     for f in failures:

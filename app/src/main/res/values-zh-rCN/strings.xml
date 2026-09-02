@@ -65,7 +65,7 @@
     <string name="cadentia_cordas_hand_chords_footer">圆点表示伸出的手指。右手扫过琴弦发声。</string>
     <string name="cadentia_cordas_hand_chords_header">左手</string>
     <string name="cadentia_cordas_hand_chords_none">不切换</string>
-    <string name="cadentia_cordas_hand_chords_pair">%1$lld 和 %2$lld</string>
+    <string name="cadentia_cordas_hand_chords_pair">%1$d 和 %2$d</string>
     <string name="cadentia_cordas_hand_chords_reset">恢复默认和弦</string>
     <string name="cadentia_cordas_hand_chords_right_count">右手 %d 指</string>
     <string name="cadentia_cordas_hand_chords_title">手势和弦</string>
@@ -133,7 +133,7 @@
     <string name="cadentia_library_copied">已复制</string>
     <string name="cadentia_library_copy_link">复制地址</string>
     <string name="cadentia_library_disconnect">断开 RoqueOS</string>
-    <string name="cadentia_library_downloading">正在下载第 %1$lld 首，共 %2$lld 首</string>
+    <string name="cadentia_library_downloading">正在下载第 %1$d 首，共 %2$d 首</string>
     <string name="cadentia_library_drive_not_connected">请先在 RoqueOS 中连接 Google 云端硬盘。连接保存在那里，不在这里。</string>
     <string name="cadentia_library_empty_folder">这里没有歌曲。</string>
     <string name="cadentia_library_google_drive">Google 云端硬盘</string>
@@ -160,9 +160,9 @@
     <string name="cadentia_library_shared_forbidden">此 API 密钥没有读取服务器文件的权限。</string>
     <string name="cadentia_library_show_all">全部显示 (%d)</string>
     <string name="cadentia_library_show_fewer">收起</string>
-    <string name="cadentia_library_storage_used">已分离 %1$lld 首 · %2$@</string>
+    <string name="cadentia_library_storage_used">已分离 %1$d 首 · %2$s</string>
     <string name="cadentia_library_this_device">本机</string>
-    <string name="cadentia_library_this_device_hint">文件与 iCloud 云盘</string>
+    <string name="cadentia_library_this_device_hint">文件</string>
     <string name="cadentia_library_will_separate_again">将重新分离</string>
     <string name="cadentia_piano_sustain">延音</string>
     <string name="cadentia_recorder_add_track">新建音轨</string>
@@ -225,14 +225,14 @@
     <string name="cadentia_stems_batch_cancel">取消分离</string>
     <string name="cadentia_stems_batch_dismiss">关闭</string>
     <string name="cadentia_stems_batch_failed">无法分离：%s</string>
-    <string name="cadentia_stems_batch_position">第 %1$lld 首，共 %2$lld 首</string>
-    <string name="cadentia_stems_batch_progress">正在分离第 %1$lld 首，共 %2$lld 首</string>
+    <string name="cadentia_stems_batch_position">第 %1$d 首，共 %2$d 首</string>
+    <string name="cadentia_stems_batch_progress">正在分离第 %1$d 首，共 %2$d 首</string>
     <string name="cadentia_stems_choose">选择歌曲</string>
     <string name="cadentia_stems_drums">鼓</string>
     <string name="cadentia_stems_empty_body">选择一首歌，Cadentia 会分离出鼓、贝斯、人声和其余部分。全部在设备上完成，不上传任何内容。</string>
     <string name="cadentia_stems_empty_title">从歌曲中移除某个乐器</string>
     <string name="cadentia_stems_failed">无法分离这首歌</string>
-    <string name="cadentia_stems_job_position">第 %1$lld 首，共 %2$lld 首</string>
+    <string name="cadentia_stems_job_position">第 %1$d 首，共 %2$d 首</string>
     <string name="cadentia_stems_job_starting">%d 首歌曲排队中</string>
     <string name="cadentia_stems_job_title">正在分离音轨</string>
     <string name="cadentia_stems_key">调</string>

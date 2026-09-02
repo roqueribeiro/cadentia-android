@@ -161,32 +161,66 @@ object StemPipeline {
 }
 
 /**
- * A regra de limpeza do cache de faixas separadas — o miolo puro do
- * `StemCache.trim` do iOS: primeiro saem as músicas que não estão mais nas
- * Recentes (nunca mais serão reabertas por um toque), depois as usadas há
- * mais tempo até o total caber no teto.
+ * Quem sai do disco quando o aparelho fica sem espaço — e, principalmente,
+ * quando NINGUÉM sai. Port do `StemCachePolicy.swift` (1.16).
+ *
+ * Isto é a parte da limpeza que dá para errar, então mora aqui, pura, longe
+ * do sistema de arquivos: quais pastas apagar é uma decisão; apagá-las é
+ * encanamento.
+ *
+ * A regra anterior tinha dois gatilhos e o primeiro era o errado: apagava tudo
+ * que não estivesse na lista de músicas recentes, **mesmo com o disco vazio**.
+ * Como a lista tinha teto, uma playlist longa se comia pela cauda enquanto era
+ * separada — a música 31 apagava a música 1. Agora só existe um gatilho:
+ * espaço. Enquanto houver folga, o que foi separado fica.
  */
 object StemCachePolicy {
-    /** 4 faixas de uma música de 4 min em WAV ≈ 340 MB: o teto guarda poucas. */
-    const val MAX_BYTES = 2_000_000_000L
+    /** O quanto o aparelho tem que continuar tendo livre. */
+    const val FREE_SPACE_RESERVE = 2_000_000_000L
 
-    data class Entry(val songId: String, val bytes: Long, val usedAtEpochMillis: Long)
+    data class Entry(val id: String, val bytes: Long, val lastUsedEpochMillis: Long)
 
-    /** Ids a apagar, na ordem. */
-    fun evict(entries: List<Entry>, keeping: Set<String>, maxBytes: Long = MAX_BYTES): List<String> {
-        val doomed = mutableListOf<String>()
-        val alive = mutableListOf<Entry>()
-        for (entry in entries) {
-            if (entry.songId in keeping) alive.add(entry) else doomed.add(entry.songId)
+    /**
+     * Os ids que precisam sair, em ordem, para o espaço livre voltar acima da
+     * reserva. **Vazio é o caso normal** e é o ponto inteiro deste arquivo.
+     *
+     * @param freeBytes espaço livre no aparelho agora; `<= 0` é "não consegui
+     *   medir", e não "o disco está cheio" — e aí nada sai.
+     * @param protected músicas que estão em algum repertório: **nunca** saem.
+     * @param keepNewest quantas das mais recentes são intocáveis. Cinco, pela
+     *   música que ACABOU de ser separada: a limpeza roda logo depois de
+     *   escrever, e sem isto ela apagava o resultado do trabalho.
+     */
+    fun evictions(
+        entries: List<Entry>,
+        freeBytes: Long,
+        reserve: Long = FREE_SPACE_RESERVE,
+        protected: Set<String> = emptySet(),
+        keepNewest: Int = 5,
+    ): List<String> {
+        if (freeBytes <= 0 || freeBytes >= reserve) return emptyList()
+
+        // Mais recente primeiro, para saber quem são as intocáveis. Empate de
+        // data desempata pelo id: senão o mesmo estado protegeria músicas
+        // diferentes em execuções diferentes.
+        val byAge = entries.sortedWith(compareByDescending<Entry> { it.lastUsedEpochMillis }.thenBy { it.id })
+        val untouchable = protected + byAge.take(maxOf(0, keepNewest)).map { it.id }
+        val candidates = byAge.filter { it.id !in untouchable }.reversed()
+
+        // Se apagar TUDO que pode ainda não alcança a reserva, não apaga nada:
+        // um aparelho cheio por causa de fotos levava a playlist junto e
+        // continuava cheio do mesmo jeito.
+        val recoverable = candidates.sumOf { it.bytes }
+        if (freeBytes + recoverable < reserve) return emptyList()
+
+        var free = freeBytes
+        val out = ArrayList<String>()
+        for (entry in candidates) {
+            if (free >= reserve) break
+            free += entry.bytes
+            out += entry.id
         }
-        var total = alive.sumOf { it.bytes }
-        if (total <= maxBytes) return doomed
-        for (entry in alive.sortedBy { it.usedAtEpochMillis }) {
-            if (total <= maxBytes) break
-            doomed.add(entry.songId)
-            total -= entry.bytes
-        }
-        return doomed
+        return out
     }
 }
 

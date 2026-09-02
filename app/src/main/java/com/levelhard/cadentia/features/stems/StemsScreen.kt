@@ -1,7 +1,11 @@
 package com.levelhard.cadentia.features.stems
 
+import android.Manifest
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
+import android.provider.OpenableColumns
+import android.text.format.Formatter
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -28,15 +32,20 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Forward10
 import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.Replay10
 import androidx.compose.material.icons.filled.Shuffle
@@ -44,47 +53,52 @@ import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.levelhard.cadentia.LocalQaFlags
 import com.levelhard.cadentia.R
-import com.levelhard.cadentia.kit.PracticeLoop
+import com.levelhard.cadentia.features.library.RoqueOSSection
 import com.levelhard.cadentia.kit.RecentSong
 import com.levelhard.cadentia.kit.RecentSongs
 import com.levelhard.cadentia.kit.SetQueue
 import com.levelhard.cadentia.kit.Setlist
 import com.levelhard.cadentia.kit.Setlists
 import com.levelhard.cadentia.kit.SongSearch
-import com.levelhard.cadentia.kit.StemMixMemory
-import com.levelhard.cadentia.kit.StemPipeline
 import com.levelhard.cadentia.ui.CzCard
 import com.levelhard.cadentia.ui.CzTokens
 import com.levelhard.cadentia.ui.PremiumBackground
@@ -93,277 +107,96 @@ import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Separar — port do `StemsView.swift` + `StemsModel.swift`: biblioteca
- * (recentes com busca, repertórios com fila em ordem/aleatório), player das
- * quatro faixas com onda viva, loop A/B em um botão, mixer em folha e
- * memória de ajuste por música.
+ * Separar — port do `StemsView.swift` (1.16) sobre o [StemsModel]: biblioteca
+ * (recentes com busca e "Ver todas", repertórios com fila em ordem/aleatório,
+ * espaço usado com botão de liberar), importação de várias músicas de uma vez
+ * (a leva em série, com a faixa de andamento no topo e cancelar), a tela de
+ * separação com a fila, o player das quatro faixas com onda viva, loop A/B em
+ * um botão, mixer em folha e memória de ajuste por música.
  *
- * A SEPARAÇÃO em si não existe nesta build: o modelo (103 MB no iOS,
- * ausente até do clone) não tem equivalente ONNX gerado ainda. Abrir uma
- * música nova normaliza o arquivo e diz isso com todas as letras
- * (cadentia.stems.modelMissing) — o MESMO estado do iOS sem o
- * Separator.mlmodelc. Quem já tem as quatro faixas em disco toca normal.
+ * A SEPARAÇÃO em si não existe nesta build: o modelo (103 MB no iOS, ausente
+ * até do clone) não tem equivalente ONNX gerado ainda. Abrir uma música nova
+ * normaliza o arquivo, sobe o serviço de primeiro plano e para no fato, com
+ * todas as letras (`cadentia.stems.modelMissing`) — o MESMO estado do iOS sem o
+ * `Separator.mlmodelc`. Quem já tem as quatro faixas em disco toca normal.
  */
 @Composable
 fun StemsScreen() {
     val accent = CzTokens.stemsTeal
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
+    val qa = LocalQaFlags.current
+    val model = remember { StemsModel(context) }
+    val engine = model.engine
 
-    val engine = remember { StemPlayerEngine() }
-    val stores = remember { StemStores(context.applicationContext) }
-    val roqueAccount = remember {
-        com.levelhard.cadentia.features.library.RoqueOSAccount.shared(context.applicationContext)
-    }
-    val roqueLibrary = remember {
-        com.levelhard.cadentia.features.library.RoqueOSLibrary(roqueAccount)
-    }
-    var downloadingId by remember { mutableStateOf<String?>(null) }
-
-    var phase by remember { mutableStateOf<Phase>(Phase.Empty) }
-    var songTitle by remember { mutableStateOf("") }
-    var currentSongId by remember { mutableStateOf<String?>(null) }
-    var recent by remember { mutableStateOf(RecentSongs()) }
-    var setlists by remember { mutableStateOf(Setlists()) }
-    var mixMemory by remember { mutableStateOf(StemMixMemory()) }
-    var queue by remember { mutableStateOf<SetQueue?>(null) }
-    var pendingAutoplay by remember { mutableStateOf(false) }
-    var loopAnchor by remember { mutableStateOf<Double?>(null) }
     var showMixer by remember { mutableStateOf(false) }
-    var revision by remember { mutableIntStateOf(0) }
     var playhead by remember { mutableDoubleStateOf(0.0) }
     var isPlaying by remember { mutableStateOf(false) }
 
-    fun persistMix() {
-        val songId = currentSongId ?: return
-        mixMemory.remember(engine.snapshot(), songId)
-        stores.saveMixMemory(mixMemory)
+    // Android 13+: a notificação da leva só aparece com permissão, e ela é
+    // pedida INLINE, no momento em que a pessoa manda separar — nunca na
+    // abertura do app. Negada, a leva roda igual: só a tela informa.
+    var pendingPicks by remember { mutableStateOf<List<StemsModel.Pick>?>(null) }
+    val notifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        pendingPicks?.let { model.openMany(it) }
+        pendingPicks = null
     }
-
-    fun rememberSong(song: RecentSong) {
-        recent.remember(song.copy(lastOpenedEpochMillis = System.currentTimeMillis()))
-        stores.saveRecent(recent)
-        revision++
-    }
-
-    fun openCached(song: RecentSong) {
-        if (!engine.load(stores.cacheDirectory(song.id), StemPipeline.sourceNames)) {
-            phase = Phase.Failed(context.getString(R.string.cadentia_stems_model_missing))
-            return
-        }
-        stores.touchCache(song.id)
-        rememberSong(song)
-        currentSongId = song.id
-        loopAnchor = null
-        mixMemory.snapshot(song.id)?.let { engine.apply(it) }
-        songTitle = song.title
-        phase = Phase.Ready
-        playhead = 0.0
-        if (pendingAutoplay) {
-            pendingAutoplay = false
-            engine.play()
-            isPlaying = true
-        }
-        revision++
-    }
-
-    /**
-     * Música nova: normaliza e PARA no fato — sem modelo de separação nesta
-     * build, o resto do caminho não existe.
-     */
-    fun openFresh(uri: Uri, song: RecentSong) {
-        songTitle = song.title
-        phase = Phase.Preparing
-        scope.launch {
-            val normalized = withContext(Dispatchers.IO) {
-                val target = stores.cacheDirectory(song.id).resolve("entrada.wav")
-                StemAudioNormalizer.normalize(context, uri, target)
-            }
-            phase = if (!normalized) {
-                Phase.Failed(context.getString(R.string.cadentia_stems_failed))
-            } else {
-                rememberSong(song)
-                Phase.Failed(context.getString(R.string.cadentia_stems_model_missing))
-            }
-        }
-    }
-
-    /** Música remota sem cache: rebaixa a origem, normaliza e diz o fato. */
-    fun openRemoteFresh(song: RecentSong) {
-        songTitle = song.title
-        phase = Phase.Preparing
-        scope.launch {
-            val outcome = withContext(Dispatchers.IO) {
-                runCatching {
-                    val raw = stores.cacheDirectory(song.id).resolve("origem-${'$'}{song.id}")
-                    roqueLibrary.refetch(song, raw)
-                    val normalized = StemAudioNormalizer.normalize(
-                        context, Uri.fromFile(raw), stores.cacheDirectory(song.id).resolve("entrada.wav"),
-                    )
-                    raw.delete()
-                    normalized
-                }
-            }
-            phase = outcome.fold(
-                onSuccess = { ok ->
-                    if (ok) {
-                        rememberSong(song)
-                        Phase.Failed(context.getString(R.string.cadentia_stems_model_missing))
-                    } else {
-                        Phase.Failed(context.getString(R.string.cadentia_stems_failed))
-                    }
-                },
-                onFailure = { error ->
-                    val display = (error as? com.levelhard.cadentia.features.library.RoqueOSException)
-                        ?.display ?: (error.message ?: error.javaClass.simpleName)
-                    Phase.Failed(display)
-                },
-            )
-        }
-    }
-
-    fun open(song: RecentSong, autoplay: Boolean = false) {
-        pendingAutoplay = autoplay
-        val source = song.source
-        if (stores.isCacheComplete(song.id)) {
-            openCached(song)
-        } else if (source is RecentSong.Source.Device) {
-            openFresh(Uri.parse(source.persistedUri), song)
+    fun separate(picks: List<StemsModel.Pick>) {
+        if (picks.isEmpty()) return
+        val needsAsk = Build.VERSION.SDK_INT >= 33 && !SeparationService.canNotify(context) &&
+            picks.any { !model.isReady(it.song) }
+        if (needsAsk) {
+            pendingPicks = picks
+            notifications.launch(Manifest.permission.POST_NOTIFICATIONS)
         } else {
-            // Fonte remota: rebaixar de novo é o custo de ter perdido o
-            // cache, não um erro.
-            openRemoteFresh(song)
+            model.openMany(picks)
         }
     }
 
-    /** Um item baixado da biblioteca RoqueOS vira Recente e segue o fluxo. */
-    fun openRemoteItem(item: com.levelhard.cadentia.features.library.RoqueOSLibrary.Item) {
-        val song = RecentSong(
-            title = item.name.substringBeforeLast('.'),
-            source = item.recentSource(),
-            lastOpenedEpochMillis = System.currentTimeMillis(),
-        )
-        if (stores.isCacheComplete(song.id)) {
-            openCached(song)
-            return
-        }
-        downloadingId = item.id
-        songTitle = song.title
-        phase = Phase.Preparing
-        scope.launch {
-            val outcome = withContext(Dispatchers.IO) {
-                runCatching {
-                    val raw = stores.cacheDirectory(song.id).resolve("origem-${'$'}{song.id}")
-                    roqueLibrary.download(item, raw)
-                    val normalized = StemAudioNormalizer.normalize(
-                        context, Uri.fromFile(raw), stores.cacheDirectory(song.id).resolve("entrada.wav"),
-                    )
-                    raw.delete()
-                    normalized
-                }
+    // `OpenMultipleDocuments` é a diferença entre separar uma música e separar
+    // um repertório: o pedido do founder foi exatamente esse.
+    val importer = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+        val picks = uris.mapNotNull { uri ->
+            runCatching {
+                context.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
-            downloadingId = null
-            phase = outcome.fold(
-                onSuccess = { ok ->
-                    if (ok) {
-                        rememberSong(song)
-                        Phase.Failed(context.getString(R.string.cadentia_stems_model_missing))
-                    } else {
-                        Phase.Failed(context.getString(R.string.cadentia_stems_failed))
-                    }
-                },
-                onFailure = { error ->
-                    val display = (error as? com.levelhard.cadentia.features.library.RoqueOSException)
-                        ?.display ?: (error.message ?: error.javaClass.simpleName)
-                    Phase.Failed(display)
-                },
+            val name = displayName(context, uri) ?: return@mapNotNull null
+            StemsModel.Pick(
+                uri = uri,
+                song = RecentSong(
+                    title = name.substringBeforeLast('.'),
+                    source = RecentSong.Source.Device(persistedUri = uri.toString(), filename = name),
+                    lastOpenedEpochMillis = System.currentTimeMillis(),
+                ),
             )
         }
-    }
-
-    fun reset() {
-        persistMix()
-        engine.stop()
-        isPlaying = false
-        songTitle = ""
-        phase = Phase.Empty
-        currentSongId = null
-        loopAnchor = null
-        queue = null
-        pendingAutoplay = false
-        revision++
-    }
-
-    fun advanceQueue(automatic: Boolean = false) {
-        val active = queue ?: return
-        persistMix()
-        val next = active.advance()
-        if (next != null) {
-            open(next, autoplay = true)
-        } else if (!automatic) {
-            // Pular além do fim é pedido explícito de sair do set.
-            queue = null
-        }
-        revision++
-    }
-
-    fun goBackInQueue() {
-        val active = queue ?: return
-        persistMix()
-        active.goBack()?.let { open(it, autoplay = true) }
-        revision++
-    }
-
-    /** O loop A/B em três toques: marca A, marca B (liga), limpa. */
-    fun cycleLoop() {
-        if (engine.practiceLoop != null) {
-            engine.practiceLoop = null
-            loopAnchor = null
-            persistMix()
-            revision++
-            return
-        }
-        val anchor = loopAnchor
-        if (anchor != null) {
-            PracticeLoop.of(anchor, engine.currentTime)?.let { loop ->
-                engine.practiceLoop = loop.clamped(engine.duration)
-                loopAnchor = null
-                persistMix()
-            }
-            revision++
-            return
-        }
-        loopAnchor = engine.currentTime
-        revision++
-    }
-
-    val importer = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        runCatching {
-            context.contentResolver.takePersistableUriPermission(
-                uri, Intent.FLAG_GRANT_READ_URI_PERMISSION,
-            )
-        }
-        val name = uri.lastPathSegment?.substringAfterLast('/')?.substringAfterLast(':')
-            ?: context.getString(R.string.cadentia_stems_title)
-        val song = RecentSong(
-            title = name.substringBeforeLast('.'),
-            source = RecentSong.Source.Device(persistedUri = uri.toString(), filename = name),
-            lastOpenedEpochMillis = System.currentTimeMillis(),
-        )
-        open(song)
+        separate(picks)
     }
 
     LaunchedEffect(Unit) {
-        recent = stores.loadRecent()
-        setlists = stores.loadSetlists()
-        mixMemory = stores.loadMixMemory()
-        engine.onFinished = { advanceQueue(automatic = true) }
-        revision++
+        // `-qa-stems-many`: uma playlist inteira nas Recentes, sem abrir nada.
+        if (qa.stemsMany) {
+            StemsModel.QA_TITLES.forEachIndexed { index, title ->
+                model.rememberForQA(
+                    RecentSong(
+                        title = title,
+                        source = RecentSong.Source.Device(persistedUri = "qa://recentes/$index", filename = "$title.mp3"),
+                        lastOpenedEpochMillis = System.currentTimeMillis() - index * 60_000L,
+                    ),
+                )
+            }
+        }
+        // Entrar na tela é o momento em que nenhuma separação está em curso:
+        // toda pasta pela metade é entulho, e é o único gatilho de revisão de
+        // espaço que não depende de separar uma música nova.
+        model.sweepStorage()
+        // `-qa-stems-progress 42`: a tela de separação parada em 42%.
+        qa.stemsProgress?.let { percent ->
+            model.showSeparatingForQA("Bohemian Rhapsody", percent, 100, 9.0, qa.stemsBatch)
+        }
+        qa.stemsBanner?.let { failed -> model.showBatchBannerForQA(total = 5, failed = failed) }
     }
     // Ticker: playhead, loop A/B e fim natural.
     LaunchedEffect(Unit) {
@@ -375,110 +208,98 @@ fun StemsScreen() {
         }
     }
     DisposableEffect(Unit) {
-        onDispose {
-            persistMix()
-            engine.shutdown()
-        }
+        onDispose { model.shutdown() }
     }
 
     Box(Modifier.fillMaxSize().pageTransition()) {
         PremiumBackground(accent = accent)
-        @Suppress("UNUSED_EXPRESSION") revision
-        when (val current = phase) {
-            Phase.Ready -> PlayerState(
-                engine = engine,
-                accent = accent,
-                songTitle = songTitle,
-                queue = queue,
-                playhead = playhead,
-                isPlaying = isPlaying,
-                loopAnchor = loopAnchor,
-                revision = revision,
-                onBack = { reset() },
-                onPlayPause = {
-                    if (engine.isPlaying) {
-                        engine.pause()
-                        persistMix()
-                    } else {
-                        engine.play()
-                    }
-                    isPlaying = engine.isPlaying
-                },
-                onSeek = { engine.seek(it) },
-                onSkip = { engine.seek(engine.currentTime + it) },
-                onLoop = { cycleLoop() },
-                onMixer = { showMixer = true },
-                onQueuePrev = { goBackInQueue() },
-                onQueueNext = { advanceQueue() },
-            )
-            else -> LibraryState(
-                accent = accent,
-                phase = current,
-                songTitle = songTitle,
-                recent = recent,
-                setlists = setlists,
-                isReady = { stores.isCacheComplete(it.id) },
-                revision = revision,
-                roqueSection = {
-                    com.levelhard.cadentia.features.library.RoqueOSSection(
+        @Suppress("UNUSED_EXPRESSION") model.revision
+        val phase = model.phase
+        Column(Modifier.fillMaxSize()) {
+            // A leva aparece em qualquer estado: a primeira música já está
+            // tocando enquanto o resto da playlist ainda separa. Na tela de
+            // separação ela vira eco (a fila logo abaixo diz o mesmo com mais
+            // detalhe), então ali fica de fora.
+            val batch = model.batch
+            if (batch != null && !phase.isWorking) {
+                BatchBanner(batch = batch, accent = accent, onDismiss = { model.dismissBatch() })
+            }
+            Box(Modifier.weight(1f)) {
+                when {
+                    // A separação NÃO rola: ocupa a tela, centrada.
+                    phase.isWorking -> SeparatingView(
+                        progress = (phase as? StemsModel.Phase.Separating)
+                            ?.let { if (it.total > 0) it.done.toDouble() / it.total else null },
+                        title = model.songTitle,
                         accent = accent,
-                        account = roqueAccount,
-                        onPick = { openRemoteItem(it) },
-                        downloadingId = downloadingId,
+                        startedAtMillis = model.workStartedAt,
+                        batch = batch,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .widthIn(max = 560.dp)
+                            .padding(bottom = 60.dp),
                     )
-                },
-                onOpenFile = { importer.launch(arrayOf("audio/*")) },
-                onReopen = { open(it) },
-                onForget = { song ->
-                    stores.removeCache(song.id)
-                    recent.forget(song.id)
-                    stores.saveRecent(recent)
-                    revision++
-                },
-                onTryAgain = { reset() },
-                onCreateSetlist = { name ->
-                    setlists.create(name)
-                    stores.saveSetlists(setlists)
-                    revision++
-                },
-                onAddToSetlist = { song, listId ->
-                    setlists.add(song, listId)
-                    stores.saveSetlists(setlists)
-                    revision++
-                },
-                onRemoveFromSetlist = { songId, listId ->
-                    setlists.removeSong(songId, listId)
-                    stores.saveSetlists(setlists)
-                    revision++
-                },
-                onDuplicateSetlist = { listId, name ->
-                    setlists.duplicate(listId, name)
-                    stores.saveSetlists(setlists)
-                    revision++
-                },
-                onRenameSetlist = { listId, name ->
-                    setlists.rename(listId, name)
-                    stores.saveSetlists(setlists)
-                    revision++
-                },
-                onDeleteSetlist = { listId ->
-                    setlists.delete(listId)
-                    stores.saveSetlists(setlists)
-                    revision++
-                },
-                onPlaySetlist = { list, mode ->
-                    SetQueue.of(list, mode)?.let { built ->
-                        queue = built
-                        built.current?.let { open(it, autoplay = true) }
-                    }
-                },
-                onPlayFromSetlist = { list, song ->
-                    SetQueue.of(list, SetQueue.Mode.Ordered, startAt = song.id)?.let { built ->
-                        queue = built
-                        built.current?.let { open(it, autoplay = true) }
-                    }
-                },
-            )
+                    phase is StemsModel.Phase.Ready -> PlayerState(
+                        engine = engine,
+                        accent = accent,
+                        songTitle = model.songTitle,
+                        queue = model.queue,
+                        playhead = playhead,
+                        isPlaying = isPlaying,
+                        loopAnchor = model.loopAnchor,
+                        revision = model.revision,
+                        onBack = { model.reset() },
+                        onPlayPause = {
+                            if (engine.isPlaying) {
+                                engine.pause()
+                                model.persistMix()
+                            } else {
+                                engine.play()
+                            }
+                            isPlaying = engine.isPlaying
+                        },
+                        onSeek = { engine.seek(it) },
+                        onSkip = { engine.seek(engine.currentTime + it) },
+                        onLoop = { model.cycleLoop() },
+                        onMixer = { showMixer = true },
+                        onQueuePrev = { model.goBackInQueue() },
+                        onQueueNext = { model.advanceQueue() },
+                    )
+                    else -> LibraryState(
+                        accent = accent,
+                        phase = phase,
+                        recent = model.recent,
+                        setlists = model.setlists,
+                        isReady = { model.isReady(it) },
+                        revision = model.revision,
+                        storageUsage = { model.cache.usage() },
+                        roqueSection = {
+                            RoqueOSSection(
+                                accent = accent,
+                                account = model.account,
+                                onPick = { model.openRemoteItem(it) },
+                                onPickMany = { downloaded ->
+                                    separate(downloaded.map { (uri, song) -> StemsModel.Pick(uri, song, temporary = true) })
+                                },
+                                downloadingId = model.downloadingId,
+                            )
+                        },
+                        onOpenFile = { importer.launch(arrayOf("audio/*")) },
+                        onReopen = { model.reopen(it) },
+                        onForget = { model.forget(it) },
+                        onClearStorage = { model.clearStorage() },
+                        onTryAgain = { model.reset() },
+                        onCreateSetlist = { model.createSetlist(it) },
+                        onAddToSetlist = { song, listId -> model.addToSetlist(song, listId) },
+                        onRemoveFromSetlist = { songId, listId -> model.removeFromSetlist(songId, listId) },
+                        onDuplicateSetlist = { listId, name -> model.duplicateSetlist(listId, name) },
+                        onRenameSetlist = { listId, name -> model.renameSetlist(listId, name) },
+                        onDeleteSetlist = { model.deleteSetlist(it) },
+                        onPlaySetlist = { list, mode -> model.playSetlist(list, mode) },
+                        onPlayFromSetlist = { list, song -> model.playFromSetlist(list, song) },
+                    )
+                }
+            }
         }
     }
 
@@ -486,24 +307,128 @@ fun StemsScreen() {
         StemMixerSheet(
             engine = engine,
             accent = accent,
-            revision = revision,
+            revision = model.revision,
             onDismiss = {
                 showMixer = false
-                persistMix()
+                model.persistMix()
             },
-            onChanged = {
-                persistMix()
-                revision++
-            },
+            onChanged = { model.persistMix() },
         )
     }
 }
 
-private sealed class Phase {
-    data object Empty : Phase()
-    data object Preparing : Phase()
-    data object Ready : Phase()
-    data class Failed(val detail: String) : Phase()
+/** O nome que o provedor dá ao arquivo (o que a pessoa vê no seletor), ou o fim da URI. */
+private fun displayName(context: android.content.Context, uri: Uri): String? {
+    val fromProvider = runCatching {
+        context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) cursor.getString(0) else null
+        }
+    }.getOrNull()
+    return fromProvider?.takeIf { it.isNotBlank() }
+        ?: uri.lastPathSegment?.substringAfterLast('/')?.substringAfterLast(':')?.takeIf { it.isNotBlank() }
+}
+
+// ---- a leva ----
+
+/**
+ * O andamento de uma leva de músicas, em uma faixa no topo. Diz três coisas,
+ * e as três importam: **quantas faltam**, **qual está separando agora**, e
+ * **quais não deram**. O X é SEMPRE visível e cancela de verdade: uma leva de
+ * vinte escolhida por engano eram quatro minutos de GPU sem controle na tela.
+ */
+@Composable
+private fun BatchBanner(batch: StemsModel.ImportBatch, accent: Color, onDismiss: () -> Unit) {
+    val songs = if (batch.total > 0) batch.done.toDouble() / batch.total else 0.0
+    val windows = if (batch.windowsTotal > 0) batch.windowsDone.toDouble() / batch.windowsTotal else 0.0
+    // O andamento real: as músicas prontas mais o pedaço da que está em curso.
+    val progress = if (batch.total > 0) (batch.done + windows) / batch.total else songs
+    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier
+                .widthIn(max = 560.dp)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .padding(top = 6.dp)
+                .shadow(12.dp, RoundedCornerShape(14.dp))
+                // OPACO: `surface` é branco a 5%, e o que estivesse atrás lia
+                // por cima do texto. Fundo de palco primeiro, brilho por cima.
+                .background(CzTokens.stageBottom.copy(alpha = 0.97f), RoundedCornerShape(14.dp))
+                .background(CzTokens.surface, RoundedCornerShape(14.dp))
+                .padding(horizontal = 14.dp, vertical = 11.dp)
+                .testTag("stems.batch"),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (batch.isFinished) {
+                    Icon(
+                        imageVector = if (batch.failed.isEmpty()) Icons.Filled.CheckCircle else Icons.Filled.Warning,
+                        contentDescription = null,
+                        tint = if (batch.failed.isEmpty()) accent else CzTokens.warnAmber,
+                        modifier = Modifier.size(15.dp),
+                    )
+                } else {
+                    CircularProgressIndicator(color = accent, strokeWidth = 2.dp, modifier = Modifier.size(14.dp))
+                }
+                Text(
+                    text = stringResource(
+                        R.string.cadentia_stems_batch_progress,
+                        minOf(batch.done + (if (batch.isFinished) 0 else 1), batch.total), batch.total,
+                    ),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = CzTokens.textPrimary,
+                    modifier = Modifier.weight(1f),
+                )
+                val dismissLabel = stringResource(
+                    if (batch.isFinished) R.string.cadentia_stems_batch_dismiss else R.string.cadentia_stems_batch_cancel,
+                )
+                // 44×44 e não o tamanho do glifo: é o único jeito de matar a leva.
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clickable(onClick = onDismiss)
+                        .semantics { contentDescription = dismissLabel }
+                        .testTag("stems.batch.dismiss"),
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = null,
+                        tint = CzTokens.textTertiary,
+                        modifier = Modifier.size(14.dp),
+                    )
+                }
+            }
+            if (!batch.isFinished) {
+                Text(
+                    text = batch.title,
+                    fontSize = 11.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    color = CzTokens.textTertiary,
+                )
+                LinearProgressIndicator(
+                    progress = { progress.coerceIn(0.0, 1.0).toFloat() },
+                    color = accent,
+                    trackColor = CzTokens.surface,
+                    strokeCap = StrokeCap.Round,
+                    gapSize = 0.dp,
+                    drawStopIndicator = {},
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+            if (batch.failed.isNotEmpty()) {
+                Text(
+                    text = stringResource(R.string.cadentia_stems_batch_failed, batch.failed.joinToString(", ")),
+                    fontSize = 11.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    color = CzTokens.warnAmber,
+                    modifier = Modifier.testTag("stems.batch.failed"),
+                )
+            }
+        }
+    }
 }
 
 // ---- player ----
@@ -804,16 +729,18 @@ private fun clock(seconds: Double): String {
 @Composable
 private fun LibraryState(
     accent: Color,
-    phase: Phase,
-    songTitle: String,
+    phase: StemsModel.Phase,
     recent: RecentSongs,
     setlists: Setlists,
     isReady: (RecentSong) -> Boolean,
     revision: Int,
+    /** Mede o disco; chamado FORA da thread principal. */
+    storageUsage: () -> StemCache.Usage,
     roqueSection: @Composable () -> Unit,
     onOpenFile: () -> Unit,
     onReopen: (RecentSong) -> Unit,
     onForget: (RecentSong) -> Unit,
+    onClearStorage: () -> Unit,
     onTryAgain: () -> Unit,
     onCreateSetlist: (String) -> Unit,
     onAddToSetlist: (RecentSong, String) -> Unit,
@@ -825,8 +752,45 @@ private fun LibraryState(
     onPlayFromSetlist: (Setlist, RecentSong) -> Unit,
 ) {
     @Suppress("UNUSED_EXPRESSION") revision
+    val context = LocalContext.current
     var search by remember { mutableStateOf("") }
     var newListName by remember { mutableStateOf("") }
+    var showingAllRecent by remember { mutableStateOf(false) }
+    var confirmingClear by remember { mutableStateOf(false) }
+    // Quanto disco as faixas separadas ocupam. Medido FORA da thread principal:
+    // são centenas de arquivos com uma playlist separada, e trabalho de disco
+    // no caminho da interface é o defeito que travava a tela da bateria.
+    var storage by remember { mutableStateOf<StemCache.Usage?>(null) }
+    LaunchedEffect(revision, recent.songs.size) {
+        storage = withContext(Dispatchers.IO) { storageUsage() }
+    }
+
+    if (confirmingClear) {
+        AlertDialog(
+            onDismissRequest = { confirmingClear = false },
+            containerColor = CzTokens.stageTop,
+            titleContentColor = CzTokens.textPrimary,
+            textContentColor = CzTokens.textSecondary,
+            title = { Text(stringResource(R.string.cadentia_library_clear_storage_title)) },
+            text = { Text(stringResource(R.string.cadentia_library_clear_storage_body)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        confirmingClear = false
+                        onClearStorage()
+                    },
+                    modifier = Modifier.testTag("library.clearStorage"),
+                ) {
+                    Text(stringResource(R.string.cadentia_library_clear_storage), color = CzTokens.danger)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmingClear = false }) {
+                    Text(stringResource(R.string.cadentia_setlists_cancel), color = CzTokens.textSecondary)
+                }
+            },
+        )
+    }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -840,32 +804,8 @@ private fun LibraryState(
             verticalArrangement = Arrangement.spacedBy(14.dp),
             modifier = Modifier.widthIn(max = 560.dp),
         ) {
-            when (phase) {
-                Phase.Preparing -> CzCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(14.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp)
-                            .testTag("stems.working"),
-                    ) {
-                        CircularProgressIndicator(color = accent)
-                        Text(
-                            text = stringResource(R.string.cadentia_stems_preparing),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = CzTokens.textSecondary,
-                        )
-                        Text(
-                            text = songTitle,
-                            fontSize = 12.sp,
-                            maxLines = 1,
-                            color = CzTokens.textTertiary,
-                        )
-                    }
-                }
-                is Phase.Failed -> CzCard(modifier = Modifier.fillMaxWidth()) {
+            if (phase is StemsModel.Phase.Failed) {
+                CzCard(modifier = Modifier.fillMaxWidth()) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -885,14 +825,17 @@ private fun LibraryState(
                             fontWeight = FontWeight.SemiBold,
                             color = CzTokens.textPrimary,
                         )
-                        Text(
-                            text = phase.detail,
-                            fontSize = 10.sp,
-                            fontFamily = FontFamily.Monospace,
-                            textAlign = TextAlign.Center,
-                            color = CzTokens.textTertiary,
-                            modifier = Modifier.testTag("stems.failureReason"),
-                        )
+                        // O motivo técnico curto enquanto a feature é nova.
+                        if (phase.detail.isNotEmpty()) {
+                            Text(
+                                text = phase.detail,
+                                fontSize = 10.sp,
+                                fontFamily = FontFamily.Monospace,
+                                textAlign = TextAlign.Center,
+                                color = CzTokens.textTertiary,
+                                modifier = Modifier.testTag("stems.failureReason"),
+                            )
+                        }
                         Text(
                             text = stringResource(R.string.cadentia_stems_try_again),
                             fontSize = 14.sp,
@@ -902,70 +845,150 @@ private fun LibraryState(
                         )
                     }
                 }
-                else -> CzCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(22.dp),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.GraphicEq,
-                            contentDescription = null,
-                            tint = accent.copy(alpha = 0.8f),
-                            modifier = Modifier.size(38.dp),
-                        )
-                        Text(
-                            text = stringResource(R.string.cadentia_stems_empty_title),
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                            color = CzTokens.textPrimary,
-                        )
-                        Text(
-                            text = stringResource(R.string.cadentia_stems_empty_body),
-                            fontSize = 13.sp,
-                            textAlign = TextAlign.Center,
-                            color = CzTokens.textSecondary,
-                        )
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            modifier = Modifier
-                                .background(accent, RoundedCornerShape(50))
-                                .clickable(onClick = onOpenFile)
-                                .padding(horizontal = 18.dp, vertical = 11.dp)
-                                .testTag("stems.choose"),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.FolderOpen,
-                                contentDescription = null,
-                                tint = Color.Black,
-                                modifier = Modifier.size(15.dp),
-                            )
-                            Text(
-                                text = stringResource(R.string.cadentia_stems_choose),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color.Black,
-                            )
-                        }
-                    }
+            }
+
+            // Sem nada ainda, o convite (os cartões de origem, logo abaixo, são o botão).
+            if (recent.songs.isEmpty() && setlists.lists.isEmpty() && phase !is StemsModel.Phase.Failed) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.GraphicEq,
+                        contentDescription = null,
+                        tint = accent.copy(alpha = 0.8f),
+                        modifier = Modifier.size(38.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.cadentia_stems_empty_title),
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        color = CzTokens.textPrimary,
+                    )
+                    Text(
+                        text = stringResource(R.string.cadentia_stems_empty_body),
+                        fontSize = 13.sp,
+                        textAlign = TextAlign.Center,
+                        color = CzTokens.textSecondary,
+                    )
                 }
             }
 
-            // ---- RoqueOS ----
-            roqueSection()
-
-            // ---- recentes ----
-            if (recent.songs.isNotEmpty()) {
+            // ---- repertórios ----
+            // Acima das origens, como no iOS: quem montou o set de sábado abre o
+            // app atrás DELE. A seção só aparece com conteúdo ou com recentes para
+            // adicionar (o criar precisa de onde nascer).
+            if (setlists.lists.isNotEmpty() || recent.songs.isNotEmpty()) {
                 Text(
-                    text = stringResource(R.string.cadentia_library_recent),
+                    text = stringResource(R.string.cadentia_setlists_section),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = CzTokens.textTertiary,
                 )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    OutlinedTextField(
+                        value = newListName,
+                        onValueChange = { newListName = it },
+                        label = { Text(stringResource(R.string.cadentia_setlists_name_placeholder)) },
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = CzTokens.textPrimary,
+                            unfocusedTextColor = CzTokens.textPrimary,
+                            focusedBorderColor = accent,
+                            unfocusedBorderColor = CzTokens.hairline,
+                            focusedLabelColor = accent, // rótulo em dourado (primary do tema) sobre borda teal (QA)
+                            unfocusedLabelColor = CzTokens.textTertiary,
+                            cursorColor = accent,
+                        ),
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(
+                        text = stringResource(R.string.cadentia_setlists_new),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (newListName.isNotBlank()) accent else CzTokens.textTertiary,
+                        modifier = Modifier
+                            .clickable(enabled = newListName.isNotBlank()) {
+                                onCreateSetlist(newListName)
+                                newListName = ""
+                            }
+                            .padding(8.dp),
+                    )
+                }
+                // Sem repertório nenhum o iOS mostra só o cabeçalho e o criar:
+                // cadentia.setlists.empty ("use Adicionar músicas aqui em cima") é
+                // do detalhe de UM repertório sem músicas — aqui apontava para um
+                // botão que não existe (achado do QA no emulador).
+                for (list in setlists.lists) {
+                    SetlistCard(
+                        revision = revision,
+                        list = list,
+                        accent = accent,
+                        candidates = recent.songs.filter { candidate -> list.songs.none { it.id == candidate.id } },
+                        hasRecents = recent.songs.isNotEmpty(),
+                        onAddSong = { onAddToSetlist(it, list.id) },
+                        onPlayOrdered = { onPlaySetlist(list, SetQueue.Mode.Ordered) },
+                        onPlayShuffled = { onPlaySetlist(list, SetQueue.Mode.Shuffled) },
+                        onPlayFrom = { onPlayFromSetlist(list, it) },
+                        onRemoveSong = { onRemoveFromSetlist(it, list.id) },
+                        onDuplicate = { onDuplicateSetlist(list.id, it) },
+                        onRename = { onRenameSetlist(list.id, it) },
+                        onDelete = { onDeleteSetlist(list.id) },
+                    )
+                }
+            }
+
+            // ---- recentes ----
+            if (recent.songs.isNotEmpty()) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.cadentia_library_recent),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = CzTokens.textTertiary,
+                    )
+                    Spacer(Modifier.weight(1f))
+                    // Tocável, e não só um rótulo: agora que as faixas FICAM, o
+                    // app pode crescer para gigabytes, e um número que só
+                    // informa deixa a pessoa sem saída a não ser apagar o app.
+                    val used = storage
+                    if (used != null && used.songs > 0) {
+                        val clearHint = stringResource(R.string.cadentia_library_clear_storage_title)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier = Modifier
+                                .clickable { confirmingClear = true }
+                                .padding(vertical = 8.dp, horizontal = 6.dp)
+                                .semantics { contentDescription = clearHint }
+                                .testTag("library.storageUsed"),
+                        ) {
+                            Text(
+                                text = stringResource(
+                                    R.string.cadentia_library_storage_used,
+                                    used.songs, Formatter.formatFileSize(context, used.bytes),
+                                ),
+                                fontSize = 11.sp,
+                                maxLines = 1,
+                                color = CzTokens.textTertiary,
+                            )
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                contentDescription = null,
+                                tint = CzTokens.textTertiary,
+                                modifier = Modifier.size(12.dp),
+                            )
+                        }
+                    }
+                }
                 OutlinedTextField(
                     value = search,
                     onValueChange = { search = it },
@@ -991,7 +1014,13 @@ private fun LibraryState(
                         color = CzTokens.textTertiary,
                     )
                 }
-                for (song in filtered) {
+                // Seis cabem antes de a lista virar rolagem sem fim; o resto
+                // fica atrás de UM toque, não atrás de um limite (a busca
+                // mostra tudo que casar). Separar uma playlist e só alcançar as
+                // seis primeiras era metade do problema que o founder relatou.
+                val collapsed = search.isBlank() && !showingAllRecent && filtered.size > COLLAPSED_RECENT
+                val shown = if (collapsed) filtered.take(COLLAPSED_RECENT) else filtered
+                for (song in shown) {
                     SongRow(
                         revision = revision,
                         song = song,
@@ -1003,72 +1032,85 @@ private fun LibraryState(
                         onAddTo = { listId -> onAddToSetlist(song, listId) },
                     )
                 }
+                if (search.isBlank() && filtered.size > COLLAPSED_RECENT) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showingAllRecent = !showingAllRecent }
+                            .padding(horizontal = 14.dp, vertical = 11.dp)
+                            .testTag("library.recent.showAll"),
+                    ) {
+                        Icon(
+                            imageVector = if (showingAllRecent) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = accent,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Text(
+                            text = if (showingAllRecent) {
+                                stringResource(R.string.cadentia_library_show_fewer)
+                            } else {
+                                stringResource(R.string.cadentia_library_show_all, filtered.size)
+                            },
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = accent,
+                        )
+                    }
+                }
             }
 
-            // ---- repertórios ----
-            Text(
-                text = stringResource(R.string.cadentia_setlists_section),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = CzTokens.textTertiary,
-            )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                OutlinedTextField(
-                    value = newListName,
-                    onValueChange = { newListName = it },
-                    label = { Text(stringResource(R.string.cadentia_setlists_name_placeholder)) },
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = CzTokens.textPrimary,
-                        unfocusedTextColor = CzTokens.textPrimary,
-                        focusedBorderColor = accent,
-                        unfocusedBorderColor = CzTokens.hairline,
-                        focusedLabelColor = accent, // rótulo em dourado (primary do tema) sobre borda teal (QA)
-                        unfocusedLabelColor = CzTokens.textTertiary,
-                        cursorColor = accent,
-                    ),
-                    modifier = Modifier.weight(1f),
-                )
-                Text(
-                    text = stringResource(R.string.cadentia_setlists_new),
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = if (newListName.isNotBlank()) accent else CzTokens.textTertiary,
+            // ---- neste aparelho ----
+            // O seletor do sistema, com seleção múltipla: separar uma música ou
+            // um repertório inteiro é o mesmo toque.
+            CzCard(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier
-                        .clickable(enabled = newListName.isNotBlank()) {
-                            onCreateSetlist(newListName)
-                            newListName = ""
-                        }
-                        .padding(8.dp),
-                )
+                        .fillMaxWidth()
+                        .clickable(onClick = onOpenFile)
+                        .padding(14.dp)
+                        .testTag("stems.choose"),
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.FolderOpen,
+                        contentDescription = null,
+                        tint = accent,
+                        modifier = Modifier.size(22.dp),
+                    )
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            text = stringResource(R.string.cadentia_library_this_device),
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = CzTokens.textPrimary,
+                        )
+                        Text(
+                            text = stringResource(R.string.cadentia_library_this_device_hint),
+                            fontSize = 11.sp,
+                            color = CzTokens.textTertiary,
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = CzTokens.textTertiary,
+                        modifier = Modifier.size(14.dp),
+                    )
+                }
             }
-            // Sem repertório nenhum o iOS mostra só o cabeçalho e o criar:
-            // cadentia.setlists.empty ("use Adicionar músicas aqui em cima") é
-            // do detalhe de UM repertório sem músicas — aqui apontava para um
-            // botão que não existe (achado do QA no emulador).
-            for (list in setlists.lists) {
-                SetlistCard(
-                    revision = revision,
-                    list = list,
-                    accent = accent,
-                    candidates = recent.songs.filter { candidate -> list.songs.none { it.id == candidate.id } },
-                    hasRecents = recent.songs.isNotEmpty(),
-                    onAddSong = { onAddToSetlist(it, list.id) },
-                    onPlayOrdered = { onPlaySetlist(list, SetQueue.Mode.Ordered) },
-                    onPlayShuffled = { onPlaySetlist(list, SetQueue.Mode.Shuffled) },
-                    onPlayFrom = { onPlayFromSetlist(list, it) },
-                    onRemoveSong = { onRemoveFromSetlist(it, list.id) },
-                    onDuplicate = { onDuplicateSetlist(list.id, it) },
-                    onRename = { onRenameSetlist(list.id, it) },
-                    onDelete = { onDeleteSetlist(list.id) },
-                )
-            }
+
+            // ---- RoqueOS ----
+            roqueSection()
         }
     }
 }
+
+/** Quantas recentes cabem antes de a lista virar rolagem sem fim. */
+private const val COLLAPSED_RECENT = 6
 
 @Composable
 private fun SongRow(
@@ -1093,19 +1135,30 @@ private fun SongRow(
             .padding(horizontal = 14.dp, vertical = 11.dp),
     ) {
         Icon(
-            imageVector = Icons.Filled.MusicNote,
+            imageVector = if (ready) Icons.Filled.PlayCircle else Icons.Filled.MusicNote,
             contentDescription = null,
             tint = if (ready) accent else CzTokens.textTertiary,
-            modifier = Modifier.size(16.dp),
+            modifier = Modifier.size(18.dp),
         )
-        Text(
-            text = song.title,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 1,
-            color = CzTokens.textPrimary,
-            modifier = Modifier.weight(1f),
-        )
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                text = song.title,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                color = CzTokens.textPrimary,
+            )
+            // Dizer que está pronta vale muito: é a diferença entre tocar na
+            // hora e esperar a separação de novo.
+            Text(
+                text = stringResource(
+                    if (ready) R.string.cadentia_library_ready_to_play else R.string.cadentia_library_will_separate_again,
+                ),
+                fontSize = 10.sp,
+                color = if (ready) accent.copy(alpha = 0.85f) else CzTokens.textTertiary,
+            )
+        }
         if (setlists.lists.isNotEmpty()) {
             Box {
                 Icon(

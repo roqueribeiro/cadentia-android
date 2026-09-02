@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- O mesmo que backup_rules.xml, na forma do Android 12+. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="file" path="stems" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="file" path="stems" />
+    </device-transfer>
+</data-extraction-rules>

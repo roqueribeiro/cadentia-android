@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.Bitmap
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,7 +12,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Folder
@@ -29,6 +30,7 @@ import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -58,21 +61,31 @@ import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import com.levelhard.cadentia.R
+import com.levelhard.cadentia.kit.RecentSong
 import com.levelhard.cadentia.ui.CzCard
 import com.levelhard.cadentia.ui.CzTokens
+import java.io.File
 import java.util.Locale
+import java.util.UUID
 import kotlinx.coroutines.launch
 
 /**
  * A seção RoqueOS da biblioteca — port da parte de conexão e navegação da
- * `MusicLibraryView.swift`: conectar por pareamento (código curto + QR),
- * navegar as quatro fontes e baixar uma música para separar.
+ * `MusicLibraryView.swift` (1.16): conectar por pareamento (código curto +
+ * QR), navegar as quatro fontes, baixar uma música para separar — ou marcar
+ * várias, em pastas diferentes, e importar a leva de uma vez.
+ *
+ * @param onPick uma música tocada sem seleção: quem chamou baixa e abre.
+ * @param onPickMany a leva já BAIXADA para cópias temporárias (`file://` em
+ *   `cacheDir`), com a identidade de cada uma para o histórico; quem recebe
+ *   apaga a cópia depois de usar.
  */
 @Composable
 fun RoqueOSSection(
     accent: Color,
     account: RoqueOSAccount,
     onPick: (RoqueOSLibrary.Item) -> Unit,
+    onPickMany: (List<Pair<Uri, RecentSong>>) -> Unit,
     downloadingId: String?,
 ) {
     val phase by account.phase.collectAsState()
@@ -84,6 +97,7 @@ fun RoqueOSSection(
             account = account,
             library = library,
             onPick = onPick,
+            onPickMany = onPickMany,
             downloadingId = downloadingId,
         )
         is RoqueOSAccount.Phase.Waiting -> PairingCard(
@@ -318,13 +332,56 @@ private fun ConnectedBrowser(
     account: RoqueOSAccount,
     library: RoqueOSLibrary,
     onPick: (RoqueOSLibrary.Item) -> Unit,
+    onPickMany: (List<Pair<Uri, RecentSong>>) -> Unit,
     downloadingId: String?,
 ) {
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var crumbs by remember { mutableStateOf(listOf<Crumb>()) }
     var items by remember { mutableStateOf(listOf<RoqueOSLibrary.Item>()) }
     var loading by remember { mutableStateOf(false) }
     var problem by remember { mutableStateOf<String?>(null) }
+    // A seleção múltipla: o que está marcado, POR ID e atravessando pastas —
+    // uma playlist espalhada por várias delas se junta aqui.
+    var selecting by remember { mutableStateOf(false) }
+    var picked by remember { mutableStateOf(mapOf<String, RoqueOSLibrary.Item>()) }
+    // O download em massa em curso (0 = nenhum).
+    var bulkTotal by remember { mutableStateOf(0) }
+    var bulkDone by remember { mutableStateOf(0) }
+
+    /**
+     * Baixa tudo que foi marcado e entrega a leva inteira de uma vez. Em
+     * SÉRIE: são downloads de um servidor doméstico ou do Drive, e vinte
+     * pedidos simultâneos numa rede de casa chegam mais devagar do que vinte
+     * em fila. Um arquivo que não baixa não derruba os outros: entra na lista
+     * do que não deu, e o resto segue.
+     */
+    fun importSelected() {
+        if (picked.isEmpty() || bulkTotal > 0) return
+        val chosen = picked.values.toList()
+        bulkTotal = chosen.size
+        bulkDone = 0
+        problem = null
+        scope.launch {
+            val folder = File(context.cacheDir, "importacoes").also { it.mkdirs() }
+            val picks = mutableListOf<Pair<Uri, RecentSong>>()
+            val refused = mutableListOf<String>()
+            for (item in chosen) {
+                try {
+                    val file = library.download(item, File(folder, "${UUID.randomUUID()}-${item.name}"))
+                    picks += Uri.fromFile(file) to identify(item)
+                } catch (error: Exception) {
+                    refused += item.name
+                }
+                bulkDone += 1
+            }
+            bulkTotal = 0
+            selecting = false
+            picked = emptyMap()
+            if (refused.isNotEmpty()) problem = refused.joinToString(", ")
+            if (picks.isNotEmpty()) onPickMany(picks)
+        }
+    }
 
     fun reload() {
         val crumb = crumbs.lastOrNull() ?: return
@@ -438,6 +495,88 @@ private fun ConnectedBrowser(
                         modifier = Modifier.size(16.dp),
                     )
                 }
+                if (items.any { !it.isFolder } || picked.isNotEmpty()) {
+                    Text(
+                        text = stringResource(
+                            if (selecting) R.string.cadentia_library_select_done else R.string.cadentia_library_select,
+                        ),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = accent,
+                        modifier = Modifier
+                            .clickable {
+                                selecting = !selecting
+                                if (!selecting) picked = emptyMap()
+                            }
+                            .padding(vertical = 8.dp, horizontal = 6.dp)
+                            .testTag("library.select"),
+                    )
+                }
+            }
+
+            // O BOTÃO FICA NO TOPO: no fim da lista, numa playlist grande, ele
+            // caía abaixo da dobra — o founder marcou as músicas e não achou
+            // como importar.
+            if (bulkTotal > 0) {
+                CzCard(modifier = Modifier.fillMaxWidth().testTag("library.bulkProgress")) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    ) {
+                        Text(
+                            text = stringResource(
+                                R.string.cadentia_library_downloading, minOf(bulkDone + 1, bulkTotal), bulkTotal,
+                            ),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = CzTokens.textPrimary,
+                        )
+                        LinearProgressIndicator(
+                            progress = { bulkDone.toFloat() / maxOf(bulkTotal, 1) },
+                            color = accent,
+                            trackColor = CzTokens.surface,
+                            strokeCap = StrokeCap.Round,
+                            gapSize = 0.dp,
+                            drawStopIndicator = {},
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                }
+            } else if (selecting && picked.isNotEmpty()) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    // Só as músicas DESTA pasta: o "tudo" de uma tela cheia de
+                    // arquivos não pode significar "tudo do servidor".
+                    Text(
+                        text = stringResource(R.string.cadentia_library_select_all),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = CzTokens.textSecondary,
+                        modifier = Modifier
+                            .background(CzTokens.surface, RoundedCornerShape(50))
+                            .clickable {
+                                picked = picked + items.filter { !it.isFolder }.associateBy { it.id }
+                            }
+                            .padding(vertical = 12.dp, horizontal = 14.dp)
+                            .testTag("library.selectAll"),
+                    )
+                    Text(
+                        text = stringResource(R.string.cadentia_library_import_selected, picked.size),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        color = Color.Black,
+                        modifier = Modifier
+                            .weight(1f)
+                            .background(accent, RoundedCornerShape(50))
+                            .clickable { importSelected() }
+                            .padding(vertical = 13.dp)
+                            .testTag("library.importSelected"),
+                    )
+                }
             }
 
             val currentProblem = problem
@@ -504,17 +643,33 @@ private fun ConnectedBrowser(
                                                     Crumb(item.name, item.path),
                                                 )
                                             }
-                                        } else if (downloadingId == null) {
+                                        } else if (selecting) {
+                                            picked = if (item.id in picked) picked - item.id else picked + (item.id to item)
+                                        } else if (downloadingId == null && bulkTotal == 0) {
                                             onPick(item)
                                         }
                                     }
                                     .padding(horizontal = 14.dp, vertical = 12.dp),
                             ) {
+                                // Na seleção, a marca substitui o ícone só nas
+                                // MÚSICAS: a pasta continua pasta e continua
+                                // abrindo, senão não dá para juntar uma
+                                // playlist espalhada por várias delas.
+                                val chosen = selecting && !item.isFolder && item.id in picked
                                 Icon(
-                                    imageVector = if (item.isFolder) Icons.Filled.Folder else Icons.Filled.MusicNote,
+                                    imageVector = when {
+                                        selecting && !item.isFolder -> if (chosen) Icons.Filled.CheckCircle else Icons.Filled.MusicNote
+                                        item.isFolder -> Icons.Filled.Folder
+                                        else -> Icons.Filled.MusicNote
+                                    },
                                     contentDescription = null,
-                                    tint = if (item.isFolder) CzTokens.textTertiary else accent,
-                                    modifier = Modifier.size(17.dp),
+                                    tint = when {
+                                        chosen -> accent
+                                        selecting && !item.isFolder -> CzTokens.textTertiary
+                                        item.isFolder -> CzTokens.textTertiary
+                                        else -> accent
+                                    },
+                                    modifier = Modifier.size(if (selecting && !item.isFolder) 19.dp else 17.dp),
                                 )
                                 Text(
                                     text = item.name,
@@ -594,6 +749,13 @@ private fun SourceRow(
         )
     }
 }
+
+/** A identidade de um item para o histórico e o cache — a mesma de `openRemoteItem`. */
+private fun identify(item: RoqueOSLibrary.Item): RecentSong = RecentSong(
+    title = item.name.substringBeforeLast('.'),
+    source = item.recentSource(),
+    lastOpenedEpochMillis = System.currentTimeMillis(),
+)
 
 private fun byteLabel(bytes: Long): String = when {
     bytes >= 1_000_000_000 -> String.format(Locale.ROOT, "%.1f GB", bytes / 1e9)

@@ -150,43 +150,83 @@ class StemPipelineTest {
 
 /** A regra de limpeza do cache (o miolo puro do StemCache.trim). */
 class StemCachePolicyTest {
-    private fun entry(id: String, bytes: Long, usedAt: Long) =
-        StemCachePolicy.Entry(id, bytes, usedAt)
+    private val gigabyte = 1_073_741_824L
 
-    @Test fun evictsWhatIsNoLongerRecentFirst() {
-        val doomed = StemCachePolicy.evict(
-            entries = listOf(
-                entry("viva", 100, 10),
-                entry("morta", 100, 99),
-            ),
-            keeping = setOf("viva"),
-            maxBytes = 1_000,
-        )
-        assertEquals(listOf("morta"), doomed)
+    private fun entry(id: String, days: Double, mb: Long = 33) =
+        StemCachePolicy.Entry(id, mb * 1_048_576, 1_700_000_000_000L - (days * 86_400_000).toLong())
+
+    /** Com espaço sobrando, NADA sai: a regra antiga apagava tudo fora das Recentes. */
+    @Test fun keepsEverythingWhileThereIsRoom() {
+        val entries = (1..50).map { entry("m$it", it.toDouble()) }
+        assertTrue(StemCachePolicy.evictions(entries, freeBytes = 40 * gigabyte, reserve = 2 * gigabyte).isEmpty())
     }
 
-    @Test fun overCapTheOldestGoFirst() {
-        // Total 1800 com teto 1000: sai a antiga (fica 1200, ainda acima),
-        // sai a média (fica 600, cabe), a nova sobrevive.
-        val doomed = StemCachePolicy.evict(
-            entries = listOf(
-                entry("antiga", 600, 1),
-                entry("media", 600, 2),
-                entry("nova", 600, 3),
-            ),
-            keeping = setOf("antiga", "media", "nova"),
-            maxBytes = 1_000,
-        )
-        assertEquals(listOf("antiga", "media"), doomed)
+    /** A limpeza roda logo depois de escrever e apagava o próprio resultado. */
+    @Test fun neverEvictsWhatWasJustWritten() {
+        val justWritten = entry("recem-separada", 0.0)
+        assertTrue(StemCachePolicy.evictions(listOf(justWritten), freeBytes = 1_500_000_000L, reserve = 2 * gigabyte).isEmpty())
+        val many = (1..40).map { entry("m$it", it.toDouble(), mb = 200) }
+        val evicted = StemCachePolicy.evictions(many, freeBytes = 100_000_000L, reserve = 2 * gigabyte).toSet()
+        for (recent in listOf("m1", "m2", "m3", "m4", "m5")) {
+            assertTrue("$recent é das cinco mais novas e saiu", recent !in evicted)
+        }
     }
 
-    @Test fun underTheCapNothingAliveIsTouched() {
-        val doomed = StemCachePolicy.evict(
-            entries = listOf(entry("a", 100, 1), entry("b", 100, 2)),
-            keeping = setOf("a", "b"),
-            maxBytes = 1_000,
+    /** Apagar a playlist inteira e continuar sem espaço é perda pura. */
+    @Test fun doesNotWipeEverythingWhenItCannotHelp() {
+        val entries = (1..10).map { entry("m$it", it.toDouble()) }
+        assertTrue(StemCachePolicy.evictions(entries, freeBytes = 300L * 1_048_576, reserve = 2 * gigabyte).isEmpty())
+    }
+
+    @Test fun evictsOldestUntilItFits() {
+        val entries = listOf(
+            entry("nova", 1.0, 100), entry("media", 10.0, 100),
+            entry("antiga", 30.0, 100), entry("antiquissima", 90.0, 100),
         )
-        assertTrue(doomed.isEmpty())
+        val reserve = 2 * gigabyte
+        val out = StemCachePolicy.evictions(entries, freeBytes = reserve - 150L * 1_048_576, reserve = reserve, keepNewest = 0)
+        assertEquals(listOf("antiquissima", "antiga"), out)
+    }
+
+    @Test fun setlistSongsAreNeverEvicted() {
+        val entries = listOf(entry("show-antiga", 90.0, 100), entry("curiosidade", 2.0, 100))
+        val reserve = 2 * gigabyte
+        val out = StemCachePolicy.evictions(
+            entries, freeBytes = reserve - 50L * 1_048_576, reserve = reserve,
+            protected = setOf("show-antiga"), keepNewest = 0,
+        )
+        assertEquals(listOf("curiosidade"), out)
+        val hard = StemCachePolicy.evictions(
+            entries, freeBytes = 10_000_000L, reserve = reserve,
+            protected = setOf("show-antiga", "curiosidade"), keepNewest = 0,
+        )
+        assertTrue(hard.isEmpty())
+    }
+
+    @Test fun unreadableFreeSpaceNeverDeletes() {
+        val entries = (1..10).map { entry("m$it", it.toDouble()) }
+        assertTrue(StemCachePolicy.evictions(entries, freeBytes = 0, reserve = 2 * gigabyte, keepNewest = 0).isEmpty())
+        assertTrue(StemCachePolicy.evictions(entries, freeBytes = -1, reserve = 2 * gigabyte, keepNewest = 0).isEmpty())
+    }
+
+    @Test fun orderIsStable() {
+        val entries = listOf(entry("b", 5.0, 100), entry("a", 5.0, 100), entry("c", 5.0, 100))
+        val reserve = 2 * gigabyte
+        val free = reserve - 50L * 1_048_576
+        val first = StemCachePolicy.evictions(entries, free, reserve, keepNewest = 0)
+        val second = StemCachePolicy.evictions(entries.reversed(), free, reserve, keepNewest = 0)
+        assertEquals(first, second)
+        assertEquals(1, first.size)
+    }
+
+    /** Com WAV float32 (323 MB) uma reserva de 2 GB estourava em seis músicas; com AAC (33 MB), sessenta. */
+    @Test fun sixtyAacSongsFitWhereSixWavDidNot() {
+        val reserve = 2 * gigabyte
+        val aac = (1..60).map { entry("aac$it", it.toDouble(), mb = 33) }
+        assertTrue(StemCachePolicy.evictions(aac, freeBytes = reserve + 500L * 1_048_576, reserve = reserve).isEmpty())
+        val wav = (1..7).map { entry("wav$it", it.toDouble(), mb = 323) }
+        val out = StemCachePolicy.evictions(wav, freeBytes = reserve - 300L * 1_048_576, reserve = reserve, keepNewest = 0)
+        assertTrue(out.isNotEmpty())
     }
 }
 

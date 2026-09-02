@@ -3,23 +3,24 @@ package com.levelhard.cadentia.features.stems
 import android.content.Context
 import com.levelhard.cadentia.kit.RecentSongs
 import com.levelhard.cadentia.kit.Setlists
-import com.levelhard.cadentia.kit.StemCachePolicy
 import com.levelhard.cadentia.kit.StemMixMemory
-import com.levelhard.cadentia.kit.StemPipeline
 import java.io.File
 import kotlinx.serialization.json.Json
 
 /**
  * Persistência da área de stems — os papéis de `RecentSongsStore`,
- * `StemMixMemoryStore`, `SetlistStore` e `StemCache` do iOS, sobre os tipos
- * puros do :kit. SharedPreferences para as listas (bytes, não segredo) e
- * cacheDir para as faixas separadas (dado regenerável: o sistema pode
- * apagar sob pressão, e o app trata ausência como "separar de novo").
+ * `StemMixMemoryStore` e `SetlistStore` do iOS, sobre os tipos puros do
+ * :kit. SharedPreferences para as listas (bytes, não segredo). As faixas
+ * separadas moram no [StemCache] (1.16: `filesDir`, publicação por rename,
+ * limpeza só quando o aparelho pede) — os métodos `*Cache` daqui só
+ * delegam, para quem ainda chama pelo nome antigo.
  */
 class StemStores(context: Context) {
     private val prefs = context.getSharedPreferences("cadentia.stems", Context.MODE_PRIVATE)
-    private val cacheRoot = File(context.cacheDir, "stems")
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
+
+    /** As faixas separadas em disco. */
+    val cache = StemCache(context)
 
     private companion object {
         const val KEY_RECENT = "cadentia.stems.recent.v1"
@@ -52,42 +53,16 @@ class StemStores(context: Context) {
         runCatching { prefs.edit().putString(key, json.encodeToString(serializer, value)).apply() }
     }
 
-    // ---- cache das faixas separadas ----
+    // ---- cache das faixas separadas (delegação ao StemCache) ----
 
-    fun cacheDirectory(songId: String): File = File(cacheRoot, songId)
+    fun cacheDirectory(songId: String): File = cache.directory(songId)
 
-    /**
-     * Só conta como pronta com as QUATRO faixas lá: uma separação
-     * interrompida deixa a pasta pela metade, e reusar isso daria uma música
-     * sem baixo, sem erro nenhum na tela.
-     */
-    fun isCacheComplete(songId: String): Boolean {
-        val folder = cacheDirectory(songId)
-        return StemPipeline.sourceNames.all { name ->
-            File(folder, "$name.wav").let { it.exists() && it.length() > 0 }
-        }
-    }
+    fun isCacheComplete(songId: String): Boolean = cache.isComplete(songId)
 
-    fun touchCache(songId: String) {
-        cacheDirectory(songId).setLastModified(System.currentTimeMillis())
-    }
+    fun touchCache(songId: String) = cache.touch(songId)
 
-    fun removeCache(songId: String) {
-        cacheDirectory(songId).deleteRecursively()
-    }
+    fun removeCache(songId: String) = cache.remove(songId)
 
-    /** A regra pura do :kit decide quem sai; aqui só se apaga. */
-    fun trimCache(keeping: Set<String>) {
-        val folders = cacheRoot.listFiles() ?: return
-        val entries = folders.filter { it.isDirectory }.map { folder ->
-            StemCachePolicy.Entry(
-                songId = folder.name,
-                bytes = folder.listFiles()?.sumOf { it.length() } ?: 0L,
-                usedAtEpochMillis = folder.lastModified(),
-            )
-        }
-        for (doomed in StemCachePolicy.evict(entries, keeping)) {
-            File(cacheRoot, doomed).deleteRecursively()
-        }
-    }
+    /** Abre espaço só quando o aparelho pede; `keeping` nunca sai. */
+    fun trimCache(keeping: Set<String>) = cache.trim(keeping)
 }

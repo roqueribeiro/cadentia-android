@@ -1,36 +1,239 @@
 {
   "_comment": "Ajustes APENAS de plataforma sobre o catálogo do iOS: o texto do iOS fala em iPhone e GPU do iPhone; no Android o aparelho é outro. Cada entrada é uma substituição de trecho por chave e idioma; o gerador FALHA se o trecho não existir mais (para o ajuste não sobreviver a um texto que mudou na fonte). Achado do QA no emulador: a tela Sobre dizia 'roda na GPU do próprio iPhone'.",
   "overrides": [
-    {"key": "cadentia.about.roqueosBody", "locale": "pt-BR", "find": "no iPhone", "replace": "no celular"},
-    {"key": "cadentia.about.roqueosBody", "locale": "en", "find": "on your iPhone", "replace": "on your phone"},
-    {"key": "cadentia.about.roqueosBody", "locale": "es", "find": "en el iPhone", "replace": "en el teléfono"},
-    {"key": "cadentia.about.roqueosBody", "locale": "fr", "find": "sur l’iPhone", "replace": "sur le téléphone"},
-    {"key": "cadentia.about.roqueosBody", "locale": "de", "find": "auf dem iPhone", "replace": "auf dem Handy"},
-    {"key": "cadentia.about.roqueosBody", "locale": "hi", "find": "iPhone पर", "replace": "फ़ोन पर"},
-    {"key": "cadentia.about.roqueosBody", "locale": "ja", "find": "iPhoneで", "replace": "スマートフォンで"},
-    {"key": "cadentia.about.roqueosBody", "locale": "ru", "find": "на iPhone", "replace": "на телефоне"},
-    {"key": "cadentia.about.roqueosBody", "locale": "zh-Hans", "find": "在 iPhone 上", "replace": "在手机上"},
-    {"key": "cadentia.about.roqueosBody", "locale": "ar", "find": "على الآيفون", "replace": "على الهاتف"},
-
-    {"key": "cadentia.about.separationBody", "locale": "pt-BR", "find": "roda na GPU do próprio iPhone", "replace": "roda no próprio aparelho"},
-    {"key": "cadentia.about.separationBody", "locale": "en", "find": "runs on the iPhone's own GPU", "replace": "runs on the device itself"},
-    {"key": "cadentia.about.separationBody", "locale": "es", "find": "corre en la GPU del propio iPhone", "replace": "corre en el propio dispositivo"},
-    {"key": "cadentia.about.separationBody", "locale": "fr", "find": "tourne sur le GPU de l’iPhone", "replace": "tourne sur l’appareil lui-même"},
-    {"key": "cadentia.about.separationBody", "locale": "de", "find": "läuft auf der GPU des iPhones", "replace": "läuft direkt auf dem Gerät"},
-    {"key": "cadentia.about.separationBody", "locale": "hi", "find": "मॉडल iPhone के अपने GPU पर चलता है", "replace": "मॉडल इसी डिवाइस पर चलता है"},
-    {"key": "cadentia.about.separationBody", "locale": "ja", "find": "モデルはiPhoneのGPUで動き", "replace": "モデルは端末そのもので動き"},
-    {"key": "cadentia.about.separationBody", "locale": "ru", "find": "работает на GPU самого iPhone", "replace": "работает на самом устройстве"},
-    {"key": "cadentia.about.separationBody", "locale": "zh-Hans", "find": "模型在 iPhone 自己的 GPU 上运行", "replace": "模型在这台设备上运行"},
-    {"key": "cadentia.about.separationBody", "locale": "ar", "find": "النموذج يعمل على معالج الرسوميات داخل الآيفون", "replace": "النموذج يعمل على الجهاز نفسه"},
-
-    {"key": "cadentia.library.thisDevice", "locale": "pt-BR", "find": "Neste iPhone", "replace": "Neste aparelho"},
-    {"key": "cadentia.library.thisDevice", "locale": "en", "find": "On this iPhone", "replace": "On this device"},
-    {"key": "cadentia.library.thisDevice", "locale": "es", "find": "En este iPhone", "replace": "En este dispositivo"},
-    {"key": "cadentia.library.thisDevice", "locale": "fr", "find": "Sur cet iPhone", "replace": "Sur cet appareil"},
-    {"key": "cadentia.library.thisDevice", "locale": "de", "find": "Auf diesem iPhone", "replace": "Auf diesem Gerät"},
-    {"key": "cadentia.library.thisDevice", "locale": "hi", "find": "इस iPhone पर", "replace": "इस डिवाइस पर"},
-    {"key": "cadentia.library.thisDevice", "locale": "ja", "find": "このiPhone内", "replace": "この端末内"},
-    {"key": "cadentia.library.thisDevice", "locale": "ru", "find": "На этом iPhone", "replace": "На этом устройстве"},
-    {"key": "cadentia.library.thisDevice", "locale": "ar", "find": "على هذا الـ iPhone", "replace": "على هذا الجهاز"}
+    {
+      "key": "cadentia.about.roqueosBody",
+      "locale": "pt-BR",
+      "find": "no iPhone",
+      "replace": "no celular"
+    },
+    {
+      "key": "cadentia.about.roqueosBody",
+      "locale": "en",
+      "find": "on your iPhone",
+      "replace": "on your phone"
+    },
+    {
+      "key": "cadentia.about.roqueosBody",
+      "locale": "es",
+      "find": "en el iPhone",
+      "replace": "en el teléfono"
+    },
+    {
+      "key": "cadentia.about.roqueosBody",
+      "locale": "fr",
+      "find": "sur l’iPhone",
+      "replace": "sur le téléphone"
+    },
+    {
+      "key": "cadentia.about.roqueosBody",
+      "locale": "de",
+      "find": "auf dem iPhone",
+      "replace": "auf dem Handy"
+    },
+    {
+      "key": "cadentia.about.roqueosBody",
+      "locale": "hi",
+      "find": "iPhone पर",
+      "replace": "फ़ोन पर"
+    },
+    {
+      "key": "cadentia.about.roqueosBody",
+      "locale": "ja",
+      "find": "iPhoneで",
+      "replace": "スマートフォンで"
+    },
+    {
+      "key": "cadentia.about.roqueosBody",
+      "locale": "ru",
+      "find": "на iPhone",
+      "replace": "на телефоне"
+    },
+    {
+      "key": "cadentia.about.roqueosBody",
+      "locale": "zh-Hans",
+      "find": "在 iPhone 上",
+      "replace": "在手机上"
+    },
+    {
+      "key": "cadentia.about.roqueosBody",
+      "locale": "ar",
+      "find": "على الآيفون",
+      "replace": "على الهاتف"
+    },
+    {
+      "key": "cadentia.about.separationBody",
+      "locale": "pt-BR",
+      "find": "roda na GPU do próprio iPhone",
+      "replace": "roda no próprio aparelho"
+    },
+    {
+      "key": "cadentia.about.separationBody",
+      "locale": "en",
+      "find": "runs on the iPhone's own GPU",
+      "replace": "runs on the device itself"
+    },
+    {
+      "key": "cadentia.about.separationBody",
+      "locale": "es",
+      "find": "corre en la GPU del propio iPhone",
+      "replace": "corre en el propio dispositivo"
+    },
+    {
+      "key": "cadentia.about.separationBody",
+      "locale": "fr",
+      "find": "tourne sur le GPU de l’iPhone",
+      "replace": "tourne sur l’appareil lui-même"
+    },
+    {
+      "key": "cadentia.about.separationBody",
+      "locale": "de",
+      "find": "läuft auf der GPU des iPhones",
+      "replace": "läuft direkt auf dem Gerät"
+    },
+    {
+      "key": "cadentia.about.separationBody",
+      "locale": "hi",
+      "find": "मॉडल iPhone के अपने GPU पर चलता है",
+      "replace": "मॉडल इसी डिवाइस पर चलता है"
+    },
+    {
+      "key": "cadentia.about.separationBody",
+      "locale": "ja",
+      "find": "モデルはiPhoneのGPUで動き",
+      "replace": "モデルは端末そのもので動き"
+    },
+    {
+      "key": "cadentia.about.separationBody",
+      "locale": "ru",
+      "find": "работает на GPU самого iPhone",
+      "replace": "работает на самом устройстве"
+    },
+    {
+      "key": "cadentia.about.separationBody",
+      "locale": "zh-Hans",
+      "find": "模型在 iPhone 自己的 GPU 上运行",
+      "replace": "模型在这台设备上运行"
+    },
+    {
+      "key": "cadentia.about.separationBody",
+      "locale": "ar",
+      "find": "النموذج يعمل على معالج الرسوميات داخل الآيفون",
+      "replace": "النموذج يعمل على الجهاز نفسه"
+    },
+    {
+      "key": "cadentia.library.thisDevice",
+      "locale": "pt-BR",
+      "find": "Neste iPhone",
+      "replace": "Neste aparelho"
+    },
+    {
+      "key": "cadentia.library.thisDevice",
+      "locale": "en",
+      "find": "On this iPhone",
+      "replace": "On this device"
+    },
+    {
+      "key": "cadentia.library.thisDevice",
+      "locale": "es",
+      "find": "En este iPhone",
+      "replace": "En este dispositivo"
+    },
+    {
+      "key": "cadentia.library.thisDevice",
+      "locale": "fr",
+      "find": "Sur cet iPhone",
+      "replace": "Sur cet appareil"
+    },
+    {
+      "key": "cadentia.library.thisDevice",
+      "locale": "de",
+      "find": "Auf diesem iPhone",
+      "replace": "Auf diesem Gerät"
+    },
+    {
+      "key": "cadentia.library.thisDevice",
+      "locale": "hi",
+      "find": "इस iPhone पर",
+      "replace": "इस डिवाइस पर"
+    },
+    {
+      "key": "cadentia.library.thisDevice",
+      "locale": "ja",
+      "find": "このiPhone内",
+      "replace": "この端末内"
+    },
+    {
+      "key": "cadentia.library.thisDevice",
+      "locale": "ru",
+      "find": "На этом iPhone",
+      "replace": "На этом устройстве"
+    },
+    {
+      "key": "cadentia.library.thisDevice",
+      "locale": "ar",
+      "find": "على هذا الـ iPhone",
+      "replace": "على هذا الجهاز"
+    },
+    {
+      "key": "cadentia.library.thisDeviceHint",
+      "locale": "pt-BR",
+      "find": " e iCloud Drive",
+      "replace": ""
+    },
+    {
+      "key": "cadentia.library.thisDeviceHint",
+      "locale": "en",
+      "find": " and iCloud Drive",
+      "replace": ""
+    },
+    {
+      "key": "cadentia.library.thisDeviceHint",
+      "locale": "es",
+      "find": " y iCloud Drive",
+      "replace": ""
+    },
+    {
+      "key": "cadentia.library.thisDeviceHint",
+      "locale": "fr",
+      "find": " et iCloud Drive",
+      "replace": ""
+    },
+    {
+      "key": "cadentia.library.thisDeviceHint",
+      "locale": "de",
+      "find": " und iCloud Drive",
+      "replace": ""
+    },
+    {
+      "key": "cadentia.library.thisDeviceHint",
+      "locale": "ja",
+      "find": "とiCloud Drive",
+      "replace": ""
+    },
+    {
+      "key": "cadentia.library.thisDeviceHint",
+      "locale": "zh-Hans",
+      "find": "与 iCloud 云盘",
+      "replace": ""
+    },
+    {
+      "key": "cadentia.library.thisDeviceHint",
+      "locale": "hi",
+      "find": " और iCloud Drive",
+      "replace": ""
+    },
+    {
+      "key": "cadentia.library.thisDeviceHint",
+      "locale": "ru",
+      "find": " и iCloud Drive",
+      "replace": ""
+    },
+    {
+      "key": "cadentia.library.thisDeviceHint",
+      "locale": "ar",
+      "find": " وiCloud Drive",
+      "replace": ""
+    }
   ]
 }

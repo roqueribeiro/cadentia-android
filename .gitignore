@@ -22,3 +22,4 @@ fastlane/Preview.html
 artifacts/
 # Bancos de sample (~65 MB de FLAC gerados por scripts/fetch-samples.mjs): fora do git e do APK
 /samples/
+__pycache__/

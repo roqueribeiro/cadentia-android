@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Faixa separada é derivada de música que a pessoa já tem: subir gigabytes
+     disso para o backup gastaria a cota dela com o que o aparelho refaz. -->
+<full-backup-content>
+    <exclude domain="file" path="stems" />
+</full-backup-content>

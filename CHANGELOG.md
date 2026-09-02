@@ -2,6 +2,61 @@
 
 ## [Não lançado]
 
+### Fase 9 — Separar 1.16 (2026-09-02)
+
+- Kit: `StemCachePolicy.evictions` — a limpeza só age quando o aparelho
+  fica sem espaço (reserva de 2 GB), as cinco mais novas e as de repertório
+  nunca saem, e se apagar tudo ainda não alcança a reserva, não apaga nada
+  (8 testes portados do 1.16). `RecentSongs.LIMIT` 30 → 200: a lista de
+  recentes deixou de ser a prova de vida das faixas separadas.
+- `StemCache` (port do 1.16): faixas em `filesDir/stems` (fora do backup:
+  `backup_rules.xml` e `data_extraction_rules.xml`), migração automática da
+  pasta velha em `cacheDir`, escrita em `<id>.parcial` e publicação por
+  `rename` (ou a pasta está inteira, ou não está), varredura de entulho ao
+  entrar na tela, `usage()` para a tela dizer quanto ocupa.
+- `SeparationService`: serviço de primeiro plano (`mediaProcessing` no
+  Android 15+, `dataSync` antes) com notificação de progresso e botão de
+  cancelar — o papel do `SeparationJob`/Ilha Dinâmica. Wake lock parcial com
+  teto de 6 h. **Achado no emulador (API 37):** `ServiceCompat.startForeground`
+  do core 1.16 mascara o tipo com os tipos do Android 14, e `mediaProcessing`
+  virava "type none" — "Starting FGS with type none ... has been prohibited".
+  A chamada passou a ser a da plataforma; medido depois: `tipo 8192` aceito.
+  Atualizar e parar falam com a instância viva (nada de `startService` do
+  fundo), e um `stop` que chega antes de o serviço nascer o mata ao nascer.
+- `StemsModel` (port do `StemsModel.swift`): a tela saiu do estado inline
+  para o modelo — `open`/`openMany` (leva em série, a primeira que dá certo
+  vai para o player, falhas listadas sem derrubar o resto), `reopen` com
+  rebaixar da origem remota, `materialize` (normaliza fora da thread
+  principal, valida a entrada, publica por rename, `trim` só depois),
+  `cancelBatch` em todo "quero outra coisa agora", `clearStorage`,
+  `sweepStorage`, fila do repertório e loop A/B como antes. A separação em si
+  continua parando em `modelMissing` — o mesmo lugar do iOS sem o
+  `Separator.mlmodelc`.
+- Tela: `SeparatingView` (anel com porcentagem ou ícone respirando, as
+  quatro faixas em ícones, fila da leva com feito/atual/próximas e rolagem
+  para a atual, andamento da leva, estimativa honesta do que falta — só
+  acima de 6% —, e o convite para sair do app). Faixa da leva no topo em
+  qualquer estado, opaca, com X de 44 dp que cancela de verdade. Biblioteca
+  na ordem do 1.16: repertórios, recentes (seis e "Ver todas (N)", "Pronta
+  para tocar"/"Vai separar de novo" em cada linha, espaço usado tocável com
+  diálogo de apagar), "Neste aparelho" (seletor do sistema com seleção
+  múltipla, permissão de notificação pedida inline no Android 13+) e RoqueOS.
+- Navegador RoqueOS: Selecionar/Concluir, marca por música atravessando
+  pastas, "Tudo desta pasta", "Importar N" no topo, downloads em série com
+  "Baixando i de N" e falhas listadas; as cópias temporárias somem depois de
+  normalizar.
+- i18n: `thisDeviceHint` sem "iCloud Drive" nos 10 idiomas (override do
+  Android); o gerador converte `%N$lld`/`%N$@` para `%N$d`/`%N$s` e a
+  auditoria bloqueia especificador do iOS no `strings.xml`.
+- QA no emulador (v7 → v7b): biblioteca vazia e com 12 recentes, separação
+  em 42%/0%/leva de 12, "Ver todas"/"Ver menos", player a partir do cache
+  (toca), espaço usado → diálogo → apagado (pasta sumiu), importação de 3 e
+  de 2 arquivos pelo seletor do sistema (leva, faixa, falha com o motivo),
+  importação de 1, permissão de notificação inline (revogada → pedida →
+  concedida → leva segue), X da faixa, "Tentar outra". Buffer de crash
+  limpo. Não medido: a notificação na tela (o fluxo termina em ~200 ms sem
+  o modelo) e o cancelar pela notificação.
+
 ### Fase 8 — Cordas (2026-09-02)
 
 - Kit (0d1f06d): os 16 arquivos do Cordas portados 1:1 do 1.16 —

@@ -44,6 +44,10 @@ class MainActivity : ComponentActivity() {
             cordasCoach = intent.getBooleanExtra("qa-cordas-coach", false),
             cordasReplay = intent.getBooleanExtra("qa-cordas-replay", false),
             studyInstrument = intent.getStringExtra("qa-study-instrument"),
+            stemsProgress = intent.getStringExtra("qa-stems-progress")?.toIntOrNull(),
+            stemsBatch = intent.getStringExtra("qa-stems-batch")?.toIntOrNull(),
+            stemsMany = intent.getBooleanExtra("qa-stems-many", false),
+            stemsBanner = intent.getStringExtra("qa-stems-banner")?.toIntOrNull(),
         )
 
         val store = SettingsStore(applicationContext)

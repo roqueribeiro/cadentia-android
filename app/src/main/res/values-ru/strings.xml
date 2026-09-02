@@ -65,7 +65,7 @@
     <string name="cadentia_cordas_hand_chords_footer">Точки — поднятые пальцы. Правая рука проводит по струнам.</string>
     <string name="cadentia_cordas_hand_chords_header">Левая рука</string>
     <string name="cadentia_cordas_hand_chords_none">Без смены</string>
-    <string name="cadentia_cordas_hand_chords_pair">%1$lld и %2$lld</string>
+    <string name="cadentia_cordas_hand_chords_pair">%1$d и %2$d</string>
     <string name="cadentia_cordas_hand_chords_reset">Вернуть аккорды по умолчанию</string>
     <string name="cadentia_cordas_hand_chords_right_count">Правая рука, пальцев: %d</string>
     <string name="cadentia_cordas_hand_chords_title">Аккорды жестами</string>
@@ -133,7 +133,7 @@
     <string name="cadentia_library_copied">Скопировано</string>
     <string name="cadentia_library_copy_link">Скопировать адрес</string>
     <string name="cadentia_library_disconnect">Отключиться от RoqueOS</string>
-    <string name="cadentia_library_downloading">Загрузка %1$lld из %2$lld</string>
+    <string name="cadentia_library_downloading">Загрузка %1$d из %2$d</string>
     <string name="cadentia_library_drive_not_connected">Сначала подключите Google Диск в RoqueOS. Подключение хранится там, а не здесь.</string>
     <string name="cadentia_library_empty_folder">Здесь нет песен.</string>
     <string name="cadentia_library_google_drive">Google Диск</string>
@@ -160,9 +160,9 @@
     <string name="cadentia_library_shared_forbidden">У этого ключа API нет прав на чтение файлов на сервере.</string>
     <string name="cadentia_library_show_all">Показать все (%d)</string>
     <string name="cadentia_library_show_fewer">Показать меньше</string>
-    <string name="cadentia_library_storage_used">Разделено: %1$lld · %2$@</string>
+    <string name="cadentia_library_storage_used">Разделено: %1$d · %2$s</string>
     <string name="cadentia_library_this_device">На этом устройстве</string>
-    <string name="cadentia_library_this_device_hint">Файлы и iCloud Drive</string>
+    <string name="cadentia_library_this_device_hint">Файлы</string>
     <string name="cadentia_library_will_separate_again">Будет разделена заново</string>
     <string name="cadentia_piano_sustain">Сустейн</string>
     <string name="cadentia_recorder_add_track">Новая дорожка</string>
@@ -225,14 +225,14 @@
     <string name="cadentia_stems_batch_cancel">Отменить разделение</string>
     <string name="cadentia_stems_batch_dismiss">Закрыть</string>
     <string name="cadentia_stems_batch_failed">Не удалось разделить: %s</string>
-    <string name="cadentia_stems_batch_position">%1$lld из %2$lld</string>
-    <string name="cadentia_stems_batch_progress">Разделение %1$lld из %2$lld</string>
+    <string name="cadentia_stems_batch_position">%1$d из %2$d</string>
+    <string name="cadentia_stems_batch_progress">Разделение %1$d из %2$d</string>
     <string name="cadentia_stems_choose">Выбрать песню</string>
     <string name="cadentia_stems_drums">Ударные</string>
     <string name="cadentia_stems_empty_body">Выберите песню, и Cadentia отделит ударные, бас, вокал и остальное. Всё на устройстве, ничего не уходит наружу.</string>
     <string name="cadentia_stems_empty_title">Уберите инструмент из песни</string>
     <string name="cadentia_stems_failed">Не удалось разделить эту песню</string>
-    <string name="cadentia_stems_job_position">%1$lld из %2$lld</string>
+    <string name="cadentia_stems_job_position">%1$d из %2$d</string>
     <string name="cadentia_stems_job_starting">%d треков в очереди</string>
     <string name="cadentia_stems_job_title">Разделение дорожек</string>
     <string name="cadentia_stems_key">Тональность</string>

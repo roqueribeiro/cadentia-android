@@ -7,6 +7,10 @@
     <!-- Separar em segundo plano roda como serviço de primeiro plano. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!-- Android 15+: "processar mídia" é exatamente o que a separação faz. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROCESSING" />
+    <!-- A CPU acordada durante a leva; com teto, no serviço. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -39,6 +43,8 @@
     <application
         android:name=".CadentiaApp"
         android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
@@ -76,6 +82,13 @@
                 android:name="backend:com.google.android.datatransport.cct.CctBackendFactory"
                 tools:node="remove" />
         </service>
+
+        <!-- A leva de separação em segundo plano, com a notificação de progresso
+             (o papel do BGContinuedProcessingTask e da Ilha Dinâmica no iOS). -->
+        <service
+            android:name=".features.stems.SeparationService"
+            android:exported="false"
+            android:foregroundServiceType="mediaProcessing|dataSync" />
 
         <!-- Compartilhar .rostab (o ShareSheet do iOS): expõe só o cache/share. -->
         <provider

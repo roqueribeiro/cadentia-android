@@ -65,7 +65,7 @@
     <string name="cadentia_cordas_hand_chords_footer">Les points sont les doigts levés. La main droite balaie les cordes.</string>
     <string name="cadentia_cordas_hand_chords_header">Main gauche</string>
     <string name="cadentia_cordas_hand_chords_none">Ne change pas</string>
-    <string name="cadentia_cordas_hand_chords_pair">%1$lld et %2$lld</string>
+    <string name="cadentia_cordas_hand_chords_pair">%1$d et %2$d</string>
     <string name="cadentia_cordas_hand_chords_reset">Revenir aux accords par défaut</string>
     <string name="cadentia_cordas_hand_chords_right_count">Main droite, %d doigt(s)</string>
     <string name="cadentia_cordas_hand_chords_title">Accords par geste</string>
@@ -133,7 +133,7 @@
     <string name="cadentia_library_copied">Copié</string>
     <string name="cadentia_library_copy_link">Copier l\'adresse</string>
     <string name="cadentia_library_disconnect">Se déconnecter de RoqueOS</string>
-    <string name="cadentia_library_downloading">Téléchargement %1$lld sur %2$lld</string>
+    <string name="cadentia_library_downloading">Téléchargement %1$d sur %2$d</string>
     <string name="cadentia_library_drive_not_connected">Connectez d\'abord Google Drive dans RoqueOS. La connexion vit là-bas, pas ici.</string>
     <string name="cadentia_library_empty_folder">Aucun morceau ici.</string>
     <string name="cadentia_library_google_drive">Google Drive</string>
@@ -160,9 +160,9 @@
     <string name="cadentia_library_shared_forbidden">Cette clé d\'API n\'a pas le droit de lire les fichiers du serveur.</string>
     <string name="cadentia_library_show_all">Tout afficher (%d)</string>
     <string name="cadentia_library_show_fewer">Afficher moins</string>
-    <string name="cadentia_library_storage_used">%1$lld séparées · %2$@</string>
+    <string name="cadentia_library_storage_used">%1$d séparées · %2$s</string>
     <string name="cadentia_library_this_device">Sur cet appareil</string>
-    <string name="cadentia_library_this_device_hint">Fichiers et iCloud Drive</string>
+    <string name="cadentia_library_this_device_hint">Fichiers</string>
     <string name="cadentia_library_will_separate_again">Sera séparée à nouveau</string>
     <string name="cadentia_piano_sustain">Sustain</string>
     <string name="cadentia_recorder_add_track">Nouvelle piste</string>
@@ -225,14 +225,14 @@
     <string name="cadentia_stems_batch_cancel">Annuler la séparation</string>
     <string name="cadentia_stems_batch_dismiss">Ignorer</string>
     <string name="cadentia_stems_batch_failed">Impossible de séparer : %s</string>
-    <string name="cadentia_stems_batch_position">%1$lld sur %2$lld</string>
-    <string name="cadentia_stems_batch_progress">Séparation %1$lld sur %2$lld</string>
+    <string name="cadentia_stems_batch_position">%1$d sur %2$d</string>
+    <string name="cadentia_stems_batch_progress">Séparation %1$d sur %2$d</string>
     <string name="cadentia_stems_choose">Choisir un morceau</string>
     <string name="cadentia_stems_drums">Batterie</string>
     <string name="cadentia_stems_empty_body">Choisissez un morceau et Cadentia sépare batterie, basse, voix et le reste. Tout sur l\'appareil, rien n\'en sort.</string>
     <string name="cadentia_stems_empty_title">Retirez un instrument du morceau</string>
     <string name="cadentia_stems_failed">Impossible de séparer ce morceau</string>
-    <string name="cadentia_stems_job_position">%1$lld sur %2$lld</string>
+    <string name="cadentia_stems_job_position">%1$d sur %2$d</string>
     <string name="cadentia_stems_job_starting">%d morceaux en file</string>
     <string name="cadentia_stems_job_title">Séparation des pistes</string>
     <string name="cadentia_stems_key">Tonalité</string>

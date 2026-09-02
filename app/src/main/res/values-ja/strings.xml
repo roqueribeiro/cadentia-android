@@ -65,7 +65,7 @@
     <string name="cadentia_cordas_hand_chords_footer">点は立てた指です。右手で弦をなぞって鳴らします。</string>
     <string name="cadentia_cordas_hand_chords_header">左手</string>
     <string name="cadentia_cordas_hand_chords_none">変更なし</string>
-    <string name="cadentia_cordas_hand_chords_pair">%1$lld と %2$lld</string>
+    <string name="cadentia_cordas_hand_chords_pair">%1$d と %2$d</string>
     <string name="cadentia_cordas_hand_chords_reset">既定のコードに戻す</string>
     <string name="cadentia_cordas_hand_chords_right_count">右手 %d 本</string>
     <string name="cadentia_cordas_hand_chords_title">ジェスチャーでコード</string>
@@ -133,7 +133,7 @@
     <string name="cadentia_library_copied">コピーしました</string>
     <string name="cadentia_library_copy_link">アドレスをコピー</string>
     <string name="cadentia_library_disconnect">RoqueOSから切断</string>
-    <string name="cadentia_library_downloading">%2$lld 曲中 %1$lld 曲をダウンロード中</string>
+    <string name="cadentia_library_downloading">%2$d 曲中 %1$d 曲をダウンロード中</string>
     <string name="cadentia_library_drive_not_connected">先に RoqueOS で Google Drive を接続してください。接続はあちらにあります。</string>
     <string name="cadentia_library_empty_folder">ここに曲はありません。</string>
     <string name="cadentia_library_google_drive">Google Drive</string>
@@ -160,9 +160,9 @@
     <string name="cadentia_library_shared_forbidden">この API キーにはサーバー上のファイルを読む権限がありません。</string>
     <string name="cadentia_library_show_all">すべて表示 (%d)</string>
     <string name="cadentia_library_show_fewer">表示を減らす</string>
-    <string name="cadentia_library_storage_used">%1$lld 曲を分離済み · %2$@</string>
+    <string name="cadentia_library_storage_used">%1$d 曲を分離済み · %2$s</string>
     <string name="cadentia_library_this_device">この端末内</string>
-    <string name="cadentia_library_this_device_hint">ファイルとiCloud Drive</string>
+    <string name="cadentia_library_this_device_hint">ファイル</string>
     <string name="cadentia_library_will_separate_again">もう一度分離します</string>
     <string name="cadentia_piano_sustain">サステイン</string>
     <string name="cadentia_recorder_add_track">新規トラック</string>
@@ -225,14 +225,14 @@
     <string name="cadentia_stems_batch_cancel">分離をキャンセル</string>
     <string name="cadentia_stems_batch_dismiss">閉じる</string>
     <string name="cadentia_stems_batch_failed">分離できませんでした: %s</string>
-    <string name="cadentia_stems_batch_position">%2$lld 曲中 %1$lld 曲目</string>
-    <string name="cadentia_stems_batch_progress">%2$lld 曲中 %1$lld 曲を分離中</string>
+    <string name="cadentia_stems_batch_position">%2$d 曲中 %1$d 曲目</string>
+    <string name="cadentia_stems_batch_progress">%2$d 曲中 %1$d 曲を分離中</string>
     <string name="cadentia_stems_choose">曲を選ぶ</string>
     <string name="cadentia_stems_drums">ドラム</string>
     <string name="cadentia_stems_empty_body">曲を選ぶと、ドラム、ベース、ボーカル、その他に分けます。すべて端末内で処理し、外部には送りません。</string>
     <string name="cadentia_stems_empty_title">曲から楽器を取り除く</string>
     <string name="cadentia_stems_failed">この曲は分離できませんでした</string>
-    <string name="cadentia_stems_job_position">%2$lld 曲中 %1$lld 曲目</string>
+    <string name="cadentia_stems_job_position">%2$d 曲中 %1$d 曲目</string>
     <string name="cadentia_stems_job_starting">%d 曲を待機中</string>
     <string name="cadentia_stems_job_title">トラックを分離中</string>
     <string name="cadentia_stems_key">キー</string>

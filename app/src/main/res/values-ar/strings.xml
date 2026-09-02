@@ -65,7 +65,7 @@
     <string name="cadentia_cordas_hand_chords_footer">النقاط هي الأصابع المرفوعة. اليد اليمنى تمر على الأوتار للعزف.</string>
     <string name="cadentia_cordas_hand_chords_header">اليد اليسرى</string>
     <string name="cadentia_cordas_hand_chords_none">بلا تغيير</string>
-    <string name="cadentia_cordas_hand_chords_pair">%1$lld و %2$lld</string>
+    <string name="cadentia_cordas_hand_chords_pair">%1$d و %2$d</string>
     <string name="cadentia_cordas_hand_chords_reset">العودة إلى الأوتار الافتراضية</string>
     <string name="cadentia_cordas_hand_chords_right_count">اليد اليمنى، %d إصبع</string>
     <string name="cadentia_cordas_hand_chords_title">الأوتار بالإيماءة</string>
@@ -133,7 +133,7 @@
     <string name="cadentia_library_copied">تم النسخ</string>
     <string name="cadentia_library_copy_link">نسخ العنوان</string>
     <string name="cadentia_library_disconnect">قطع الاتصال بـ RoqueOS</string>
-    <string name="cadentia_library_downloading">جارٍ تنزيل %1$lld من %2$lld</string>
+    <string name="cadentia_library_downloading">جارٍ تنزيل %1$d من %2$d</string>
     <string name="cadentia_library_drive_not_connected">اربط Google Drive في RoqueOS أولاً. الاتصال محفوظ هناك، لا هنا.</string>
     <string name="cadentia_library_empty_folder">لا توجد أغانٍ هنا.</string>
     <string name="cadentia_library_google_drive">Google Drive</string>
@@ -160,9 +160,9 @@
     <string name="cadentia_library_shared_forbidden">مفتاح API هذا لا يملك إذن قراءة الملفات على الخادم.</string>
     <string name="cadentia_library_show_all">عرض الكل (%d)</string>
     <string name="cadentia_library_show_fewer">عرض أقل</string>
-    <string name="cadentia_library_storage_used">%1$lld مفصولة · %2$@</string>
+    <string name="cadentia_library_storage_used">%1$d مفصولة · %2$s</string>
     <string name="cadentia_library_this_device">على هذا الجهاز</string>
-    <string name="cadentia_library_this_device_hint">الملفات وiCloud Drive</string>
+    <string name="cadentia_library_this_device_hint">الملفات</string>
     <string name="cadentia_library_will_separate_again">سيُعاد فصلها</string>
     <string name="cadentia_piano_sustain">الإطالة</string>
     <string name="cadentia_recorder_add_track">مسار جديد</string>
@@ -225,14 +225,14 @@
     <string name="cadentia_stems_batch_cancel">إلغاء الفصل</string>
     <string name="cadentia_stems_batch_dismiss">تجاهل</string>
     <string name="cadentia_stems_batch_failed">تعذّر الفصل: %s</string>
-    <string name="cadentia_stems_batch_position">%1$lld من %2$lld</string>
-    <string name="cadentia_stems_batch_progress">جارٍ فصل %1$lld من %2$lld</string>
+    <string name="cadentia_stems_batch_position">%1$d من %2$d</string>
+    <string name="cadentia_stems_batch_progress">جارٍ فصل %1$d من %2$d</string>
     <string name="cadentia_stems_choose">اختر أغنية</string>
     <string name="cadentia_stems_drums">الطبول</string>
     <string name="cadentia_stems_empty_body">اختر أغنية وستفصل Cadentia الطبول والباس والغناء وبقية الآلات. كل ذلك على جهازك، ولا يخرج منه شيء.</string>
     <string name="cadentia_stems_empty_title">أزل آلة من الأغنية</string>
     <string name="cadentia_stems_failed">تعذّر فصل هذه الأغنية</string>
-    <string name="cadentia_stems_job_position">%1$lld من %2$lld</string>
+    <string name="cadentia_stems_job_position">%1$d من %2$d</string>
     <string name="cadentia_stems_job_starting">%d أغنية في الانتظار</string>
     <string name="cadentia_stems_job_title">فصل المسارات</string>
     <string name="cadentia_stems_key">المقام</string>

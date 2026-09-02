@@ -37,6 +37,14 @@ data class QaFlags(
     val cordasReplay: Boolean = false,
     /** Estudo: abre já no instrumento (`violao`, `guitarra`, `viola`, `baixo`). */
     val studyInstrument: String? = null,
+    /** Separar: a tela de separação parada em N% (`-qa-stems-progress N`). Sem modelo, é o único jeito de vê-la. */
+    val stemsProgress: Int? = null,
+    /** Separar: com `stemsProgress`, uma leva de K músicas (`-qa-stems-batch K`). */
+    val stemsBatch: Int? = null,
+    /** Separar: semeia uma playlist inteira nas Recentes sem abrir nada (`-qa-stems-many`). */
+    val stemsMany: Boolean = false,
+    /** Separar: a faixa da leva por cima da biblioteca, terminada com K falhas (`-qa-stems-banner K`). */
+    val stemsBanner: Int? = null,
 )
 
 val LocalQaFlags = compositionLocalOf { QaFlags() }

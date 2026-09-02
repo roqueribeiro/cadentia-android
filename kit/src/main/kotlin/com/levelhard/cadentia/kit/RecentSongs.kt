@@ -100,10 +100,21 @@ data class RecentSongs(
     private val entries: MutableList<RecentSong> = mutableListOf(),
 ) {
     companion object {
-        /** Trinta cobre meses de uso sem virar uma lista que ninguém percorre. */
-        const val LIMIT = 30
+        /**
+         * Duzentas, e não trinta (1.16). Trinta era certo para uma lista de
+         * atalhos, mas ela virou também a prova de vida das faixas separadas: o
+         * cache apagava do disco tudo que não estivesse aqui, e uma playlist de
+         * cinquenta se comia pela cauda. O cache não olha mais para cá
+         * ([StemCachePolicy] só apaga sem espaço), então o teto voltou a ser só
+         * um limite de lista: duzentas entradas de metadado são dezenas de kB.
+         */
+        const val LIMIT = 200
 
-        /** Quem caiu fora do limite: não precisa mais de faixas guardadas em disco. */
+        /**
+         * Quem caiu fora do limite da lista. **Não é permissão para apagar
+         * disco**: sair dos atalhos e perder as faixas separadas são coisas
+         * diferentes, e só a segunda depende de espaço.
+         */
         fun evicted(songs: List<RecentSong>): List<RecentSong> =
             if (songs.size > LIMIT) songs.drop(LIMIT) else emptyList()
     }

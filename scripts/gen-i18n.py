@@ -61,9 +61,12 @@ def android_escape(value: str) -> str:
     v = v.replace("\n", "\\n").replace("\t", "\\t")
     if v.startswith("@") or v.startswith("?"):
         v = "\\" + v
-    # Placeholders do iOS -> java format (hoje o catálogo não tem nenhum;
-    # se um dia entrar, %@ vira %s e um % literal solto vira %%).
-    v = v.replace("%@", "%s").replace("%lld", "%d")
+    # Placeholders do iOS -> java format: %@ vira %s, %lld/%ld viram %d — também
+    # nas formas posicionais (%1$lld, %2$@), que o catálogo da 1.16 usa em seis
+    # chaves ("%1$lld de %2$lld"). Sem isto o Java lança
+    # UnknownFormatConversionException em "%1$l" na hora de formatar.
+    v = re.sub(r"%(\d+\$)?@", lambda m: f"%{m.group(1) or ''}s", v)
+    v = re.sub(r"%(\d+\$)?l{1,2}d", lambda m: f"%{m.group(1) or ''}d", v)
     v = re.sub(r"%(?![%0-9sdf])", "%%", v)
     return v
 
