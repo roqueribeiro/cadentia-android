@@ -19,6 +19,8 @@ data class QaFlags(
     val edit: Boolean = false,
     /** Tablaturas: abre com o catálogo de bases por cima. */
     val showCatalog: Boolean = false,
+    /** Frequência: começa tocando ao abrir (screenshot do osciloscópio vivo). */
+    val studioAutoplay: Boolean = false,
 )
 
 val LocalQaFlags = compositionLocalOf { QaFlags() }

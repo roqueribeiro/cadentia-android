@@ -27,6 +27,7 @@ class MainActivity : ComponentActivity() {
             reset = intent.getBooleanExtra("qa-reset", false),
             edit = intent.getBooleanExtra("qa-edit", false),
             showCatalog = intent.getBooleanExtra("qa-show-catalog", false),
+            studioAutoplay = intent.getBooleanExtra("qa-studio-autoplay", false),
         )
 
         val store = SettingsStore(applicationContext)
