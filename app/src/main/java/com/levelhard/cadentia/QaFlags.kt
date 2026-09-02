@@ -14,6 +14,8 @@ data class QaFlags(
     val noSplash: Boolean = false,
     /** Screenshots de CI rodam sem permissão de mic: suprime a auto-ativação. */
     val tunerSilent: Boolean = false,
+    /** Print de loja: o anel com um lá quase afinado, sem microfone (`-qa-tuner-demo`). */
+    val tunerDemo: Boolean = false,
     val reset: Boolean = false,
     /** Tablaturas: abre já em modo de edição com a célula (2,4) marcada. */
     val edit: Boolean = false,

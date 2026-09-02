@@ -28,6 +28,7 @@ class MainActivity : ComponentActivity() {
             tab = intent.getStringExtra("qa-tab"),
             noSplash = intent.getBooleanExtra("qa-no-splash", false),
             tunerSilent = intent.getBooleanExtra("qa-tuner-silent", false),
+            tunerDemo = intent.getBooleanExtra("qa-tuner-demo", false),
             reset = intent.getBooleanExtra("qa-reset", false),
             edit = intent.getBooleanExtra("qa-edit", false),
             showCatalog = intent.getBooleanExtra("qa-show-catalog", false),

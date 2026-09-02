@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- O palco do ícone: o mesmo degradê grafite do ícone do iOS. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient
+        android:angle="270"
+        android:startColor="#1A1727"
+        android:endColor="#07070B"
+        android:type="linear" />
+</shape>

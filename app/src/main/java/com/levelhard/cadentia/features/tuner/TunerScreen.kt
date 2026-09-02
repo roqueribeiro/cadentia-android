@@ -117,6 +117,11 @@ fun TunerScreen(store: SettingsStore) {
     ) { granted -> if (granted) vm.activate() else vm.permissionDenied() }
 
     LaunchedEffect(Unit) {
+        if (qa.tunerDemo) {
+            // Print de loja: uma nota segurada no anel, sem microfone.
+            vm.showDemoReadingForQa()
+            return@LaunchedEffect
+        }
         if (qa.tunerSilent) {
             // A flag quer dizer "não ligue o microfone", não "finja que está
             // carregando": sem isto nenhum teste alcançava o seletor (1.16).
