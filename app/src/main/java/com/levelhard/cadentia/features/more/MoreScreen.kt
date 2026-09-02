@@ -65,12 +65,8 @@ fun MoreScreen(
                 accent = CzTokens.recorderCyan,
                 modifier = Modifier.pageTransition(),
             )
-            MoreDestination.Tablature -> FeatureHero(
-                titleRes = R.string.tablature_title,
-                icon = painterResource(R.drawable.ic_more_tablature),
-                accent = CzTokens.tabIndigo,
-                modifier = Modifier.pageTransition(),
-            )
+            MoreDestination.Tablature ->
+                com.levelhard.cadentia.features.tab.TablatureScreen(store)
             MoreDestination.Studio -> FeatureHero(
                 titleRes = R.string.music_tabs_frequency,
                 icon = painterResource(R.drawable.ic_more_frequency),

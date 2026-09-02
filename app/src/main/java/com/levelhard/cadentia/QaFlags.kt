@@ -15,6 +15,10 @@ data class QaFlags(
     /** Screenshots de CI rodam sem permissão de mic: suprime a auto-ativação. */
     val tunerSilent: Boolean = false,
     val reset: Boolean = false,
+    /** Tablaturas: abre já em modo de edição com a célula (2,4) marcada. */
+    val edit: Boolean = false,
+    /** Tablaturas: abre com o catálogo de bases por cima. */
+    val showCatalog: Boolean = false,
 )
 
 val LocalQaFlags = compositionLocalOf { QaFlags() }

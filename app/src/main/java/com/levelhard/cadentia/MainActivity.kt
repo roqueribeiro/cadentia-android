@@ -25,6 +25,8 @@ class MainActivity : ComponentActivity() {
             noSplash = intent.getBooleanExtra("qa-no-splash", false),
             tunerSilent = intent.getBooleanExtra("qa-tuner-silent", false),
             reset = intent.getBooleanExtra("qa-reset", false),
+            edit = intent.getBooleanExtra("qa-edit", false),
+            showCatalog = intent.getBooleanExtra("qa-show-catalog", false),
         )
 
         val store = SettingsStore(applicationContext)
