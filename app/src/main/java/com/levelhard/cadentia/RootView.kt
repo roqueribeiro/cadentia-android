@@ -106,7 +106,7 @@ fun RootView(
             key(tab) {
                 when (tab) {
                     CadentiaTab.Tuner -> TunerScreen(store)
-                    CadentiaTab.Metronome -> MetronomeScreen()
+                    CadentiaTab.Metronome -> MetronomeScreen(store)
                     CadentiaTab.Drums -> DrumsScreen()
                     CadentiaTab.Stems -> StemsScreen()
                     CadentiaTab.More -> MoreScreen(
