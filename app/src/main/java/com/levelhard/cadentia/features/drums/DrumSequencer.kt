@@ -22,6 +22,9 @@ class DrumSequencer {
     private companion object {
         const val LOOKAHEAD_MS = 25L
         const val SCHEDULE_AHEAD_SECONDS = 0.12
+
+        /** Pad ao vivo e os três acentos de `accent(step)`. */
+        val ACCENTS = floatArrayOf(1.0f, 0.92f, 0.76f, 0.62f)
     }
 
     val sampler = PolyphonicSampler()
@@ -54,12 +57,14 @@ class DrumSequencer {
     fun hitPad(pad: String) {
         if (!sampler.startIfNeeded()) return
         val kit = kit
-        val volume = volume
         val rate = sampler.sampleRate
         val variation = roundRobin
         roundRobin = (roundRobin + 1) % DrumSynth.roundRobinCount
-        sampler.play(cacheKey(kit, pad, 1f, variation, volume)) {
-            DrumSynth.renderStereo(kit, pad, 1f, variation, rate, volume).interleaved()
+        val voicing = DrumVoicing.of(kit, pad, 1f, variation, volume)
+        sampler.play(voicing.key, gain = voicing.gain) {
+            DrumSynth.renderStereo(
+                kit, pad, 1f, variation, rate, gain = 1f, velocityGainApplied = voicing.sampled,
+            ).interleaved()
         }
     }
 
@@ -80,14 +85,24 @@ class DrumSequencer {
         return scope.launch(Dispatchers.Default) { renderAllPads() }
     }
 
+    /**
+     * Todas as dinâmicas que o sequenciador e o pad produzem, em toda variação.
+     * Com sample ligado a chave é por arquivo, então as 16 combinações de um
+     * pad convergem para os poucos arquivos que o pack tem de verdade.
+     */
     private fun renderAllPads() {
         val kit = kit
-        val volume = volume
         val rate = sampler.sampleRate
         for (pad in DrumSynth.padIDs) {
-            for (variation in 0 until DrumSynth.roundRobinCount) {
-                sampler.prewarm(cacheKey(kit, pad, 1f, variation, volume)) {
-                    DrumSynth.renderStereo(kit, pad, 1f, variation, rate, volume).interleaved()
+            for (velocity in ACCENTS) {
+                for (variation in 0 until DrumSynth.roundRobinCount) {
+                    val voicing = DrumVoicing.of(kit, pad, velocity, variation, volume)
+                    sampler.prewarm(voicing.key) {
+                        DrumSynth.renderStereo(
+                            kit, pad, velocity, variation, rate, gain = 1f,
+                            velocityGainApplied = voicing.sampled,
+                        ).interleaved()
+                    }
                 }
             }
         }
@@ -120,9 +135,6 @@ class DrumSequencer {
         sampler.stop()
     }
 
-    private fun cacheKey(kit: String, pad: String, velocity: Float, variation: Int, volume: Float): String =
-        "$kit/$pad/%.2f/%d/%.2f".format(velocity, variation, volume)
-
     private fun scheduleAhead(scope: CoroutineScope) {
         val now = sampler.nowSeconds()
         if (nextStepSeconds < now) {
@@ -139,15 +151,15 @@ class DrumSequencer {
             for ((pad, steps) in pattern) {
                 if (step >= steps.size || !steps[step]) continue
                 val kit = kit
-                val volume = volume
                 // Caminha o round robin por compasso: linha de semicolcheias
                 // repetida circula os quatro renders em vez de repetir um.
                 val variation = (stepIndex / 16 + step) % DrumSynth.roundRobinCount
-                sampler.schedule(
-                    key = cacheKey(kit, pad, velocity, variation, volume),
-                    atSeconds = at,
-                ) {
-                    DrumSynth.renderStereo(kit, pad, velocity, variation, rate, volume).interleaved()
+                val voicing = DrumVoicing.of(kit, pad, velocity, variation, volume)
+                sampler.schedule(key = voicing.key, atSeconds = at, gain = voicing.gain) {
+                    DrumSynth.renderStereo(
+                        kit, pad, velocity, variation, rate, gain = 1f,
+                        velocityGainApplied = voicing.sampled,
+                    ).interleaved()
                 }
             }
             scope.launch {

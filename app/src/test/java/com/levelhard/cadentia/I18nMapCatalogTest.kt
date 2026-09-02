@@ -5,6 +5,7 @@ import com.levelhard.cadentia.kit.DrumPattern
 import com.levelhard.cadentia.kit.DrumSynth
 import com.levelhard.cadentia.kit.InstrumentPreset
 import com.levelhard.cadentia.kit.InstrumentVoice
+import com.levelhard.cadentia.kit.SampleFamily
 import com.levelhard.cadentia.kit.MetronomeClick
 import com.levelhard.cadentia.kit.ScaleType
 import com.levelhard.cadentia.kit.ToneSynth
@@ -33,6 +34,9 @@ class I18nMapCatalogTest {
 
     @Test
     fun `instrument voices resolve`() = assertResolves(InstrumentVoice.entries.map { it.nameKey })
+
+    @Test
+    fun `sample families resolve`() = assertResolves(SampleFamily.entries.map { it.nameKey })
 
     @Test
     fun `instrument presets resolve`() {

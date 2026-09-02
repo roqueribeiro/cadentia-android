@@ -23,6 +23,12 @@ object InstrumentSynth {
         sampleRate: Double,
     ): StereoBuffer {
         if (frequency <= 0 || duration <= 0) return StereoBuffer(0)
+        // Sample primeiro, quando a família está ligada nas configurações e o
+        // pack existe. É o único ponto de entrada de nota do app, então esta
+        // linha troca o som do Piano, da tablatura e do Estudo de uma vez.
+        SampleBank.shared.renderIfEnabled(
+            voice.id, frequency, duration, velocity, gain, sampleRate,
+        )?.let { return it }
         voice.stringModel?.let { model ->
             return StringVoices.render(model, frequency, duration, velocity, gain, sampleRate)
         }

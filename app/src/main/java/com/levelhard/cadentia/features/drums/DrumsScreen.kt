@@ -83,6 +83,7 @@ import com.levelhard.cadentia.R
 import com.levelhard.cadentia.kit.AppSettings
 import com.levelhard.cadentia.kit.DrumPattern
 import com.levelhard.cadentia.kit.DrumSynth
+import com.levelhard.cadentia.kit.SampleBank
 import com.levelhard.cadentia.settings.SettingsStore
 import com.levelhard.cadentia.ui.CzCard
 import com.levelhard.cadentia.ui.CzTokens
@@ -731,7 +732,7 @@ private fun PadSoundPicker(
                     onClick = {
                         if (preview.startIfNeeded()) {
                             val rate = preview.sampleRate
-                            preview.play("preview/$kit/$pad") {
+                            preview.play("${SampleBank.shared.soundGeneration}/preview/$kit/$pad") {
                                 DrumSynth.renderStereo(
                                     kit, pad, velocity = 0.95f, variation = 0,
                                     sampleRate = rate, gain = 0.8f,

@@ -70,6 +70,7 @@ import com.levelhard.cadentia.kit.ChordLibrary
 import com.levelhard.cadentia.kit.InstrumentSynth
 import com.levelhard.cadentia.kit.InstrumentVoice
 import com.levelhard.cadentia.kit.MusicNotes
+import com.levelhard.cadentia.kit.SampleBank
 import com.levelhard.cadentia.kit.ScaleType
 import com.levelhard.cadentia.settings.SettingsStore
 import com.levelhard.cadentia.ui.CzCard
@@ -107,7 +108,10 @@ fun PianoScreen(store: SettingsStore) {
 
     val heldNoteSeconds = 2.6
 
-    fun noteKey(voice: InstrumentVoice, frequency: Double) = "${voice.id}/$frequency/held"
+    // A geração do banco de samples entra na chave: virar o interruptor de
+    // síntese × sample invalida o que foi renderizado com a escolha anterior.
+    fun noteKey(voice: InstrumentVoice, frequency: Double) =
+        "${SampleBank.shared.soundGeneration}/${voice.id}/$frequency/held"
 
     /**
      * Pré-renderiza as 25 notas do teclado numa thread de fundo, uma por vez

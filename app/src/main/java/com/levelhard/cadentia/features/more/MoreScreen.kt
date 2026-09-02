@@ -26,8 +26,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -43,6 +45,8 @@ import androidx.compose.ui.unit.sp
 import com.levelhard.cadentia.BuildConfig
 import com.levelhard.cadentia.MoreDestination
 import com.levelhard.cadentia.R
+import com.levelhard.cadentia.kit.SampleBank
+import com.levelhard.cadentia.kit.enabledSampleFamilies
 import com.levelhard.cadentia.ui.CzCard
 import com.levelhard.cadentia.ui.CzTokens
 import com.levelhard.cadentia.ui.PremiumBackground
@@ -76,7 +80,7 @@ fun MoreScreen(
         },
     ) { dest ->
         when (dest) {
-            null -> MoreList(onOpen = onDestinationChange)
+            null -> MoreList(store = store, onOpen = onDestinationChange)
             MoreDestination.Recorder ->
                 com.levelhard.cadentia.features.recorder.RecorderScreen(store)
             MoreDestination.Tablature ->
@@ -89,9 +93,20 @@ fun MoreScreen(
 }
 
 @Composable
-private fun MoreList(onOpen: (MoreDestination) -> Unit) {
+private fun MoreList(store: com.levelhard.cadentia.settings.SettingsStore, onOpen: (MoreDestination) -> Unit) {
     var showSound by rememberSaveable { mutableStateOf(false) }
-    if (showSound) SoundSettingsSheet { showSound = false }
+    if (showSound) SoundSettingsSheet(store) { showSound = false }
+
+    // O resumo do cartão de Som: quantas famílias já estão em sample, sem
+    // obrigar a abrir a folha. Sem banco instalado é "síntese", que é o que
+    // o iOS mostra nesse estado.
+    val settings by store.settings.collectAsState()
+    val installedFamilies = remember { SampleBank.shared.installedFamilies }
+    val sampledCount = settings.enabledSampleFamilies.count { it in installedFamilies }
+    val soundDetail = when {
+        installedFamilies.isEmpty() || sampledCount == 0 -> stringResource(R.string.cadentia_sound_mode_synth).lowercase()
+        else -> "$sampledCount/${installedFamilies.size} · " + stringResource(R.string.cadentia_sound_mode_samples).lowercase()
+    }
 
     Box(Modifier.fillMaxSize().pageTransition()) {
         PremiumBackground(accent = CzTokens.gold)
@@ -128,13 +143,11 @@ private fun MoreList(onOpen: (MoreDestination) -> Unit) {
                     detail = "20Hz–20kHz", // i18n-verbatim: unidade física
                     tag = "more.studio",
                 ) { onOpen(MoreDestination.Studio) }
-                // Sem banco de sample instalado (fase 7) o resumo do cartão é
-                // "síntese", exatamente o que o iOS mostra nesse estado.
                 FeatureCard(
                     titleRes = R.string.cadentia_sound_title,
                     iconRes = R.drawable.ic_more_sound,
                     color = CzTokens.gold,
-                    detail = stringResource(R.string.cadentia_sound_mode_synth).lowercase(),
+                    detail = soundDetail,
                     tag = "more.sound",
                 ) { showSound = true }
                 FeatureCard(

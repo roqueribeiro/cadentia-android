@@ -23,7 +23,22 @@ data class AppSettings(
     var drums: Drums = Drums(),
     var studio: Studio = Studio(),
     var piano: Piano = Piano(),
+    var sound: Sound = Sound(),
 ) {
+    @Serializable
+    data class Sound(
+        /**
+         * Famílias que tocam com sample. O que não está aqui usa síntese.
+         *
+         * Vem tudo ligado: gravação real é o som que o app quer entregar, e
+         * obrigar a pessoa a descobrir uma chave escondida para ouvir a versão
+         * boa é entregar a versão ruim por padrão. Quem desligar tem a escolha
+         * guardada — o padrão só vale para quem nunca escolheu (um arquivo com
+         * `sampled: []` é escolha, não ausência).
+         */
+        var sampled: List<String> = SampleFamily.entries.map { it.id },
+    )
+
     @Serializable
     data class Tuner(
         /** A4 de referência em Hz, 415–466 (afinações de orquestra), padrão 440. */

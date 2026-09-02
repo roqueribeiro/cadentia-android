@@ -226,4 +226,118 @@ object WavIO {
         }
         return Wav(samples, sampleRate)
     }
+
+    /** Um WAV lido canal a canal (1 = imagem central, 2 = L/R), para o banco de samples. */
+    data class StereoWav(val buffer: StereoBuffer, val sampleRate: Int)
+
+    /**
+     * Lê WAV PCM 16-bit ou float32 preservando os dois primeiros canais.
+     * É o decodificador padrão do `SampleBank` no JVM (testes) e o que abre
+     * um pack em WAV; o FLAC dos packs de verdade chega pelo app.
+     */
+    fun readStereo(stream: InputStream): StereoWav? {
+        val bytes = stream.readBytes()
+        if (bytes.size < 44) return null
+        fun ascii(offset: Int, length: Int) = String(bytes, offset, length, Charsets.US_ASCII)
+        fun intLE(offset: Int): Int =
+            (bytes[offset].toInt() and 0xFF) or
+                ((bytes[offset + 1].toInt() and 0xFF) shl 8) or
+                ((bytes[offset + 2].toInt() and 0xFF) shl 16) or
+                ((bytes[offset + 3].toInt() and 0xFF) shl 24)
+        fun shortLE(offset: Int): Int =
+            (bytes[offset].toInt() and 0xFF) or ((bytes[offset + 1].toInt() and 0xFF) shl 8)
+
+        if (ascii(0, 4) != "RIFF" || ascii(8, 4) != "WAVE") return null
+
+        var format = 0
+        var channels = 1
+        var sampleRate = 0
+        var bitsPerSample = 0
+        var dataOffset = -1
+        var dataSize = 0
+        var cursor = 12
+        while (cursor + 8 <= bytes.size) {
+            val chunkId = ascii(cursor, 4)
+            val chunkSize = intLE(cursor + 4)
+            val body = cursor + 8
+            when (chunkId) {
+                "fmt " -> {
+                    if (body + 16 > bytes.size) return null
+                    format = shortLE(body)
+                    channels = maxOf(1, shortLE(body + 2))
+                    sampleRate = intLE(body + 4)
+                    bitsPerSample = shortLE(body + 14)
+                }
+                "data" -> {
+                    dataOffset = body
+                    dataSize = minOf(chunkSize, bytes.size - body)
+                }
+            }
+            cursor = body + chunkSize + (chunkSize and 1)
+        }
+        if (dataOffset < 0 || sampleRate <= 0) return null
+        val bytesPerSample = bitsPerSample / 8
+        if (bytesPerSample == 0) return null
+        val frameCount = dataSize / (bytesPerSample * channels)
+        val left = FloatArray(frameCount)
+        val right = FloatArray(frameCount)
+        fun sample(at: Int): Float? = when {
+            format == 1 && bitsPerSample == 16 ->
+                (((bytes[at].toInt() and 0xFF) or (bytes[at + 1].toInt() shl 8)).toShort() / 32768f)
+            format == 3 && bitsPerSample == 32 -> Float.fromBits(intLE(at))
+            else -> null
+        }
+        for (frame in 0 until frameCount) {
+            val base = dataOffset + frame * channels * bytesPerSample
+            val l = sample(base) ?: return null
+            left[frame] = l
+            right[frame] = if (channels > 1) (sample(base + bytesPerSample) ?: return null) else l
+        }
+        return StereoWav(StereoBuffer(left, right), sampleRate)
+    }
+
+    /** Escreve estéreo 16-bit (L/R intercalado) — o que os testes do banco usam para montar um pack. */
+    fun writeStereo(buffer: StereoBuffer, sampleRate: Int, out: OutputStream) {
+        val frames = buffer.frameCount
+        val dataBytes = frames * 4
+        val header = ByteArray(44)
+        fun putAscii(offset: Int, text: String) {
+            for (i in text.indices) header[offset + i] = text[i].code.toByte()
+        }
+        fun putIntLE(offset: Int, value: Int) {
+            header[offset] = (value and 0xFF).toByte()
+            header[offset + 1] = ((value shr 8) and 0xFF).toByte()
+            header[offset + 2] = ((value shr 16) and 0xFF).toByte()
+            header[offset + 3] = ((value shr 24) and 0xFF).toByte()
+        }
+        fun putShortLE(offset: Int, value: Int) {
+            header[offset] = (value and 0xFF).toByte()
+            header[offset + 1] = ((value shr 8) and 0xFF).toByte()
+        }
+        putAscii(0, "RIFF")
+        putIntLE(4, 36 + dataBytes)
+        putAscii(8, "WAVE")
+        putAscii(12, "fmt ")
+        putIntLE(16, 16)
+        putShortLE(20, 1)
+        putShortLE(22, 2)
+        putIntLE(24, sampleRate)
+        putIntLE(28, sampleRate * 4)
+        putShortLE(32, 4)
+        putShortLE(34, 16)
+        putAscii(36, "data")
+        putIntLE(40, dataBytes)
+        out.write(header)
+        val body = ByteArray(dataBytes)
+        for (i in 0 until frames) {
+            val l = (buffer.left[i].coerceIn(-1f, 1f) * 32767f).toInt()
+            val r = (buffer.right[i].coerceIn(-1f, 1f) * 32767f).toInt()
+            body[4 * i] = (l and 0xFF).toByte()
+            body[4 * i + 1] = ((l shr 8) and 0xFF).toByte()
+            body[4 * i + 2] = (r and 0xFF).toByte()
+            body[4 * i + 3] = ((r shr 8) and 0xFF).toByte()
+        }
+        out.write(body)
+        out.flush()
+    }
 }

@@ -44,7 +44,17 @@ object DrumSynth {
     /** Quantas variações de round robin existem por pad. */
     val roundRobinCount: Int get() = DrumKitHD.roundRobinCount
 
-    /** Batida estéreo — o que o sampler agenda. */
+    /**
+     * Batida estéreo — o que o sampler agenda. Sample primeiro, quando a
+     * família Bateria está ligada e o kit tem pack; senão a síntese HD.
+     *
+     * `velocityGainApplied`: o caminho de sample não tem curva de dinâmica
+     * dentro do buffer — quem chama põe o acento no ganho (ver `DrumVoicing`
+     * no app). A síntese TEM a sua curva embutida, então cair aqui depois de
+     * o chamador já ter aplicado a dele contaria a dinâmica duas vezes. Isto
+     * só acontece quando o arquivo prometido não pôde ser lido — caminho de
+     * erro, justamente onde ninguém olha.
+     */
     fun renderStereo(
         kit: String,
         pad: String,
@@ -52,7 +62,13 @@ object DrumSynth {
         variation: Int = 0,
         sampleRate: Double,
         gain: Float = 1f,
-    ): StereoBuffer = DrumKitHD.render(kit, pad, velocity, variation, sampleRate, gain)
+        velocityGainApplied: Boolean = false,
+    ): StereoBuffer {
+        SampleBank.shared.renderDrumIfEnabled(kit, pad, velocity, variation, sampleRate, gain)
+            ?.let { return it }
+        val corrected = if (velocityGainApplied) gain / DrumKitHD.velocityGain(velocity) else gain
+        return DrumKitHD.render(kit, pad, velocity, variation, sampleRate, corrected)
+    }
 
     /** Batida mono, para análise offline, testes e prévias de forma de onda. */
     fun render(kit: String, pad: String, sampleRate: Double, gain: Float = 1f): FloatArray =

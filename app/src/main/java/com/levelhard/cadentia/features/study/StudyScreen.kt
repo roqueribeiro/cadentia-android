@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.levelhard.cadentia.audio.PolyphonicSampler
 import com.levelhard.cadentia.kit.InstrumentSynth
 import com.levelhard.cadentia.kit.InstrumentVoice
+import com.levelhard.cadentia.kit.SampleBank
 import com.levelhard.cadentia.settings.SettingsStore
 import com.levelhard.cadentia.ui.CzTokens
 import com.levelhard.cadentia.ui.PremiumBackground
@@ -47,7 +48,7 @@ fun StudyScreen(store: SettingsStore, kind: StudyKind) {
     fun playNote(frequency: Double, duration: Double) {
         if (!sampler.startIfNeeded()) return
         val rate = sampler.sampleRate
-        sampler.play("study/${voice.id}/$frequency/$duration") {
+        sampler.play("${SampleBank.shared.soundGeneration}/study/${voice.id}/$frequency/$duration") {
             InstrumentSynth.render(
                 voice, frequency, duration,
                 velocity = 0.85f, gain = 0.7f, sampleRate = rate,

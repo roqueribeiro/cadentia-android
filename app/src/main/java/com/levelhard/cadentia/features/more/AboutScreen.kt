@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.levelhard.cadentia.BuildConfig
 import com.levelhard.cadentia.R
+import com.levelhard.cadentia.kit.SampleBank
 import com.levelhard.cadentia.ui.CzCard
 import com.levelhard.cadentia.ui.CzTokens
 import com.levelhard.cadentia.ui.PremiumBackground
@@ -365,6 +366,9 @@ private fun LicensesSheet(onDismiss: () -> Unit) {
                     )
                 }
             }
+            // Os bancos de sample são obra de outras pessoas: mesma pergunta
+            // ("de onde veio esse som?"), mesma seção da folha de Som.
+            SampleCreditsSection(remember { SampleBank.shared.installed })
         }
     }
 }

@@ -37,6 +37,13 @@ class StereoBuffer {
     val frameCount: Int get() = left.size
     val isEmpty: Boolean get() = left.isEmpty()
 
+    /**
+     * Cópia independente. O Swift copia o `struct` sozinho; aqui a classe é
+     * referência, e um buffer que mora em cache NUNCA pode ser alterado no
+     * lugar — ganho, pan e rampa entram numa cópia.
+     */
+    fun copy(): StereoBuffer = StereoBuffer(left.copyOf(), right.copyOf())
+
     val peak: Float
         get() {
             var peak = 0f

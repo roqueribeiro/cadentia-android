@@ -1,7 +1,9 @@
 package com.levelhard.cadentia.features.tab
 
 import com.levelhard.cadentia.audio.PolyphonicSampler
+import com.levelhard.cadentia.features.drums.DrumVoicing
 import com.levelhard.cadentia.kit.DrumSynth
+import com.levelhard.cadentia.kit.SampleBank
 import com.levelhard.cadentia.kit.InstrumentSynth
 import com.levelhard.cadentia.kit.InstrumentVoice
 import com.levelhard.cadentia.kit.MetronomeClick
@@ -230,14 +232,13 @@ class TabPlayerEngine {
                 val variation = beatIndex % DrumSynth.roundRobinCount
                 // O ganho da trilha vai no schedule (a voz escala ao vivo),
                 // então a chave do cache não precisa dele.
-                sampler.schedule(
-                    key = "tab/$kit/$pad/" + String.format(Locale.ROOT, "%.2f/%d", velocity, variation),
-                    atSeconds = whenSeconds,
-                    gain = gain,
-                ) {
+                // Chave por arquivo quando vem de sample (ver DrumVoicing); o
+                // acento do sample vai no ganho da voz junto com o da trilha.
+                val voicing = DrumVoicing.of(kit, pad, velocity, variation, gain)
+                sampler.schedule(key = "tab/${voicing.key}", atSeconds = whenSeconds, gain = voicing.gain) {
                     DrumSynth.renderStereo(
                         kit = kit, pad = pad, velocity = velocity, variation = variation,
-                        sampleRate = rate,
+                        sampleRate = rate, gain = 1f, velocityGainApplied = voicing.sampled,
                     ).interleaved()
                 }
                 continue
@@ -251,7 +252,8 @@ class TabPlayerEngine {
             // muitas durações quase iguais e cada chave distinta é um render
             // e um buffer separados.
             val quantised = (duration * 40).roundToInt() / 40.0
-            val key = "tab/${voice.id}/$midi/" + String.format(Locale.ROOT, "%.3f/%.2f", quantised, velocity)
+            val key = "tab/${SampleBank.shared.soundGeneration}/${voice.id}/$midi/" +
+                String.format(Locale.ROOT, "%.3f/%.2f", quantised, velocity)
             sampler.schedule(key = key, atSeconds = whenSeconds, gain = gain) {
                 InstrumentSynth.render(
                     voice = voice, frequency = frequency, duration = quantised,

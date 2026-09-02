@@ -12,7 +12,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.lifecycleScope
+import com.levelhard.cadentia.kit.SampleBank
+import com.levelhard.cadentia.kit.enabledSampleFamilies
 import com.levelhard.cadentia.settings.SettingsStore
+import kotlinx.coroutines.launch
 import com.levelhard.cadentia.ui.CadentiaTheme
 
 class MainActivity : ComponentActivity() {
@@ -34,6 +38,13 @@ class MainActivity : ComponentActivity() {
         // `-qa-reset` do iOS: testes partem do estado de fábrica (um tap-tempo
         // do run anterior vazaria para as asserções de BPM do próximo).
         if (qa.reset) store.reset()
+
+        // A chave síntese × sample por família segue as configurações: já na
+        // abertura e a cada mudança (a folha de Som vira o interruptor).
+        SampleBank.shared.setEnabled(store.settings.value.enabledSampleFamilies)
+        lifecycleScope.launch {
+            store.settings.collect { SampleBank.shared.setEnabled(it.enabledSampleFamilies) }
+        }
 
         var initialTab = CadentiaTab.entries.firstOrNull { it.qaName == qa.tab } ?: CadentiaTab.Tuner
         var initialDestination: MoreDestination? = null

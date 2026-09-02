@@ -91,7 +91,8 @@ object DrumKitHD {
     }
 
     /** Velocity → nível, curvada para o toque leve ter espaço. */
-    private fun velocityGain(velocity: Float): Float = 0.22f + 0.78f * velocity.pow(1.35f)
+    /** A curva de dinâmica da síntese; pública para o caminho de erro de `DrumSynth.renderStereo` desfazer o acento do chamador. */
+    fun velocityGain(velocity: Float): Float = 0.22f + 0.78f * velocity.pow(1.35f)
 
     internal fun piece(kit: String, pad: String): Piece = when {
         // bumbo
