@@ -2,6 +2,41 @@
 
 ## [Não lançado]
 
+### Fase 3 — Tablaturas, Gravador e Frequência (2026-09-02)
+
+- `:kit` (786650b): o modelo .rostab inteiro — Tablature/RostabParser com
+  round-trip da fixture do web verbatim, TablatureEdit (toda mutação do
+  editor), TabRowDisplay, playbackPlan v5.1 (blocos ×N e compasso ∞ com
+  loop modular), ChordLibrary e BackingTrackCatalog com 48 bases GERADAS do
+  Swift + BackingTrackBuild (levada por gênero, baixo por graus na corda
+  mais grave PELO TOM, teste nota-a-nota contra o acorde do compasso).
+- Tablaturas (7024cc9): TabPlayerEngine no relógio de frames (plano por
+  trilha, count-in, loop, BPM override, mute/solo/volume ao vivo, masterFx,
+  articulações como velocity, round robin, duração quantizada no cache),
+  grade em Canvas (aguda em cima, playhead com auto-rolagem a 35%, LTR
+  travado), editor completo com undo 24 (casas 0–24, SATB, figuras, palm
+  mute, repetições ×N, blocos), mixer, catálogo de 48 bases por gênero,
+  escolha de acorde, demo embutida + abrir .rostab (SAF) + compartilhar
+  (FileProvider).
+- Gravador (243344f, 977506d): RecorderProject/History no `:kit` (clipe =
+  janela sobre arquivo; split sem perda; migração do formato legado; 20
+  testes 1:1) + RecorderMix (soma offline pura com envelope/pan/volume,
+  enhance 70 Hz + compressor; 6 testes) + WavIO. No app: RecorderEngine
+  (chunks de 0,5 s em lookahead no relógio de frames, captura
+  VOICE_COMMUNICATION com AEC no modo estúdio / UNPROCESSED fora, take só
+  grava depois do count-in), timeline com zoom/pan/scrub/drag/aparo/split/
+  duplicar, R/M/S, undo/redo, sheets de trilha e clipe, mixdown M4A
+  (MediaCodec AAC 192k) compartilhável. Sem chip de Isolamento de Voz: o
+  painel é do sistema da Apple; o modo estúdio AEC é o equivalente Android.
+- Frequência (6d7be6e): gerador de tom contínuo por chunks com fase
+  contínua e agendamento em frames inteiros (emenda sem estalo; knobs
+  respondem em ~80 ms com fade), binaural por canal, reverb/delay do bus,
+  osciloscópio 1:1, slider log 20 Hz–20 kHz, presets, A4·440, 4 ondas.
+- Gate da fase: i18n-audit 465 chaves × 10 idiomas; 148 testes JVM verdes;
+  assembleDebug + assembleQa OK.
+- Pendente de aparelho: TODO o áudio novo (tablaturas, gravador, gerador)
+  sem escuta humana; overdub sem medição de alinhamento em hardware real.
+
 ### Fase 2 — Bateria e Piano (2026-09-02)
 
 - `:kit`: StereoBuffer, AudioDSP completo (banco modal, biquads RBJ com 8
