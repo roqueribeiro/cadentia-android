@@ -113,6 +113,13 @@ fun StemsScreen() {
 
     val engine = remember { StemPlayerEngine() }
     val stores = remember { StemStores(context.applicationContext) }
+    val roqueAccount = remember {
+        com.levelhard.cadentia.features.library.RoqueOSAccount.shared(context.applicationContext)
+    }
+    val roqueLibrary = remember {
+        com.levelhard.cadentia.features.library.RoqueOSLibrary(roqueAccount)
+    }
+    var downloadingId by remember { mutableStateOf<String?>(null) }
 
     var phase by remember { mutableStateOf<Phase>(Phase.Empty) }
     var songTitle by remember { mutableStateOf("") }
@@ -182,6 +189,40 @@ fun StemsScreen() {
         }
     }
 
+    /** Música remota sem cache: rebaixa a origem, normaliza e diz o fato. */
+    fun openRemoteFresh(song: RecentSong) {
+        songTitle = song.title
+        phase = Phase.Preparing
+        scope.launch {
+            val outcome = withContext(Dispatchers.IO) {
+                runCatching {
+                    val raw = stores.cacheDirectory(song.id).resolve("origem-${'$'}{song.id}")
+                    roqueLibrary.refetch(song, raw)
+                    val normalized = StemAudioNormalizer.normalize(
+                        context, Uri.fromFile(raw), stores.cacheDirectory(song.id).resolve("entrada.wav"),
+                    )
+                    raw.delete()
+                    normalized
+                }
+            }
+            phase = outcome.fold(
+                onSuccess = { ok ->
+                    if (ok) {
+                        rememberSong(song)
+                        Phase.Failed(context.getString(R.string.cadentia_stems_model_missing))
+                    } else {
+                        Phase.Failed(context.getString(R.string.cadentia_stems_failed))
+                    }
+                },
+                onFailure = { error ->
+                    val display = (error as? com.levelhard.cadentia.features.library.RoqueOSException)
+                        ?.display ?: (error.message ?: error.javaClass.simpleName)
+                    Phase.Failed(display)
+                },
+            )
+        }
+    }
+
     fun open(song: RecentSong, autoplay: Boolean = false) {
         pendingAutoplay = autoplay
         val source = song.source
@@ -190,7 +231,54 @@ fun StemsScreen() {
         } else if (source is RecentSong.Source.Device) {
             openFresh(Uri.parse(source.persistedUri), song)
         } else {
-            phase = Phase.Failed(context.getString(R.string.cadentia_stems_model_missing))
+            // Fonte remota: rebaixar de novo é o custo de ter perdido o
+            // cache, não um erro.
+            openRemoteFresh(song)
+        }
+    }
+
+    /** Um item baixado da biblioteca RoqueOS vira Recente e segue o fluxo. */
+    fun openRemoteItem(item: com.levelhard.cadentia.features.library.RoqueOSLibrary.Item) {
+        val song = RecentSong(
+            title = item.name.substringBeforeLast('.'),
+            source = item.recentSource(),
+            lastOpenedEpochMillis = System.currentTimeMillis(),
+        )
+        if (stores.isCacheComplete(song.id)) {
+            openCached(song)
+            return
+        }
+        downloadingId = item.id
+        songTitle = song.title
+        phase = Phase.Preparing
+        scope.launch {
+            val outcome = withContext(Dispatchers.IO) {
+                runCatching {
+                    val raw = stores.cacheDirectory(song.id).resolve("origem-${'$'}{song.id}")
+                    roqueLibrary.download(item, raw)
+                    val normalized = StemAudioNormalizer.normalize(
+                        context, Uri.fromFile(raw), stores.cacheDirectory(song.id).resolve("entrada.wav"),
+                    )
+                    raw.delete()
+                    normalized
+                }
+            }
+            downloadingId = null
+            phase = outcome.fold(
+                onSuccess = { ok ->
+                    if (ok) {
+                        rememberSong(song)
+                        Phase.Failed(context.getString(R.string.cadentia_stems_model_missing))
+                    } else {
+                        Phase.Failed(context.getString(R.string.cadentia_stems_failed))
+                    }
+                },
+                onFailure = { error ->
+                    val display = (error as? com.levelhard.cadentia.features.library.RoqueOSException)
+                        ?.display ?: (error.message ?: error.javaClass.simpleName)
+                    Phase.Failed(display)
+                },
+            )
         }
     }
 
@@ -328,6 +416,14 @@ fun StemsScreen() {
                 setlists = setlists,
                 isReady = { stores.isCacheComplete(it.id) },
                 revision = revision,
+                roqueSection = {
+                    com.levelhard.cadentia.features.library.RoqueOSSection(
+                        accent = accent,
+                        account = roqueAccount,
+                        onPick = { openRemoteItem(it) },
+                        downloadingId = downloadingId,
+                    )
+                },
                 onOpenFile = { importer.launch(arrayOf("audio/*")) },
                 onReopen = { open(it) },
                 onForget = { song ->
@@ -705,6 +801,7 @@ private fun LibraryState(
     setlists: Setlists,
     isReady: (RecentSong) -> Boolean,
     revision: Int,
+    roqueSection: @Composable () -> Unit,
     onOpenFile: () -> Unit,
     onReopen: (RecentSong) -> Unit,
     onForget: (RecentSong) -> Unit,
@@ -848,6 +945,9 @@ private fun LibraryState(
                     }
                 }
             }
+
+            // ---- RoqueOS ----
+            roqueSection()
 
             // ---- recentes ----
             if (recent.songs.isNotEmpty()) {
