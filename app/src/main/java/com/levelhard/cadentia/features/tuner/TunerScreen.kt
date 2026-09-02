@@ -23,6 +23,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
@@ -32,6 +33,7 @@ import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material.icons.filled.NetworkCell
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.UnfoldMore
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -74,8 +76,8 @@ import kotlin.math.abs
 /**
  * O afinador — port do `TunerView.swift`: abre ESCUTANDO (o prompt de
  * permissão do sistema é a única tela no primeiro uso), ring gauge com a
- * nota dentro, gráfico de afinação ao vivo. A análise de sessão (gravar e
- * medir um trecho de estudo) entra na próxima leva.
+ * nota dentro, gráfico de afinação ao vivo e análise de sessão (tee do
+ * áudio + linha do tempo de pitch, teto de 60 s, resumo em folha).
  */
 @Composable
 fun TunerScreen(store: SettingsStore) {
@@ -110,6 +112,14 @@ fun TunerScreen(store: SettingsStore) {
         val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
             PackageManager.PERMISSION_GRANTED
         if (granted) vm.activate() else permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+    }
+    // A linha do tempo gravada lê as configurações VIVAS (não as da última
+    // recomposição) — o mesmo settingsProvider do iOS.
+    LaunchedEffect(store) {
+        vm.settingsProvider = {
+            val tuner = store.settings.value.tuner
+            tuner.referenceA to InstrumentPreset.find(tuner.lastInstrument)
+        }
     }
     DisposableEffect(Unit) {
         onDispose { vm.deactivate() }
@@ -168,9 +178,103 @@ fun TunerScreen(store: SettingsStore) {
                             modifier = Modifier.fillMaxWidth().height(96.dp),
                         )
                         StatusPills(state, isTuned, displayCents)
+                        AnalysisControls(
+                            state = state,
+                            onStart = { vm.startRecording(context.cacheDir) },
+                            onStop = { vm.stopRecording() },
+                        )
                     }
                 }
             }
+        }
+    }
+
+    if (state.showSessionModal) {
+        state.session?.let { session ->
+            TunerSessionSheet(
+                session = session,
+                accent = CzTokens.tunerGreen,
+                onDismiss = { vm.dismissSessionModal() },
+            )
+        }
+    }
+}
+
+/**
+ * O botão de análise — port do `analysisButton` do iOS, com o mesmo texto
+ * honesto: isto não é um gravador (o app tem uma aba para isso), é medir um
+ * trecho de estudo — que nota segurou, quanto tempo afinado, quanto desviou.
+ */
+@Composable
+private fun AnalysisControls(
+    state: TunerViewModel.State,
+    onStart: () -> Unit,
+    onStop: () -> Unit,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(7.dp),
+    ) {
+        if (state.isRecording) {
+            Surface(
+                onClick = onStop,
+                shape = CircleShape,
+                color = CzTokens.tunerGreen,
+                contentColor = Color.Black,
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Stop,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.cadentia_tuner_analysis_stop) +
+                            " (${state.recordingElapsedLabel})",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                    )
+                }
+            }
+        } else {
+            Surface(
+                onClick = onStart,
+                shape = CircleShape,
+                color = CzTokens.surface,
+                contentColor = CzTokens.textPrimary,
+                border = androidx.compose.foundation.BorderStroke(1.dp, CzTokens.hairline),
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ShowChart,
+                        contentDescription = null,
+                        tint = CzTokens.tunerGreen,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.cadentia_tuner_analysis_start),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                    )
+                }
+            }
+            Text(
+                text = stringResource(R.string.cadentia_tuner_analysis_hint),
+                fontSize = 11.sp,
+                color = CzTokens.textTertiary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 24.dp),
+            )
         }
     }
 }

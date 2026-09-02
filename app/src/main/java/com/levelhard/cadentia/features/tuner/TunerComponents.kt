@@ -1,21 +1,38 @@
 package com.levelhard.cadentia.features.tuner
 
+import android.media.MediaPlayer
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -27,12 +44,17 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.levelhard.cadentia.R
+import com.levelhard.cadentia.kit.TunerSession
+import com.levelhard.cadentia.ui.CzCard
 import com.levelhard.cadentia.ui.CzTokens
 import kotlin.math.abs
 import kotlin.math.cos
@@ -318,6 +340,195 @@ fun TuningGraphView(
                 radius = 3.dp.toPx(),
                 center = last,
                 style = Stroke(width = 1.dp.toPx()),
+            )
+        }
+    }
+}
+
+// ── Folha da sessão gravada ────────────────────────────────────────────────
+
+/**
+ * Resumo da sessão de análise — port do `TunerSessionView`: métricas (nota
+ * dominante, % afinado, desvio médio), linha do tempo de cents e reprodução
+ * do áudio capturado.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TunerSessionSheet(
+    session: TunerSession,
+    accent: Color,
+    onDismiss: () -> Unit,
+) {
+    val metrics = session.metrics
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = CzTokens.stageTop) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(18.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 32.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.cadentia_tuner_analysis_title),
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold,
+                color = CzTokens.textPrimary,
+            )
+            Text(
+                text = durationLabel(session.durationMs),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                color = CzTokens.textTertiary,
+            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                MetricCard(
+                    labelRes = R.string.music_tuner_recording_dominant_note,
+                    value = metrics.dominantNote ?: "—",
+                    modifier = Modifier.weight(1f),
+                )
+                MetricCard(
+                    labelRes = R.string.music_tuner_recording_in_tune_percent,
+                    value = "${metrics.inTunePercent}%",
+                    modifier = Modifier.weight(1f),
+                )
+                MetricCard(
+                    labelRes = R.string.music_tuner_recording_avg_drift,
+                    value = metrics.averageDriftCents?.let { "%.1f¢".format(it) } ?: "—",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            SessionTimelineGraph(
+                session = session,
+                accent = accent,
+                modifier = Modifier.fillMaxWidth().height(90.dp),
+            )
+            session.audioPath?.let { path ->
+                SessionPlaybackButton(path = path, accent = accent)
+            }
+        }
+    }
+}
+
+private fun durationLabel(durationMs: Double): String {
+    val seconds = (durationMs / 1000).toInt()
+    return "%02d:%02d".format(seconds / 60, seconds % 60)
+}
+
+@Composable
+private fun MetricCard(labelRes: Int, value: String, modifier: Modifier = Modifier) {
+    CzCard(modifier = modifier, cornerRadius = CzTokens.radiusMD) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp, horizontal = 6.dp),
+        ) {
+            Text(
+                text = stringResource(labelRes).uppercase(),
+                fontSize = 10.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = CzTokens.textTertiary,
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                text = value,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = CzTokens.textPrimary,
+            )
+        }
+    }
+}
+
+/** Linha do tempo de cents da sessão inteira (±50 com corte, zero tracejado). */
+@Composable
+private fun SessionTimelineGraph(
+    session: TunerSession,
+    accent: Color,
+    modifier: Modifier = Modifier,
+) {
+    Canvas(modifier) {
+        drawRoundRect(
+            color = Color.White.copy(alpha = 0.04f),
+            cornerRadius = CornerRadius(8.dp.toPx()),
+        )
+        val timeline = session.timeline
+        if (timeline.size < 2 || session.durationMs <= 0) return@Canvas
+
+        val path = androidx.compose.ui.graphics.Path()
+        for ((i, point) in timeline.withIndex()) {
+            val x = (point.t / session.durationMs * size.width).toFloat()
+            val clamped = point.cents.coerceIn(-50, 50).toDouble()
+            val y = (size.height / 2 - clamped / 50 * (size.height / 2 - 6.dp.toPx())).toFloat()
+            if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+        }
+        drawPath(path, color = accent, style = Stroke(width = 1.5.dp.toPx(), cap = StrokeCap.Round))
+
+        drawLine(
+            color = Color.White.copy(alpha = 0.2f),
+            start = Offset(0f, size.height / 2),
+            end = Offset(size.width, size.height / 2),
+            strokeWidth = 1.dp.toPx(),
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(2.dp.toPx(), 3.dp.toPx())),
+        )
+    }
+}
+
+/**
+ * Reprodução do áudio da sessão — o `SessionPlayer` do iOS, aqui um
+ * MediaPlayer (WAV de 60 s no máximo; latência não é requisito num replay,
+ * então o PolyphonicSampler fica de fora de propósito).
+ */
+@Composable
+private fun SessionPlaybackButton(path: String, accent: Color) {
+    var isPlaying by remember { mutableStateOf(false) }
+    val player = remember { MediaPlayer() }
+    DisposableEffect(Unit) {
+        onDispose {
+            runCatching { player.release() }
+        }
+    }
+    Surface(
+        onClick = {
+            if (isPlaying) {
+                runCatching { player.stop() }
+                isPlaying = false
+            } else {
+                runCatching {
+                    player.reset()
+                    player.setDataSource(path)
+                    player.setOnCompletionListener { isPlaying = false }
+                    player.prepare()
+                    player.start()
+                }.onSuccess { isPlaying = true }
+                    .onFailure { isPlaying = false }
+            }
+        },
+        shape = CircleShape,
+        color = accent,
+        contentColor = Color.Black,
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.padding(horizontal = 22.dp, vertical = 11.dp),
+        ) {
+            Icon(
+                imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Text(
+                text = stringResource(
+                    if (isPlaying) R.string.music_metronome_stop else R.string.music_metronome_start,
+                ),
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
             )
         }
     }
