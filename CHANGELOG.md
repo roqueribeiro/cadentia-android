@@ -2,6 +2,32 @@
 
 ## [Não lançado]
 
+### Fase 5 — Polimento (2026-09-02)
+
+- Sobre (0c8b1b1): tela real portada do AboutView.swift — cabeçalho com
+  versão e código de build, as quatro seções (o que é, separação local,
+  privacidade, RoqueOS), quem fez com os dois LinkedIn como alvo de linha
+  inteira, links de site/privacidade/termos/comunidade e folha de licenças
+  com o MIT do Demucs verbatim (obrigação da licença). O FeatureHero saiu
+  do repo: era o placeholder de obra e perdeu o último chamador.
+- Afinador (4510f41): análise de sessão — tee das amostras cruas no próprio
+  loop do AudioRecord (nenhum segundo microfone), linha do tempo de pitch a
+  15 Hz presa ao sinal vivo, teto de 60 s, WAV íntegro no stop via WavIO, e
+  folha de resumo com as métricas do TunerSession do `:kit` (nota dominante,
+  tempo afinado, desvio médio), gráfico da sessão e replay por MediaPlayer
+  (latência não é requisito num replay; o PolyphonicSampler fica de fora).
+- Acessibilidade (caf1f37): rótulos TalkBack onde o catálogo já tinha a
+  chave (play/pause do Separar, esquecer recente, voltar na biblioteca),
+  Reduce Motion na troca de destino do Mais (a única animação que faltava
+  gatear), e alvo mínimo de 48 dp nos controles pequenos via
+  minimumInteractiveComponentSize sem mudar o visual. Onde falta chave no
+  catálogo (aumentar/diminuir, desfazer/refazer, ±10 s, compartilhar/
+  editar) ficou pendência comentada — chave nova só nos 10 idiomas.
+- Gate da fase: i18n-audit 465 × 10; 236 testes JVM (0 falhas, reexecutados
+  do zero); assembleDebug/Qa OK.
+- Pendente de aparelho: escuta da gravação e do replay da análise; TalkBack
+  e Remover animações lidos de verdade; tudo que as fases 1–4 já listavam.
+
 ### Fase 4 — Separar (stems) e Biblioteca RoqueOS (2026-09-02)
 
 - `:kit` (5ddf535): StemMix (solo vence mute) + StemMixSnapshot/Memory
