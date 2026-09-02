@@ -137,7 +137,7 @@ fun DrumsScreen(store: SettingsStore) {
 
     LaunchedEffect(Unit) {
         syncEngine()
-        sequencer.prewarmInBackground(this)
+        sequencer.prewarm(this)
     }
     DisposableEffect(Unit) {
         onDispose {
@@ -171,7 +171,7 @@ fun DrumsScreen(store: SettingsStore) {
                         ) {
                             store.update { it.drums.kit = kit }
                             sequencer.kit = kit
-                            sequencer.prewarmInBackground(scope)
+                            sequencer.prewarm(scope)
                         }
                     }
                     IconChip(

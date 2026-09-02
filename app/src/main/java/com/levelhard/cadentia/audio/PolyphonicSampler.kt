@@ -74,6 +74,9 @@ class PolyphonicSampler {
         }
     }
 
+    /** Já renderizado? Quem aquece pergunta ANTES de renderizar, não dentro do insert. */
+    fun hasCached(key: String): Boolean = synchronized(cache) { cache.containsKey(key) }
+
     /**
      * Renderiza para o cache sem tocar: o primeiro hit sai sem soluço.
      *

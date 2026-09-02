@@ -38,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -204,12 +205,15 @@ private fun FamilyRow(
                     .fillMaxWidth()
                     .semantics(mergeDescendants = true) { contentDescription = spoken },
             ) {
+                // Duas linhas, não uma: com uma, "FreePats FSBS Electric Guitar
+                // (clean)" e "(jazz)" viravam a mesma linha cortada (QA v5).
                 Text(
                     text = pack.name, // i18n-verbatim: nome do banco
                     fontSize = 11.sp,
                     color = CzTokens.textTertiary,
-                    maxLines = 1,
-                    modifier = Modifier.weight(1f, fill = false),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
                 )
                 Text(
                     text = pack.license, // i18n-verbatim: identificador SPDX
@@ -220,7 +224,7 @@ private fun FamilyRow(
                         .background(CzTokens.tunerGreen.copy(alpha = 0.12f), CircleShape)
                         .padding(horizontal = 5.dp, vertical = 1.dp),
                 )
-                Spacer(Modifier.weight(1f))
+                Spacer(Modifier.size(2.dp))
                 // Puro, sem atenuar: sobre o cartão dourado o `textTertiary`
                 // atenuado media 3,60:1 no iOS, abaixo do 4,5:1 do AA.
                 Text(

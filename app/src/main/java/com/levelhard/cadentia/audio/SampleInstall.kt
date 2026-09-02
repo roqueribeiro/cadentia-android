@@ -15,14 +15,18 @@ import java.io.File
  * em dois lugares, nesta ordem:
  *
  *  1. `filesDir/samples` — o destino de uma entrega gerenciada pelo app
- *     (download ou asset pack), quando ela existir;
- *  2. `externalFilesDir/samples` — o caminho que o QA alcança por
- *     `adb push` sem root (`/sdcard/Android/data/<app>/files/samples`).
+ *     (download ou asset pack), quando ela existir. É também o caminho do
+ *     QA no emulador: `adb push samples.tgz /data/local/tmp/` e
+ *     `adb shell run-as <app> tar xzf /data/local/tmp/samples.tgz -C files`
+ *     (medido no API 37: um `adb push` direto em `Android/data/<app>/files`
+ *     fica dono `shell:ext_data_rw` e o app leva "Permission denied");
+ *  2. `externalFilesDir/samples` — para quem copia a pasta à mão num aparelho
+ *     onde isso ainda funciona.
  *
  * Pasta ausente não é erro: o app toca com síntese e a tela de Som diz isso.
  */
 object SampleInstall {
-    private const val TAG = "Cadentia/Samples"
+    private const val TAG = "CadentiaSamples"
 
     fun candidates(context: Context): List<File> = listOfNotNull(
         File(context.filesDir, "samples"),

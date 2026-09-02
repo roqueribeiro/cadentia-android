@@ -4,6 +4,7 @@ import android.media.AudioFormat
 import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
+import android.os.SystemClock
 import android.util.Log
 import com.levelhard.cadentia.kit.SampleDecoder
 import com.levelhard.cadentia.kit.StereoBuffer
@@ -26,7 +27,20 @@ class MediaCodecSampleDecoder : SampleDecoder {
         if (!file.isFile) return null
         if (file.extension.equals("wav", ignoreCase = true)) return SampleDecoder.Wav.decode(file)
         return try {
-            decodeCompressed(file)
+            val started = SystemClock.elapsedRealtime()
+            val decoded = decodeCompressed(file)
+            if (decoded == null) {
+                Log.w(TAG, "decodificação vazia: ${file.parentFile?.name}/${file.name}")
+            } else if (Log.isLoggable(TAG, Log.DEBUG)) {
+                // Prova de que o caminho de sample foi tomado, para o QA por
+                // logcat: `adb shell setprop log.tag.CadentiaSamples DEBUG`.
+                Log.d(
+                    TAG,
+                    "${file.parentFile?.name}/${file.name}: ${decoded.frameCount} frames em " +
+                        "${SystemClock.elapsedRealtime() - started} ms",
+                )
+            }
+            decoded
         } catch (e: Exception) {
             Log.w(TAG, "falha ao decodificar ${file.name}: ${e.message}")
             null
@@ -171,7 +185,7 @@ class MediaCodecSampleDecoder : SampleDecoder {
     }
 
     private companion object {
-        const val TAG = "Cadentia/Samples"
+        const val TAG = "CadentiaSamples"
         const val TIMEOUT_US = 10_000L
     }
 }

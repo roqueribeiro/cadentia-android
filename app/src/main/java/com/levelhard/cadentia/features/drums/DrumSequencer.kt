@@ -6,6 +6,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
@@ -25,6 +26,9 @@ class DrumSequencer {
 
         /** Pad ao vivo e os três acentos de `accent(step)`. */
         val ACCENTS = floatArrayOf(1.0f, 0.92f, 0.76f, 0.62f)
+
+        /** O que toda levada usa, esteja ou não na grade no momento. */
+        val CORE_PADS = setOf("kick", "snare", "hihat-c", "hihat-o")
     }
 
     val sampler = PolyphonicSampler()
@@ -68,41 +72,53 @@ class DrumSequencer {
         }
     }
 
+    private var prewarmJob: Job? = null
+
     /**
-     * Renderiza todos os pads do kit atual no cache: primeiro hit sem soluço.
-     * Síncrono — quem chama da tela usa `prewarmInBackground`, que faz o
-     * mesmo trabalho fora da thread principal; `start()` chama direto porque
-     * o primeiro passo precisa dos pads prontos antes de agendar.
+     * Aquece o cache fora da thread principal — port do `prewarm()` da 1.16.
+     *
+     * São 16 pads × 4 variações × 4 dinâmicas. Com síntese eram milissegundos;
+     * com sample cada um abre e decodifica um FLAC, e fazer isso na entrada da
+     * tela (ou no Start, como esta versão fazia) travava a tela: medido no
+     * emulador, 84 frames pulados ao apertar Start com o cache pela metade.
+     *
+     * Só o que a levada usa, e o núcleo do kit por cima: aquecer os 16 pads
+     * despejava 179 MB num cache de 44 MB no iOS, expulsando bumbo, caixa e
+     * chimbal para dar lugar a cowbell e conga. As dinâmicas aquecidas são as
+     * mesmas que `accent()` produz: um cache que só conhece a pancada cheia
+     * erra em toda semicolcheia fraca. Com a chave por arquivo, pedidos
+     * diferentes caem na mesma entrada, e a checagem de cache vem ANTES do
+     * render — renderizar 256 buffers para descobrir que já estavam lá é o
+     * custo inteiro pago de novo a cada Play.
      */
-    fun prewarm() {
+    fun prewarm(scope: CoroutineScope) {
         if (!sampler.startIfNeeded()) return
-        renderAllPads()
-    }
-
-    /** O aquecimento da entrada da tela e da troca de kit, sem congelar a UI. */
-    fun prewarmInBackground(scope: CoroutineScope): Job? {
-        if (!sampler.startIfNeeded()) return null
-        return scope.launch(Dispatchers.Default) { renderAllPads() }
-    }
-
-    /**
-     * Todas as dinâmicas que o sequenciador e o pad produzem, em toda variação.
-     * Com sample ligado a chave é por arquivo, então as 16 combinações de um
-     * pad convergem para os poucos arquivos que o pack tem de verdade.
-     */
-    private fun renderAllPads() {
+        prewarmJob?.cancel()
         val kit = kit
         val rate = sampler.sampleRate
-        for (pad in DrumSynth.padIDs) {
+        val used = pattern.filter { it.value.contains(true) }.keys
+        val pads = DrumSynth.padIDs.filter { it in used || it in CORE_PADS }
+        data class Warm(val key: String, val pad: String, val velocity: Float, val variation: Int, val sampled: Boolean)
+        val planned = HashSet<String>()
+        val jobs = ArrayList<Warm>()
+        for (pad in pads) {
             for (velocity in ACCENTS) {
                 for (variation in 0 until DrumSynth.roundRobinCount) {
-                    val voicing = DrumVoicing.of(kit, pad, velocity, variation, volume)
-                    sampler.prewarm(voicing.key) {
-                        DrumSynth.renderStereo(
-                            kit, pad, velocity, variation, rate, gain = 1f,
-                            velocityGainApplied = voicing.sampled,
-                        ).interleaved()
-                    }
+                    val voicing = DrumVoicing.of(kit, pad, velocity, variation, 1f)
+                    if (!planned.add(voicing.key) || sampler.hasCached(voicing.key)) continue
+                    jobs.add(Warm(voicing.key, pad, velocity, variation, voicing.sampled))
+                }
+            }
+        }
+        if (jobs.isEmpty()) return
+        prewarmJob = scope.launch(Dispatchers.Default) {
+            for (job in jobs) {
+                ensureActive()
+                sampler.prewarm(job.key) {
+                    DrumSynth.renderStereo(
+                        kit, job.pad, job.velocity, job.variation, rate, gain = 1f,
+                        velocityGainApplied = job.sampled,
+                    ).interleaved()
                 }
             }
         }
@@ -111,7 +127,7 @@ class DrumSequencer {
     fun start(scope: CoroutineScope): Boolean {
         if (isRunning) return true
         if (!sampler.startIfNeeded()) return false
-        prewarm()
+        prewarm(scope)
         stepIndex = 0
         nextStepSeconds = sampler.nowSeconds() + 0.06
         isRunning = true
@@ -132,6 +148,8 @@ class DrumSequencer {
 
     fun shutdown() {
         stop()
+        prewarmJob?.cancel()
+        prewarmJob = null
         sampler.stop()
     }
 
