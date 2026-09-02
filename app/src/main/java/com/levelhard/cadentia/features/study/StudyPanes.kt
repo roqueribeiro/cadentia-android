@@ -327,7 +327,7 @@ internal fun ScalesPane(
         scaleNotes = scale.notes(settings.piano.scaleRoot),
         root = settings.piano.scaleRoot,
         accent = accent,
-        modifier = Modifier.fillMaxWidth().height(170.dp),
+        modifier = Modifier.fillMaxWidth().height(184.dp),
     )
 
     ActionPill(
@@ -380,8 +380,12 @@ internal fun ScaleFretboard(
             val labelRight = 17.dp.toPx()
             val openDotX = 27.dp.toPx()
             val insetY = 12.dp.toPx()
+            // Faixa própria para os números das casas, ABAIXO da última corda:
+            // desenhados na borda do canvas eles ficavam por baixo das bolinhas
+            // do mi grave (visto no QA do emulador).
+            val markerBand = 14.dp.toPx()
             val gridWidth = size.width - insetX - 10.dp.toPx()
-            val gridHeight = size.height - insetY * 2
+            val gridHeight = size.height - insetY * 2 - markerBand
             val stringGap = gridHeight / (strings - 1)
             val fretGap = gridWidth / frets
 
@@ -420,7 +424,7 @@ internal fun ScaleFretboard(
                     color = Color.White.copy(alpha = 0.35f),
                     topLeft = Offset(
                         insetX + (marker - 0.5f) * fretGap - label.size.width / 2f,
-                        size.height - 4.dp.toPx() - label.size.height,
+                        insetY + gridHeight + 3.dp.toPx(),
                     ),
                 )
             }

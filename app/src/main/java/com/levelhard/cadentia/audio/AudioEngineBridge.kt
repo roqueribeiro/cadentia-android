@@ -10,6 +10,8 @@ package com.levelhard.cadentia.audio
  * buffer uma vez (cache por chave do lado Kotlin) e só agendam.
  */
 class AudioEngineBridge {
+    /** Lido de threads de fundo (aquecimento); escrito só por start/stop. */
+    @Volatile
     private var handle: Long = 0
 
     val isRunning: Boolean get() = handle != 0L

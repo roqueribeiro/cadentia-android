@@ -3,6 +3,7 @@ package com.levelhard.cadentia.features.drums
 import com.levelhard.cadentia.audio.PolyphonicSampler
 import com.levelhard.cadentia.kit.DrumSynth
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -62,9 +63,24 @@ class DrumSequencer {
         }
     }
 
-    /** Renderiza todos os pads do kit atual no cache: primeiro hit sem soluço. */
+    /**
+     * Renderiza todos os pads do kit atual no cache: primeiro hit sem soluço.
+     * Síncrono — quem chama da tela usa `prewarmInBackground`, que faz o
+     * mesmo trabalho fora da thread principal; `start()` chama direto porque
+     * o primeiro passo precisa dos pads prontos antes de agendar.
+     */
     fun prewarm() {
         if (!sampler.startIfNeeded()) return
+        renderAllPads()
+    }
+
+    /** O aquecimento da entrada da tela e da troca de kit, sem congelar a UI. */
+    fun prewarmInBackground(scope: CoroutineScope): Job? {
+        if (!sampler.startIfNeeded()) return null
+        return scope.launch(Dispatchers.Default) { renderAllPads() }
+    }
+
+    private fun renderAllPads() {
         val kit = kit
         val volume = volume
         val rate = sampler.sampleRate

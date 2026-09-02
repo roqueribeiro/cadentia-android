@@ -39,23 +39,23 @@ class PolyphonicSampler {
     /** Latência estrutural reportável: frames por burst do stream. */
     val framesPerBurst: Int get() = engine.framesPerBurst()
 
-    fun startIfNeeded(): Boolean {
+    /**
+     * Start/stop e o cache moram sob o MESMO lock: o aquecimento insere de
+     * uma thread de fundo, e registrar um buffer num motor que a thread
+     * principal acabou de destruir seria use-after-free no C++.
+     */
+    fun startIfNeeded(): Boolean = synchronized(cache) {
         if (engine.isRunning) return true
-        val ok = engine.start()
-        if (!ok) return false
-        synchronized(cache) {
-            cache.clear()
-            cacheBytes = 0
-        }
-        return true
+        if (!engine.start()) return false
+        cache.clear()
+        cacheBytes = 0
+        true
     }
 
-    fun stop() {
+    fun stop() = synchronized(cache) {
         engine.stop()
-        synchronized(cache) {
-            cache.clear()
-            cacheBytes = 0
-        }
+        cache.clear()
+        cacheBytes = 0
     }
 
     /** O "agora" do relógio compartilhado, em segundos do stream. */
@@ -74,17 +74,21 @@ class PolyphonicSampler {
         }
     }
 
-    /** Renderiza para o cache sem tocar: o primeiro hit sai sem soluço. */
+    /**
+     * Renderiza para o cache sem tocar: o primeiro hit sai sem soluço.
+     *
+     * O `render` roda FORA do lock, de propósito: o aquecimento vem de uma
+     * thread de fundo e uma tecla apertada no meio dele não pode esperar o
+     * render terminar para descobrir que a nota já estava no cache. Se duas
+     * threads renderizarem a mesma chave, a segunda joga o PCM fora.
+     */
     fun prewarm(key: String, render: () -> FloatArray) {
         if (!engine.isRunning) return
+        synchronized(cache) { if (cache.containsKey(key)) return }
+        val pcm = render()
         synchronized(cache) {
-            if (cache.containsKey(key)) return
-            val pcm = render()
-            val entry = Entry(id = nextId++, bytes = pcm.size * 4)
-            engine.registerBuffer(entry.id, pcm)
-            cache[key] = entry
-            cacheBytes += entry.bytes
-            evictIfNeeded()
+            if (!engine.isRunning || cache.containsKey(key)) return
+            insertLocked(key, pcm)
         }
     }
 
@@ -99,19 +103,19 @@ class PolyphonicSampler {
      */
     fun schedule(key: String, atSeconds: Double, gain: Float = 1f, render: () -> FloatArray): Long {
         if (!engine.isRunning) return 0
-        val id = synchronized(cache) {
-            cache[key]?.id ?: run {
-                val pcm = render()
-                val entry = Entry(id = nextId++, bytes = pcm.size * 4)
-                engine.registerBuffer(entry.id, pcm)
-                cache[key] = entry
-                cacheBytes += entry.bytes
-                evictIfNeeded()
-                entry.id
+        val id = synchronized(cache) { cache[key]?.id } ?: run {
+            // Render fora do lock (ver `prewarm`); a inserção confere de novo.
+            val pcm = render()
+            synchronized(cache) {
+                if (!engine.isRunning) return 0
+                cache[key]?.id ?: insertLocked(key, pcm)
             }
         }
-        val atFrame = (atSeconds * engine.sampleRate()).toLong()
-        return engine.schedule(id, atFrame, gain)
+        return synchronized(cache) {
+            if (!engine.isRunning) return 0
+            val atFrame = (atSeconds * engine.sampleRate()).toLong()
+            engine.schedule(id, atFrame, gain)
+        }
     }
 
     fun damp(voiceTag: Long, overSeconds: Float) = engine.damp(voiceTag, overSeconds)
@@ -122,6 +126,16 @@ class PolyphonicSampler {
 
     fun setDelay(enabled: Boolean, timeMs: Float, feedback: Float, mix: Float) =
         engine.setDelay(enabled, timeMs, feedback, mix)
+
+    /** Chamar com o lock de `cache`. Registra no motor e devolve o id. */
+    private fun insertLocked(key: String, pcm: FloatArray): Int {
+        val entry = Entry(id = nextId++, bytes = pcm.size * 4)
+        engine.registerBuffer(entry.id, pcm)
+        cache[key] = entry
+        cacheBytes += entry.bytes
+        evictIfNeeded()
+        return entry.id
+    }
 
     private fun evictIfNeeded() {
         val it = cache.entries.iterator()

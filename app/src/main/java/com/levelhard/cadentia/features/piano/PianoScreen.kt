@@ -76,10 +76,12 @@ import com.levelhard.cadentia.ui.CzCard
 import com.levelhard.cadentia.ui.CzTokens
 import com.levelhard.cadentia.ui.PremiumBackground
 import com.levelhard.cadentia.ui.pageTransition
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.yield
+import kotlinx.coroutines.withContext
 
 /**
  * A aba Piano — port do `PianoView.swift`: três modos sobre o mesmo sampler
@@ -108,9 +110,12 @@ fun PianoScreen(store: SettingsStore) {
     fun noteKey(voice: InstrumentVoice, frequency: Double) = "${voice.id}/$frequency/held"
 
     /**
-     * Pré-renderiza as notas do teclado UMA POR VEZ, devolvendo a vez entre
-     * elas (a lição do iOS: o laço fechado deixava a interface passando fome
-     * na entrada da tela; a primeira tecla não pode esperar render).
+     * Pré-renderiza as 25 notas do teclado numa thread de fundo, uma por vez
+     * e cancelável (a lição do iOS: o laço fechado deixava a interface
+     * passando fome na entrada da tela). Medido no emulador antes desta
+     * versão: 2,6 s de nota × 25 notas na thread principal eram 243 frames
+     * pulados (~4 s de tela congelada) ao abrir o Piano — o `yield()` entre
+     * as notas não bastava porque cada render sozinho já passava de um frame.
      */
     fun prewarm() {
         prewarmJob?.cancel()
@@ -118,15 +123,17 @@ fun PianoScreen(store: SettingsStore) {
             if (!sampler.startIfNeeded()) return@launch
             val rate = sampler.sampleRate
             val root = (piano.octave + 1) * 12
-            for (midi in root until root + 25) {
-                val frequency = MusicNotes.midiToFrequency(midi)
-                sampler.prewarm(noteKey(voice, frequency)) {
-                    InstrumentSynth.render(
-                        voice, frequency, heldNoteSeconds,
-                        velocity = 0.85f, gain = 0.7f, sampleRate = rate,
-                    ).interleaved()
+            withContext(Dispatchers.Default) {
+                for (midi in root until root + 25) {
+                    ensureActive()
+                    val frequency = MusicNotes.midiToFrequency(midi)
+                    sampler.prewarm(noteKey(voice, frequency)) {
+                        InstrumentSynth.render(
+                            voice, frequency, heldNoteSeconds,
+                            velocity = 0.85f, gain = 0.7f, sampleRate = rate,
+                        ).interleaved()
+                    }
                 }
-                yield()
             }
         }
     }
