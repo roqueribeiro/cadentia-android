@@ -5,8 +5,18 @@ import kotlin.math.sqrt
 /**
  * Detecção de pitch YIN (Cheveigné & Kawahara 2002) — port 1:1 do
  * `YINPitchDetector.swift` (que porta o `utils/music/pitchAlgorithms.js` do
- * web). Domínio do tempo, ~1 cent de precisão em nota musical. Mesmo tuning
- * do web: threshold 0,15, banda 50–2000 Hz, gate de RMS 0,005.
+ * web). Domínio do tempo, ~1 cent de precisão em nota musical. Threshold
+ * 0,15, gate de RMS 0,005, banda 28–2000 Hz.
+ *
+ * O piso era 50 Hz, herdado do web, e isso deixava o AFINADOR CEGO PARA
+ * BAIXO: o catálogo tem seis afinações de baixo e a corda grave de todas cai
+ * abaixo de 50 Hz — mi grave em 41,20 Hz, si do cinco cordas em 30,87 Hz.
+ * Pior: com janela de 2048 ele não ficava mudo, MENTIA — pedindo 41,20 Hz,
+ * devolvia 43,11 Hz (o próprio teto) com 95% de confiança. O piso não era
+ * teimosia: o maior `tau` é metade da janela, e 2048 amostras topam em
+ * 46,9 Hz a 48 kHz. Descer o número sozinho não adiantaria — a janela do
+ * afinador dobrou junto (`TunerAudioEngine.WINDOW_SIZE`), e é ela que faz o
+ * alcance real chegar a 23,4 Hz. Port do 1.16 (commit a3ec2ca do iOS).
  *
  * O iOS vetoriza a função de diferença com vDSP; aqui o laço é direto — em
  * ART/JVM um buffer de 2048 fica na casa de milissegundo, e o contrato (mesmos
@@ -14,7 +24,8 @@ import kotlin.math.sqrt
  */
 object YINPitchDetector {
     const val DEFAULT_THRESHOLD: Float = 0.15f
-    internal const val MIN_FREQUENCY: Double = 50.0
+    /** 28 Hz deixa passar o si grave de um baixo de cinco cordas (30,87 Hz) com folga. */
+    internal const val MIN_FREQUENCY: Double = 28.0
     internal const val MAX_FREQUENCY: Double = 2000.0
     internal const val MIN_RMS: Float = 0.005f
 

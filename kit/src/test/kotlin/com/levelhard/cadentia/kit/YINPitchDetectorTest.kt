@@ -36,6 +36,20 @@ class YINPitchDetectorTest {
         assertTrue(pitch.clarity > 0.8)
     }
 
+    /**
+     * O afinador enxerga baixo (1.16): mi grave em 41,20 Hz e o si de um cinco
+     * cordas em 30,87 Hz, com a janela de 4096 que o `TunerAudioEngine` usa.
+     * Com 2048 o detector MENTIA: devolvia 43,1 Hz (o próprio teto) para o mi.
+     */
+    @Test fun detectsBassStringsWithTheDoubledWindow() {
+        val e1 = 41.2034
+        val pitch = YINPitchDetector.detect(pluck(e1, count = 4096), sampleRate)!!
+        assertTrue("mi grave: ${pitch.frequency}", abs(MusicNotes.centsOff(detected = pitch.frequency, target = e1)) <= 5)
+        val b0 = 30.8677
+        val low = YINPitchDetector.detect(pluck(b0, count = 4096), sampleRate)!!
+        assertTrue("si do cinco cordas: ${low.frequency}", abs(MusicNotes.centsOff(detected = low.frequency, target = b0)) <= 8)
+    }
+
     @Test fun detectsLowE2GuitarString() {
         val e2 = 82.41
         val pitch = YINPitchDetector.detect(sine(e2), sampleRate)!!

@@ -29,6 +29,19 @@ object MusicNotes {
         val cents: Int,
     )
 
+    /**
+     * Classe de altura (0 = dó) de um nome com ou sem oitava ("C#4", "Bb", "E-1").
+     * `null` quando não é nota.
+     */
+    fun pitchClass(note: String): Int? {
+        var name = note
+        while (name.isNotEmpty() && (name.last().isDigit() || name.last() == '-')) name = name.dropLast(1)
+        if (name.isEmpty()) return null
+        noteNames.indexOf(name).takeIf { it >= 0 }?.let { return it }
+        noteNamesFlat.indexOf(name).takeIf { it >= 0 }?.let { return it }
+        return null
+    }
+
     fun midiToFrequency(midiNote: Int, referenceA: Double = 440.0): Double =
         referenceA * 2.0.pow((midiNote - A4_MIDI) / 12.0)
 

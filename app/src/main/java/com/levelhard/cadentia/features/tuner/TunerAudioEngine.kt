@@ -41,9 +41,15 @@ class TunerAudioEngine {
     private var readJob: Job? = null
     private val sink = RecordingSink()
 
-    /** ~43 ms a 48 kHz — piso do YIN ≈ 50 Hz. */
+    /**
+     * 4096 e não 2048 (~85 ms a 48 kHz). O maior `tau` do YIN é metade da
+     * janela: 2048 amostras topam em 46,9 Hz a 48 kHz — acima do mi grave de
+     * um baixo (41,20 Hz) e bem acima do si de um cinco cordas (30,87 Hz). Com
+     * 4096 o alcance vai a 23,4 Hz e o baixo inteiro entra. O custo é a função
+     * de diferença quadruplicar; cabe folgado no intervalo entre duas leituras.
+     */
     private companion object {
-        const val WINDOW_SIZE = 2048
+        const val WINDOW_SIZE = 4096
         const val SAMPLE_RATE = 48000
     }
 
