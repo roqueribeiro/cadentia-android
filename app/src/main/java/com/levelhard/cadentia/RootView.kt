@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import com.levelhard.cadentia.features.drums.DrumsScreen
+import com.levelhard.cadentia.features.instruments.InstrumentsHub
 import com.levelhard.cadentia.features.metronome.MetronomeScreen
 import com.levelhard.cadentia.features.more.MoreScreen
 import com.levelhard.cadentia.features.stems.StemsScreen
@@ -28,14 +28,16 @@ import com.levelhard.cadentia.settings.SettingsStore
 import com.levelhard.cadentia.ui.CzTokens
 
 /**
- * As cinco abas — espelho do `RootView.swift`: Separar ocupa a barra e o
- * Piano vai para Mais; cinco é o teto para o item continuar fácil de acertar.
- * O acento da interface muda com a aba, como o `.tint(tab.accent)` do iOS.
+ * As cinco abas — espelho do `RootView.swift` (1.16). A Bateria cedeu a aba
+ * e virou um card do hub de Instrumentos: ela perde um toque; em troca, os
+ * instrumentos passam a morar juntos e Acordes e Escalas saem de dentro do
+ * Piano. Separar ocupa a barra; cinco é o teto para o item continuar fácil
+ * de acertar. O acento da interface muda com a aba, como o `.tint(tab.accent)`.
  */
 enum class CadentiaTab(val qaName: String) {
     Tuner("tuner"),
     Metronome("metronome"),
-    Drums("drums"),
+    Instruments("instruments"),
     Stems("stems"),
     More("more");
 
@@ -43,15 +45,26 @@ enum class CadentiaTab(val qaName: String) {
         get() = when (this) {
             Tuner -> CzTokens.tunerGreen
             Metronome -> CzTokens.metronomeAmber
-            Drums -> CzTokens.danger
+            Instruments -> CzTokens.gold
             Stems -> CzTokens.stemsTeal
             More -> CzTokens.gold
         }
 }
 
+/**
+ * Destinos dentro de Instrumentos. Os nomes de QA são os apelidos antigos de
+ * `-qa-tab` (piano, drums, chords, scales): o atalho continua valendo, o
+ * destino é que mudou. Cordas e Baixo entram na fase 8.
+ */
+enum class InstrumentDestination(val qaName: String) {
+    Piano("piano"),
+    Drums("drums"),
+    Chords("chords"),
+    Scales("scales"),
+}
+
 /** Destinos que vivem dentro do Mais (deep link de QA usa os mesmos nomes). */
 enum class MoreDestination(val qaName: String) {
-    Piano("piano"),
     Recorder("recorder"),
     Tablature("tab"),
     Studio("studio"),
@@ -63,9 +76,11 @@ fun RootView(
     store: SettingsStore,
     initialTab: CadentiaTab = CadentiaTab.Tuner,
     initialMoreDestination: MoreDestination? = null,
+    initialInstrumentDestination: InstrumentDestination? = null,
 ) {
     var tab by rememberSaveable { mutableStateOf(initialTab) }
     var moreDestination by rememberSaveable { mutableStateOf(initialMoreDestination) }
+    var instrumentDestination by rememberSaveable { mutableStateOf(initialInstrumentDestination) }
 
     Scaffold(
         containerColor = CzTokens.stageBottom,
@@ -79,8 +94,18 @@ fun RootView(
                     NavigationBarItem(
                         selected = tab == entry,
                         onClick = {
-                            if (tab == entry) return@NavigationBarItem
+                            if (tab == entry) {
+                                // Tocar de novo na aba atual volta à raiz dela,
+                                // como o TabView do iOS faz com a pilha.
+                                when (entry) {
+                                    CadentiaTab.Instruments -> instrumentDestination = null
+                                    CadentiaTab.More -> moreDestination = null
+                                    else -> Unit
+                                }
+                                return@NavigationBarItem
+                            }
                             if (entry != CadentiaTab.More) moreDestination = null
+                            if (entry != CadentiaTab.Instruments) instrumentDestination = null
                             tab = entry
                         },
                         icon = {
@@ -107,7 +132,11 @@ fun RootView(
                 when (tab) {
                     CadentiaTab.Tuner -> TunerScreen(store)
                     CadentiaTab.Metronome -> MetronomeScreen(store)
-                    CadentiaTab.Drums -> DrumsScreen(store)
+                    CadentiaTab.Instruments -> InstrumentsHub(
+                        store = store,
+                        destination = instrumentDestination,
+                        onDestinationChange = { instrumentDestination = it },
+                    )
                     CadentiaTab.Stems -> StemsScreen()
                     CadentiaTab.More -> MoreScreen(
                         store = store,
@@ -124,7 +153,7 @@ private val CadentiaTab.labelRes: Int
     get() = when (this) {
         CadentiaTab.Tuner -> R.string.music_tabs_tuner
         CadentiaTab.Metronome -> R.string.music_tabs_metronome
-        CadentiaTab.Drums -> R.string.music_tabs_drums
+        CadentiaTab.Instruments -> R.string.cadentia_instruments_title
         CadentiaTab.Stems -> R.string.cadentia_stems_tab_title
         CadentiaTab.More -> R.string.cadentia_tabs_more
     }
@@ -133,7 +162,7 @@ private val CadentiaTab.iconRes: Int
     get() = when (this) {
         CadentiaTab.Tuner -> R.drawable.ic_tab_tuner
         CadentiaTab.Metronome -> R.drawable.ic_tab_metronome
-        CadentiaTab.Drums -> R.drawable.ic_tab_drums
+        CadentiaTab.Instruments -> R.drawable.ic_tab_instruments
         CadentiaTab.Stems -> R.drawable.ic_tab_stems
         CadentiaTab.More -> R.drawable.ic_tab_more
     }

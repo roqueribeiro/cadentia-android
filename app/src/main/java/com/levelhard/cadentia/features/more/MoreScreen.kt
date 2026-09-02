@@ -72,7 +72,6 @@ fun MoreScreen(
     ) { dest ->
         when (dest) {
             null -> MoreList(onOpen = onDestinationChange)
-            MoreDestination.Piano -> com.levelhard.cadentia.features.piano.PianoScreen(store)
             MoreDestination.Recorder ->
                 com.levelhard.cadentia.features.recorder.RecorderScreen(store)
             MoreDestination.Tablature ->
@@ -100,12 +99,6 @@ private fun MoreList(onOpen: (MoreDestination) -> Unit) {
                 modifier = Modifier.widthIn(max = 560.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                FeatureCard(
-                    titleRes = R.string.music_tabs_piano,
-                    iconRes = R.drawable.ic_more_piano,
-                    color = CzTokens.gold,
-                    detail = "77", // i18n-verbatim: número, não texto
-                ) { onOpen(MoreDestination.Piano) }
                 FeatureCard(
                     titleRes = R.string.cadentia_recorder_title,
                     iconRes = R.drawable.ic_more_recorder,

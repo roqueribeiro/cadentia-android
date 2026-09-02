@@ -37,10 +37,18 @@ class MainActivity : ComponentActivity() {
 
         var initialTab = CadentiaTab.entries.firstOrNull { it.qaName == qa.tab } ?: CadentiaTab.Tuner
         var initialDestination: MoreDestination? = null
-        // Studio/Tab/Recorder/Piano/About vivem dentro do Mais.
+        var initialInstrument: InstrumentDestination? = null
+        // Studio/Tab/Recorder/About vivem dentro do Mais.
         MoreDestination.entries.firstOrNull { it.qaName == qa.tab }?.let {
             initialTab = CadentiaTab.More
             initialDestination = it
+        }
+        // Os instrumentos deixaram de morar em Mais e na barra. Os apelidos
+        // (piano, drums, chords, scales) continuam valendo para o QA e para
+        // atalho antigo; o destino é que mudou (1.16).
+        InstrumentDestination.entries.firstOrNull { it.qaName == qa.tab }?.let {
+            initialTab = CadentiaTab.Instruments
+            initialInstrument = it
         }
         val skipSplash = qa.noSplash || qa.tab != null
 
@@ -52,6 +60,7 @@ class MainActivity : ComponentActivity() {
                         store = store,
                         initialTab = initialTab,
                         initialMoreDestination = initialDestination,
+                        initialInstrumentDestination = initialInstrument,
                     )
                     AnimatedVisibility(visible = showSplash, exit = fadeOut()) {
                         SplashOverlay { showSplash = false }
