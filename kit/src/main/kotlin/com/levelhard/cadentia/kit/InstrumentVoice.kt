@@ -29,7 +29,34 @@ enum class InstrumentVoice(val id: String, val nameKey: String) {
     Strings("strings", "tablature.voices.strings"),
     Brass("brass", "tablature.voices.brass");
 
+    /** Cordas dedilhadas roteiam para o modelo físico. */
+    val stringModel: StringVoices.Model?
+        get() = when (this) {
+            GuitarClean -> StringVoices.Model.GuitarClean
+            GuitarAcoustic -> StringVoices.Model.GuitarAcoustic
+            GuitarNylon -> StringVoices.Model.GuitarNylon
+            GuitarJazz -> StringVoices.Model.GuitarJazz
+            GuitarDistorted -> StringVoices.Model.GuitarDistorted
+            BassFingered -> StringVoices.Model.BassFingered
+            BassPicked -> StringVoices.Model.BassPicked
+            BassSlap -> StringVoices.Model.BassSlap
+            else -> null
+        }
+
     companion object {
         fun from(id: String?): InstrumentVoice? = entries.firstOrNull { it.id == id }
+
+        /** Vozes que o web oferece por tipo de trilha (`VOICES_BY_TRACK_TYPE`). */
+        fun forTrackType(type: String): List<InstrumentVoice> = when (type) {
+            "guitar" -> listOf(
+                GuitarClean, GuitarAcoustic, GuitarNylon, GuitarJazz, GuitarDistorted,
+                ElectricPiano, Lead,
+            )
+            "bass" -> listOf(BassFingered, BassPicked, BassSlap, Organ)
+            else -> listOf(
+                AcousticPiano, ElectricPiano, Organ, Vibraphone, Marimba, Cello,
+                Violin, Flute, Saxophone, Strings, Brass, Lead, Sine,
+            )
+        }
     }
 }
