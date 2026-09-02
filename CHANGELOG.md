@@ -2,6 +2,48 @@
 
 ## [Não lançado]
 
+### Fase 8 — Cordas (2026-09-02)
+
+- Kit (0d1f06d): os 16 arquivos do Cordas portados 1:1 do 1.16 —
+  CordaString (Karplus-Strong de duas polarizações, SplitMix64 idêntica
+  ao Swift), CordaBody, CordaInstrument (violão, guitarra, viola caipira,
+  baixo), CordaChords, FretboardLayout, NailCapture, FixedStringsStrummer,
+  HandFeatures/HandSmoother/HandChordMapping/TwoHandChords,
+  AirGuitarGeometry, CameraFrameMapping. 133 testes, incluindo afinação
+  medida pelo YIN e o decaimento em dois estágios. PianoVoicing (+4).
+- Motor (1863f90): pan de potência constante e taxa por voz (varispeed com
+  interpolação linear — bend, glissando, humanização de ±0,25%), comando
+  Rate, barramento elétrico (drive cúbico + gabinete de três biquads)
+  antes do reverb, volume mestre, buffers mono no cache, xrunCount e
+  bufferSizeInFrames expostos. Medido no host com 24 vozes e callback de
+  96 frames: 1,9 µs antes, 4,9 µs depois (8,7 µs com taxa ≠ 1) — 0,4% do
+  orçamento de 2 ms; latência estrutural intocada.
+- App (1863f90, 8651229): CordaEngine sobre o PolyphonicSampler (dois
+  baldes de dinâmica, cache de 48 MB, aquecimento fora da thread principal
+  com as cordas soltas primeiro, palm mute como envelope, bend por
+  setVoiceRate, tchac); CordasModel; braço com toque cru (touchMajor,
+  amostras históricas, varredura até o UP); CordasScreen com barra,
+  painel (som, capo, casas, espalhamento, régua de 54 mm e medidas
+  honestas), treinador por modo e HandChordSheet. Modo câmera com CameraX
+  + MediaPipe Hand Landmarker 1.0.0 (modelo nos assets, Apache-2.0 nas
+  licenças do Sobre); o registro do backend CCT do datatransport é
+  removido no manifesto e o runtime descarta a estatística de uso do
+  MediaPipe — nada sai do aparelho. ReplayHands para QA sem câmera.
+- Hub: cards Cordas e Baixo (abre o Cordas no baixo), na ordem do iOS.
+  Estudo com seletor de instrumento (piano × violão × guitarra × viola ×
+  baixo nas escalas), teclado de estudo, diagrama de acorde por
+  instrumento e braço de escalas com a afinação do instrumento.
+- QA no emulador (v6 → v6c): braço, batida, trilho, hands-free, pestana,
+  acordes, baixo, viola, painel, treinador, câmera real (29–30 fps) e
+  replay, hand chords, Estudo, selftest nos quatro instrumentos com
+  xruns=0. Achados corrigidos: batida rápida deixava as últimas cordas
+  mudas, prévia da câmera vazando por cima da barra, dica sobre a faixa
+  de acordes, número da casa sob a bolinha da tônica.
+- Em aberto: escuta no aparelho (síntese × sample, drive), latência de
+  toque real, câmera com mãos de verdade e a chirality (o MediaPipe rotula
+  assumindo imagem espelhada; a etiqueta é trocada e os botões Espelho e
+  Mão são a saída).
+
 ### Fase 7 — Bancos de sample (2026-09-02)
 
 - Kit (9d56468): SamplePack/SampleFamily/SampleSelection e SampleBank
