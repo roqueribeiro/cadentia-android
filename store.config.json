@@ -116,37 +116,44 @@
     {
       "id": "afinador",
       "layout": "hero",
-      "source": "afinador.png"
+      "source": "afinador.png",
+      "statusBar": "clean"
     },
     {
       "id": "cordas",
       "layout": "feature",
-      "source": "cordas.png"
+      "source": "cordas.png",
+      "statusBar": "clean"
     },
     {
       "id": "metronomo",
       "layout": "feature",
-      "source": "metronomo.png"
+      "source": "metronomo.png",
+      "statusBar": "clean"
     },
     {
       "id": "piano",
       "layout": "feature",
-      "source": "piano.png"
+      "source": "piano.png",
+      "statusBar": "clean"
     },
     {
       "id": "bateria",
       "layout": "feature",
-      "source": "bateria.png"
+      "source": "bateria.png",
+      "statusBar": "clean"
     },
     {
       "id": "tablatura",
       "layout": "feature",
-      "source": "tablatura.png"
+      "source": "tablatura.png",
+      "statusBar": "clean"
     },
     {
       "id": "gravador",
       "layout": "feature",
-      "source": "gravador.png"
+      "source": "gravador.png",
+      "statusBar": "clean"
     }
   ],
   "play": {
@@ -179,7 +186,7 @@
         },
         "cordas": {
           "headline": "Um violão<br>na tela.",
-          "subhead": "Violão, guitarra, viola caipira e baixo. Casas, acordes e o modo câmera, em que a sua mão no ar vira o acorde."
+          "subhead": "Violão, guitarra, viola caipira e baixo. Casas, acordes e o modo câmera, em que a sua mão vira o acorde."
         },
         "metronomo": {
           "headline": "Um tempo que<br>não escorrega.",
@@ -210,7 +217,7 @@
       "whatsNew": "First Cadentia release for Android: a tuner with 49 tunings, a metronome on the audio clock, Strings with guitar, electric guitar, viola caipira and bass, piano, drums, chord and scale study, multitrack tablature and a recorder. All offline, no ads.",
       "play": {
         "title": "Cadentia",
-        "shortDescription": "Tuner, metronome, strings, piano, drums, tablature and recorder. Works offline.",
+        "shortDescription": "Tuner, metronome, strings, piano, drums, tablature, recorder. Offline.",
         "fullDescription": "Cadentia puts the tools a musician reaches for every day into one app. Tuner, metronome, strings, piano, drums, tablature and recorder all work with the phone in airplane mode.\n\nA TUNER THAT DOESN'T WOBBLE\nPitch detection through the YIN algorithm, accurate to about one cent. The ring runs red, amber, green; the note sits in the middle and the deviation in cents just above it. 49 tunings, from standard guitar to the Brazilian viola caipira, with search. Reference pitch goes from 415 to 466 Hz, for orchestra players and period instruments. There is also Analyse tuning: play for up to a minute and see how much of it you spent in tune.\n\nA METRONOME THAT DOESN'T DRIFT\nThe click is scheduled on the audio clock, not the screen clock, so it still lands where it should after ten minutes. Time signatures from 2/4 to 7/8, subdivisions, polyrhythm, tap tempo, a microphone BPM detector and a practice timer.\n\nSTRINGS ON THE SCREEN\nGuitar, electric guitar, viola caipira and bass with the neck on screen: frets, strings and strumming with your finger, on a physically modelled string (the timbre changes with how hard you play). A Chords mode with ready pads, and a Camera mode where your hand in the air becomes the chord: the camera reads your finger positions on the device itself, and no image leaves it.\n\nREAL DRUMS AND A REAL PIANO\nThe pads and the keys don't fire samples: the sound is synthesised as you play, with Bessel-mode membranes on the drums and true inharmonicity on the piano. In practice: how hard you hit changes the timbre, not just the volume. Sixteen-step sequencer, 25 ready grooves, a vertical multitouch keyboard with glissando.\n\nSTUDY\n77 chords and 144 scales, shown on the keyboard or on the neck of the instrument you pick, with the sound of every note.\n\nTABLATURE WITH A BAND BEHIND IT\nOpen and edit multitrack tablature with bass, drums and 48 backing tracks. It is the same .rostab file you write in RoqueOS in the browser: back and forth, nothing to convert.\n\nMULTITRACK RECORDER\nPlay over what you already recorded, with Android's own echo cancellation. The timeline actually edits: trim, split, fade, pan, undo. Export the mix as M4A when you're done.\n\nNo ads, no charges, no in-app purchases. In 10 languages.",
         "featureTitle": "Cadentia",
         "featureTagline": "The musician's kit in your pocket: tuner, metronome, strings, piano, drums, tablature and recorder.",
@@ -228,7 +235,7 @@
         },
         "cordas": {
           "headline": "A guitar<br>on the screen.",
-          "subhead": "Guitar, electric, viola caipira and bass. Frets, chords, and a camera mode where your hand in the air becomes the chord."
+          "subhead": "Guitar, electric, viola caipira and bass. Frets, chords, and a camera mode where your hand becomes the chord."
         },
         "metronomo": {
           "headline": "A beat that<br>doesn't drift.",

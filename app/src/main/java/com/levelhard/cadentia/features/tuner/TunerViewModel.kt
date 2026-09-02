@@ -93,10 +93,10 @@ class TunerViewModel : ViewModel() {
 
     /**
      * QA de loja: o anel com uma nota segurada, sem microfone. O emulador não
-     * tem som, e um afinador sem nota no print é um anel vazio — 441,5 Hz é
-     * um lá quase afinado, o estado em que o app está sendo usado.
+     * tem som, e um afinador sem nota no print é um anel vazio. 440,5 Hz é um lá
+     * dois cents acima: afinado, com a agulha viva.
      */
-    fun showDemoReadingForQa(frequency: Double = 441.5) {
+    fun showDemoReadingForQa(frequency: Double = 440.5) {
         _state.value = _state.value.copy(
             status = MicStatus.Active, isLive = true, clarity = 0.96, rms = 0.18f, heldFrequency = frequency,
         )
