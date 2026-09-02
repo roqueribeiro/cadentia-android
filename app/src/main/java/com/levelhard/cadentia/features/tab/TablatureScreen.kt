@@ -43,6 +43,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -455,7 +456,7 @@ private fun Header(
         )
         HeaderIcon(
             icon = Icons.Filled.Share,
-            contentDescription = null,
+            contentDescription = null, // PENDÊNCIA a11y: sem chave "compartilhar" no catálogo
             active = false,
             accent = accent,
             tag = "tab.share",
@@ -463,7 +464,7 @@ private fun Header(
         )
         HeaderIcon(
             icon = Icons.Filled.Edit,
-            contentDescription = null,
+            contentDescription = null, // PENDÊNCIA a11y: sem chave "editar" no catálogo
             active = isEditing,
             accent = accent,
             tag = "tab.edit",
@@ -508,6 +509,7 @@ private fun HeaderIcon(
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
+            .minimumInteractiveComponentSize()
             .size(36.dp)
             .background(CzTokens.surface, CircleShape)
             .border(1.dp, if (active) accent.copy(alpha = 0.6f) else Color.Transparent, CircleShape)
@@ -1026,6 +1028,7 @@ private fun RoundButton(icon: ImageVector, onClick: () -> Unit) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
+            .minimumInteractiveComponentSize()
             .size(34.dp)
             .background(CzTokens.surface, CircleShape)
             .clickable(onClick = onClick),

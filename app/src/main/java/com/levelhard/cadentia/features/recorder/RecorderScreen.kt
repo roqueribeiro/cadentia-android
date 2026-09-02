@@ -49,6 +49,7 @@ import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -355,9 +356,10 @@ fun RecorderScreen(store: SettingsStore) {
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Remove,
-                        contentDescription = null,
+                        contentDescription = null, // PENDÊNCIA a11y: sem chave "diminuir" no catálogo
                         tint = CzTokens.textSecondary,
                         modifier = Modifier
+                            .minimumInteractiveComponentSize()
                             .size(14.dp)
                             .clickable { mutateProject(recordHistory = false) { it.bpm = (it.bpm - 5).coerceIn(40, 240) } },
                     )
@@ -369,9 +371,10 @@ fun RecorderScreen(store: SettingsStore) {
                     )
                     Icon(
                         imageVector = Icons.Filled.Add,
-                        contentDescription = null,
+                        contentDescription = null, // PENDÊNCIA a11y: sem chave "aumentar" no catálogo
                         tint = CzTokens.textSecondary,
                         modifier = Modifier
+                            .minimumInteractiveComponentSize()
                             .size(14.dp)
                             .clickable { mutateProject(recordHistory = false) { it.bpm = (it.bpm + 5).coerceIn(40, 240) } },
                     )
@@ -462,9 +465,10 @@ fun RecorderScreen(store: SettingsStore) {
                 @Suppress("UNUSED_EXPRESSION") historyStamp
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Undo,
-                    contentDescription = null,
+                    contentDescription = null, // PENDÊNCIA a11y: sem chave "desfazer" no catálogo
                     tint = if (history.canUndo) CzTokens.textSecondary else CzTokens.textTertiary.copy(alpha = 0.4f),
                     modifier = Modifier
+                        .minimumInteractiveComponentSize()
                         .size(32.dp)
                         .clickable(enabled = history.canUndo) {
                             history.undo(project)?.let {
@@ -479,9 +483,10 @@ fun RecorderScreen(store: SettingsStore) {
                 )
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Redo,
-                    contentDescription = null,
+                    contentDescription = null, // PENDÊNCIA a11y: sem chave "refazer" no catálogo
                     tint = if (history.canRedo) CzTokens.textSecondary else CzTokens.textTertiary.copy(alpha = 0.4f),
                     modifier = Modifier
+                        .minimumInteractiveComponentSize()
                         .size(32.dp)
                         .clickable(enabled = history.canRedo) {
                             history.redo(project)?.let {

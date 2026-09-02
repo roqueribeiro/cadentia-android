@@ -40,6 +40,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -365,9 +366,11 @@ private fun RoundIconButton(icon: ImageVector, onClick: () -> Unit) {
         shape = CircleShape,
         color = CzTokens.surface,
         contentColor = CzTokens.textSecondary,
-        modifier = Modifier.size(32.dp),
+        // Alvo mínimo de 48 dp; o círculo visível continua 32.
+        modifier = Modifier.minimumInteractiveComponentSize().size(32.dp),
     ) {
         Box(contentAlignment = Alignment.Center) {
+            // PENDÊNCIA a11y: sem chave "diminuir/aumentar" no catálogo
             Icon(icon, contentDescription = null, modifier = Modifier.size(14.dp))
         }
     }

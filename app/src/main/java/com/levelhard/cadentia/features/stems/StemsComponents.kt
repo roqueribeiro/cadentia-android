@@ -22,6 +22,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
@@ -481,13 +482,14 @@ private fun StepButton(icon: Boolean, enabled: Boolean, onClick: () -> Unit) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
+            .minimumInteractiveComponentSize()
             .size(30.dp)
             .background(CzTokens.surface, CircleShape)
             .clickable(enabled = enabled, onClick = onClick),
     ) {
         Icon(
             imageVector = if (icon) Icons.Filled.Remove else Icons.Filled.Add,
-            contentDescription = null,
+            contentDescription = null, // PENDÊNCIA a11y: sem chave "diminuir/aumentar" no catálogo
             tint = if (enabled) CzTokens.textSecondary else CzTokens.textTertiary.copy(alpha = 0.4f),
             modifier = Modifier.size(14.dp),
         )

@@ -2,6 +2,9 @@ package com.levelhard.cadentia.features.more
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -54,7 +57,19 @@ fun MoreScreen(
 ) {
     BackHandler(enabled = destination != null) { onDestinationChange(null) }
 
-    AnimatedContent(targetState = destination, label = "more-destination") { dest ->
+    // Remover animações (Reduce Motion) → troca seca, sem fade/scale.
+    val reduceMotion = com.levelhard.cadentia.ui.rememberReduceMotion()
+    AnimatedContent(
+        targetState = destination,
+        label = "more-destination",
+        transitionSpec = {
+            if (reduceMotion) {
+                EnterTransition.None togetherWith ExitTransition.None
+            } else {
+                androidx.compose.animation.fadeIn() togetherWith androidx.compose.animation.fadeOut()
+            }
+        },
+    ) { dest ->
         when (dest) {
             null -> MoreList(onOpen = onDestinationChange)
             MoreDestination.Piano -> com.levelhard.cadentia.features.piano.PianoScreen(store)

@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -406,6 +407,7 @@ private fun ConnectedBrowser(
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
+                        .minimumInteractiveComponentSize()
                         .size(34.dp)
                         .background(CzTokens.surface, CircleShape)
                         .clickable {
@@ -416,7 +418,7 @@ private fun ConnectedBrowser(
                 ) {
                     Icon(
                         imageVector = Icons.Filled.KeyboardArrowLeft,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.common_back),
                         tint = accent,
                         modifier = Modifier.size(18.dp),
                     )

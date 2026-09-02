@@ -46,6 +46,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -580,6 +581,7 @@ private fun PlayerState(
                     contentDescription = stringResource(R.string.cadentia_setlists_previous_song),
                     tint = CzTokens.textSecondary,
                     modifier = Modifier
+                        .minimumInteractiveComponentSize()
                         .size(22.dp)
                         .clickable(onClick = onQueuePrev)
                         .testTag("stems.queuePrev"),
@@ -609,6 +611,7 @@ private fun PlayerState(
                     contentDescription = stringResource(R.string.cadentia_setlists_next_song),
                     tint = CzTokens.textSecondary,
                     modifier = Modifier
+                        .minimumInteractiveComponentSize()
                         .size(22.dp)
                         .clickable(onClick = onQueueNext)
                         .testTag("stems.queueNext"),
@@ -678,9 +681,10 @@ private fun PlayerState(
         ) {
             Icon(
                 imageVector = Icons.Filled.Replay10,
-                contentDescription = null,
+                contentDescription = null, // PENDÊNCIA a11y: sem chave "voltar 10 s" no catálogo
                 tint = CzTokens.textSecondary,
                 modifier = Modifier
+                    .minimumInteractiveComponentSize()
                     .size(40.dp)
                     .clickable { onSkip(-10.0) }
                     .padding(6.dp)
@@ -696,16 +700,19 @@ private fun PlayerState(
             ) {
                 Icon(
                     imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                    contentDescription = null,
+                    contentDescription = stringResource(
+                        if (isPlaying) R.string.music_metronome_stop else R.string.music_metronome_start,
+                    ),
                     tint = CzTokens.stageBottom,
                     modifier = Modifier.size(30.dp),
                 )
             }
             Icon(
                 imageVector = Icons.Filled.Forward10,
-                contentDescription = null,
+                contentDescription = null, // PENDÊNCIA a11y: sem chave "avançar 10 s" no catálogo
                 tint = CzTokens.textSecondary,
                 modifier = Modifier
+                    .minimumInteractiveComponentSize()
                     .size(40.dp)
                     .clickable { onSkip(10.0) }
                     .padding(6.dp)
@@ -1113,9 +1120,10 @@ private fun SongRow(
         }
         Icon(
             imageVector = Icons.Filled.Delete,
-            contentDescription = null,
+            contentDescription = stringResource(R.string.cadentia_library_remove_from_recent),
             tint = CzTokens.textTertiary,
             modifier = Modifier
+                .minimumInteractiveComponentSize()
                 .size(24.dp)
                 .clickable(onClick = onForget)
                 .padding(4.dp),
