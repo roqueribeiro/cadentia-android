@@ -59,12 +59,8 @@ fun MoreScreen(
         when (dest) {
             null -> MoreList(onOpen = onDestinationChange)
             MoreDestination.Piano -> com.levelhard.cadentia.features.piano.PianoScreen(store)
-            MoreDestination.Recorder -> FeatureHero(
-                titleRes = R.string.cadentia_recorder_title,
-                icon = painterResource(R.drawable.ic_more_recorder),
-                accent = CzTokens.recorderCyan,
-                modifier = Modifier.pageTransition(),
-            )
+            MoreDestination.Recorder ->
+                com.levelhard.cadentia.features.recorder.RecorderScreen(store)
             MoreDestination.Tablature ->
                 com.levelhard.cadentia.features.tab.TablatureScreen(store)
             MoreDestination.Studio -> FeatureHero(
