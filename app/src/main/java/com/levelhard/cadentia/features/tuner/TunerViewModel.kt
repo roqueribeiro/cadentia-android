@@ -86,6 +86,11 @@ class TunerViewModel : ViewModel() {
         _state.value = _state.value.copy(status = MicStatus.Active)
     }
 
+    /** QA: a tela inteira sem encostar no microfone (1.16). */
+    fun activateSilentlyForQa() {
+        _state.value = _state.value.copy(status = MicStatus.Active)
+    }
+
     fun permissionDenied() {
         _state.value = _state.value.copy(status = MicStatus.Denied)
     }

@@ -23,11 +23,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import com.levelhard.cadentia.kit.TuningCatalog
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.border
+import androidx.compose.foundation.background
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.MicOff
@@ -35,8 +42,6 @@ import androidx.compose.material.icons.filled.NetworkCell
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.UnfoldMore
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -91,6 +96,9 @@ fun TunerScreen(store: SettingsStore) {
 
     val referenceA = settings.tuner.referenceA
     val instrument = InstrumentPreset.find(settings.tuner.lastInstrument)
+    val tuningRows = rememberTuningRows()
+    val instrumentRow = tuningRows.firstOrNull { it.id == instrument.id }
+    var showTunings by remember { mutableStateOf(false) }
 
     // Derivados de exibição (a mesma cadeia do iOS).
     val detectedNote = state.heldFrequency?.let { MusicNotes.noteFromFrequency(it, referenceA) }
@@ -109,7 +117,12 @@ fun TunerScreen(store: SettingsStore) {
     ) { granted -> if (granted) vm.activate() else vm.permissionDenied() }
 
     LaunchedEffect(Unit) {
-        if (qa.tunerSilent) return@LaunchedEffect
+        if (qa.tunerSilent) {
+            // A flag quer dizer "não ligue o microfone", não "finja que está
+            // carregando": sem isto nenhum teste alcançava o seletor (1.16).
+            vm.activateSilentlyForQa()
+            return@LaunchedEffect
+        }
         val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
             PackageManager.PERMISSION_GRANTED
         if (granted) vm.activate() else permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
@@ -161,9 +174,10 @@ fun TunerScreen(store: SettingsStore) {
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            InstrumentPicker(instrument, onPick = { id ->
-                                store.update { it.tuner.lastInstrument = id }
-                            })
+                            TuningButton(
+                                label = instrumentRow?.compactLabel ?: "",
+                                modifier = Modifier.weight(1f, fill = false),
+                            ) { showTunings = true }
                             Spacer(Modifier.weight(1f))
                             ReferenceControl(referenceA) { delta ->
                                 store.update {
@@ -172,6 +186,11 @@ fun TunerScreen(store: SettingsStore) {
                                 }
                             }
                         }
+                        StringChips(
+                            instrument = instrument,
+                            targetNote = targetString?.note,
+                            isTuned = isTuned,
+                        )
                         Gauge(displayCents, noteDisplay, octaveDisplay, state, isTuned)
                         TuningGraphView(
                             cents = displayCents,
@@ -188,6 +207,23 @@ fun TunerScreen(store: SettingsStore) {
                 }
             }
         }
+    }
+
+    if (showTunings) {
+        TuningPickerSheet(
+            rows = tuningRows,
+            selectedId = instrument.id,
+            recentIds = settings.tuner.recentInstruments,
+            onPick = { preset ->
+                // Guarda a escolha e empurra para os recentes — é o que faz a
+                // folha abrir já mostrando a afinação de ontem no topo.
+                store.update {
+                    it.tuner.lastInstrument = preset.id
+                    it.tuner.recentInstruments = TuningCatalog.pushRecent(preset.id, it.tuner.recentInstruments)
+                }
+            },
+            onDismiss = { showTunings = false },
+        )
     }
 
     if (state.showSessionModal) {
@@ -376,58 +412,81 @@ private fun RoundIconButton(icon: ImageVector, onClick: () -> Unit) {
     }
 }
 
+/** Abre a folha em vez de um menu: são 49 afinações, e menu não busca. */
 @Composable
-private fun InstrumentPicker(current: InstrumentPreset, onPick: (String) -> Unit) {
-    var open by remember { mutableStateOf(false) }
-    Box {
-        Surface(
-            onClick = { open = true },
-            shape = CircleShape,
-            color = CzTokens.surface,
-            border = androidx.compose.foundation.BorderStroke(1.dp, CzTokens.hairline),
+private fun TuningButton(label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        shape = CircleShape,
+        color = CzTokens.surface,
+        border = androidx.compose.foundation.BorderStroke(1.dp, CzTokens.hairline),
+        modifier = modifier.semantics {
+            contentDescription = label
+        },
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
-            ) {
-                Text(
-                    text = stringResource(R.string.music_common_select_instrument),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = CzTokens.textTertiary,
-                    maxLines = 1,
-                )
-                Text(
-                    text = stringResource(presetLabelRes(current.id)),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = CzTokens.textPrimary,
-                    maxLines = 1,
-                )
-                Icon(
-                    imageVector = Icons.Filled.UnfoldMore,
-                    contentDescription = null,
-                    tint = CzTokens.gold,
-                    modifier = Modifier.size(14.dp),
-                )
-            }
+            Icon(
+                imageVector = Icons.Filled.MusicNote,
+                contentDescription = stringResource(R.string.music_common_select_instrument),
+                tint = CzTokens.gold,
+                modifier = Modifier.size(13.dp),
+            )
+            Text(
+                text = label, // i18n-verbatim: já traduzido ("Violão · Drop C")
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = CzTokens.textPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Icon(
+                imageVector = Icons.Filled.UnfoldMore,
+                contentDescription = null,
+                tint = CzTokens.gold,
+                modifier = Modifier.size(14.dp),
+            )
         }
-        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            for (preset in InstrumentPreset.all) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(presetLabelRes(preset.id))) },
-                    trailingIcon = {
-                        if (preset.id == current.id) {
-                            Icon(Icons.Filled.Check, contentDescription = null, tint = CzTokens.gold)
-                        }
-                    },
-                    onClick = {
-                        onPick(preset.id)
-                        open = false
-                    },
-                )
-            }
+    }
+}
+
+/**
+ * A fileira de cordas da afinação, com a corda alvo acesa. Sem ela uma
+ * afinação de 7 ou 8 cordas é um mostrador que diz "Si" sem dizer qual Si.
+ * Cada pastilha divide a largura por igual: quatro ficam largas, oito ficam
+ * estreitas em vez de escaparem da tela.
+ */
+@Composable
+private fun StringChips(
+    instrument: InstrumentPreset,
+    targetNote: InstrumentPreset.StringNote?,
+    isTuned: Boolean,
+) {
+    if (instrument.strings.isEmpty()) return
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        for (note in instrument.strings) {
+            val isTarget = targetNote == note
+            val tint = if (isTuned) CzTokens.tunerGreen else CzTokens.gold
+            val shape = RoundedCornerShape(CzTokens.radiusSM)
+            Text(
+                text = "${note.display}${note.octave}", // i18n-verbatim: nota + oitava
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = if (isTarget) tint else CzTokens.textSecondary,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                modifier = Modifier
+                    .weight(1f)
+                    .background(if (isTarget) tint.copy(alpha = 0.16f) else CzTokens.surface, shape)
+                    .border(1.dp, if (isTarget) tint.copy(alpha = 0.55f) else CzTokens.hairline, shape)
+                    .padding(vertical = 8.dp),
+            )
         }
     }
 }
@@ -474,16 +533,4 @@ private fun Pill(textRes: Int, icon: ImageVector, color: Color) {
             )
         }
     }
-}
-
-/** Chave do preset (kit) → R.string, explícito para o audit rastrear. */
-private fun presetLabelRes(id: String): Int = when (id) {
-    "guitar-standard" -> R.string.music_tuner_instruments_guitar_standard
-    "guitar-drop-d" -> R.string.music_tuner_instruments_guitar_drop_d
-    "bass-4" -> R.string.music_tuner_instruments_bass4
-    "bass-5" -> R.string.music_tuner_instruments_bass5
-    "ukulele" -> R.string.music_tuner_instruments_ukulele
-    "cavaquinho" -> R.string.music_tuner_instruments_cavaquinho
-    "violin" -> R.string.music_tuner_instruments_violin
-    else -> R.string.music_tuner_instruments_chromatic
 }

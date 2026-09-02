@@ -29,6 +29,8 @@ data class AppSettings(
         /** A4 de referência em Hz, 415–466 (afinações de orquestra), padrão 440. */
         var referenceA: Double = 440.0,
         var lastInstrument: String = "chromatic",
+        /** Afinações usadas por último, mais recente primeiro — fixadas no topo da folha (1.16). */
+        var recentInstruments: List<String> = emptyList(),
     )
 
     @Serializable

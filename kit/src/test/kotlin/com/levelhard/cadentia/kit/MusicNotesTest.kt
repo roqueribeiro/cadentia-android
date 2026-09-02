@@ -88,14 +88,17 @@ class MusicNotesTest {
 
     // instrument presets
 
+    /** Os oito ids originais sobrevivem ao catálogo de 49 (1.16), sem duplicata. */
     @Test fun presetIdsMatchWebRegistry() {
-        assertEquals(
-            listOf(
-                "chromatic", "guitar-standard", "guitar-drop-d", "bass-4",
-                "bass-5", "ukulele", "cavaquinho", "violin",
-            ),
-            InstrumentPreset.all.map { it.id },
-        )
+        val ids = InstrumentPreset.all.map { it.id }.toSet()
+        for (id in listOf(
+            "chromatic", "guitar-standard", "guitar-drop-d", "bass-4",
+            "bass-5", "ukulele", "cavaquinho", "violin",
+        )) {
+            assertTrue("id original sumiu: $id", ids.contains(id))
+        }
+        assertEquals("chromatic", InstrumentPreset.all.first().id)
+        assertEquals("id duplicado no catálogo", InstrumentPreset.all.size, ids.size)
     }
 
     @Test fun findFallsBackToChromatic() {

@@ -35,7 +35,11 @@ class I18nMapCatalogTest {
     fun `instrument voices resolve`() = assertResolves(InstrumentVoice.entries.map { it.nameKey })
 
     @Test
-    fun `instrument presets resolve`() = assertResolves(InstrumentPreset.all.map { it.nameKey })
+    fun `instrument presets resolve`() {
+        assertResolves(InstrumentPreset.all.map { it.familyKey })
+        assertResolves(InstrumentPreset.all.mapNotNull { it.nameKey })
+        assertResolves(InstrumentPreset.Group.entries.map { it.nameKey })
+    }
 
     @Test
     fun `metronome sounds and tone waves resolve`() {
