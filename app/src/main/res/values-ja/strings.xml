@@ -14,9 +14,9 @@
     <string name="cadentia_about_privacy_title">プライバシー</string>
     <string name="cadentia_about_rafael_role">ミュージシャン。Cadentiaは彼の依頼から生まれ、楽器の分離も彼の発案です。楽器を手にして練習する人に本当に役立つかどうかの基準は、彼から来ています。</string>
     <string name="cadentia_about_roque_role">Cadentiaの開発者であり、RoqueOSの制作者。技術分野で25年、Mercado Livre、Netshoes、Avanadeを経て、UFSCarでMBAを取得。</string>
-    <string name="cadentia_about_roqueos_body">CadentiaはRoqueOSの中で生まれました。ブラウザで動くオペレーティングシステムで、数十のアプリ、自前のサーバー、ローカルAIを備えています。そこにあった音楽アプリが、このネイティブアプリになりました。両方をつなげば、RoqueOSにある曲をiPhoneで開けます。</string>
+    <string name="cadentia_about_roqueos_body">CadentiaはRoqueOSの中で生まれました。ブラウザで動くオペレーティングシステムで、数十のアプリ、自前のサーバー、ローカルAIを備えています。そこにあった音楽アプリが、このネイティブアプリになりました。両方をつなげば、RoqueOSにある曲をスマートフォンで開けます。</string>
     <string name="cadentia_about_roqueos_title">生まれた場所</string>
-    <string name="cadentia_about_separation_body">曲をボーカル、ドラム、ベース、その他に分けて、好きな楽器を抜いて自分で演奏できます。モデルはiPhoneのGPUで動き、オフラインでも使え、音楽が端末の外に出ることはありません。</string>
+    <string name="cadentia_about_separation_body">曲をボーカル、ドラム、ベース、その他に分けて、好きな楽器を抜いて自分で演奏できます。モデルは端末そのもので動き、オフラインでも使え、音楽が端末の外に出ることはありません。</string>
     <string name="cadentia_about_separation_title">楽器の分離</string>
     <string name="cadentia_about_tagline">音楽を学ぶ人のためのポケットスタジオ。</string>
     <string name="cadentia_about_title">このアプリについて</string>
@@ -52,7 +52,7 @@
     <string name="cadentia_library_shared_folder">共有フォルダ</string>
     <string name="cadentia_library_shared_folder_hint">RoqueOS サーバーの /shared フォルダ</string>
     <string name="cadentia_library_shared_forbidden">この API キーにはサーバー上のファイルを読む権限がありません。</string>
-    <string name="cadentia_library_this_device">このiPhone内</string>
+    <string name="cadentia_library_this_device">この端末内</string>
     <string name="cadentia_library_this_device_hint">ファイルとiCloud Drive</string>
     <string name="cadentia_library_will_separate_again">もう一度分離します</string>
     <string name="cadentia_piano_sustain">サステイン</string>

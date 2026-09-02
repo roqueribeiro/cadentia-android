@@ -14,9 +14,9 @@
     <string name="cadentia_about_privacy_title">Конфиденциальность</string>
     <string name="cadentia_about_rafael_role">Музыкант. Cadentia существует потому, что он попросил, и разделение инструментов было его идеей. Именно он задаёт мерку того, что действительно помогает человеку с инструментом в руках.</string>
     <string name="cadentia_about_roque_role">Разработчик Cadentia и создатель RoqueOS. Двадцать пять лет в технологиях, включая Mercado Livre, Netshoes и Avanade, MBA в UFSCar.</string>
-    <string name="cadentia_about_roqueos_body">Cadentia родился внутри RoqueOS, операционной системы, работающей в браузере, с десятками приложений, собственным сервером и локальным ИИ. Тамошнее музыкальное приложение стало этим нативным приложением. Связав их, вы открываете на iPhone музыку, которая уже лежит в вашем RoqueOS.</string>
+    <string name="cadentia_about_roqueos_body">Cadentia родился внутри RoqueOS, операционной системы, работающей в браузере, с десятками приложений, собственным сервером и локальным ИИ. Тамошнее музыкальное приложение стало этим нативным приложением. Связав их, вы открываете на телефоне музыку, которая уже лежит в вашем RoqueOS.</string>
     <string name="cadentia_about_roqueos_title">Откуда он появился</string>
-    <string name="cadentia_about_separation_body">Разделяет песню на вокал, барабаны, бас и остальное, чтобы вы убрали один инструмент и сыграли его сами. Модель работает на GPU самого iPhone, без интернета, и музыка не покидает устройство.</string>
+    <string name="cadentia_about_separation_body">Разделяет песню на вокал, барабаны, бас и остальное, чтобы вы убрали один инструмент и сыграли его сами. Модель работает на самом устройстве, без интернета, и музыка не покидает устройство.</string>
     <string name="cadentia_about_separation_title">Разделение инструментов</string>
     <string name="cadentia_about_tagline">Карманная студия для тех, кто учится музыке.</string>
     <string name="cadentia_about_title">О приложении</string>
@@ -52,7 +52,7 @@
     <string name="cadentia_library_shared_folder">Общая папка</string>
     <string name="cadentia_library_shared_folder_hint">Папка /shared на вашем сервере RoqueOS</string>
     <string name="cadentia_library_shared_forbidden">У этого ключа API нет прав на чтение файлов на сервере.</string>
-    <string name="cadentia_library_this_device">На этом iPhone</string>
+    <string name="cadentia_library_this_device">На этом устройстве</string>
     <string name="cadentia_library_this_device_hint">Файлы и iCloud Drive</string>
     <string name="cadentia_library_will_separate_again">Будет разделена заново</string>
     <string name="cadentia_piano_sustain">Сустейн</string>

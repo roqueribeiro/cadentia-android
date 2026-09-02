@@ -14,9 +14,9 @@
     <string name="cadentia_about_privacy_title">Datenschutz</string>
     <string name="cadentia_about_rafael_role">Musiker. Cadentia gibt es, weil er darum bat, und die Instrumententrennung war seine Idee. Von ihm kommt der Maßstab dafür, was jemandem mit dem Instrument in der Hand wirklich hilft.</string>
     <string name="cadentia_about_roque_role">Entwickler von Cadentia und Schöpfer von RoqueOS. Fünfundzwanzig Jahre in der Technologie, unter anderem bei Mercado Livre, Netshoes und Avanade, MBA der UFSCar.</string>
-    <string name="cadentia_about_roqueos_body">Cadentia entstand in RoqueOS, einem Betriebssystem im Browser, mit Dutzenden Apps, eigenem Server und lokaler KI. Die Musik-App von dort wurde zu dieser nativen App. Verbindest du beide, öffnest du auf dem iPhone die Musik, die schon in deinem RoqueOS liegt.</string>
+    <string name="cadentia_about_roqueos_body">Cadentia entstand in RoqueOS, einem Betriebssystem im Browser, mit Dutzenden Apps, eigenem Server und lokaler KI. Die Musik-App von dort wurde zu dieser nativen App. Verbindest du beide, öffnest du auf dem Handy die Musik, die schon in deinem RoqueOS liegt.</string>
     <string name="cadentia_about_roqueos_title">Woher es kommt</string>
-    <string name="cadentia_about_separation_body">Teilt einen Song in Gesang, Schlagzeug, Bass und den Rest, damit du ein Instrument wegnehmen und selbst spielen kannst. Das Modell läuft auf der GPU des iPhones, funktioniert ohne Internet, und die Musik verlässt das Gerät nicht.</string>
+    <string name="cadentia_about_separation_body">Teilt einen Song in Gesang, Schlagzeug, Bass und den Rest, damit du ein Instrument wegnehmen und selbst spielen kannst. Das Modell läuft direkt auf dem Gerät, funktioniert ohne Internet, und die Musik verlässt das Gerät nicht.</string>
     <string name="cadentia_about_separation_title">Instrumententrennung</string>
     <string name="cadentia_about_tagline">Ein Taschenstudio für alle, die Musik lernen.</string>
     <string name="cadentia_about_title">Über</string>
@@ -52,7 +52,7 @@
     <string name="cadentia_library_shared_folder">Geteilter Ordner</string>
     <string name="cadentia_library_shared_folder_hint">Der Ordner /shared auf deinem RoqueOS-Server</string>
     <string name="cadentia_library_shared_forbidden">Dieser API-Schlüssel darf keine Dateien auf dem Server lesen.</string>
-    <string name="cadentia_library_this_device">Auf diesem iPhone</string>
+    <string name="cadentia_library_this_device">Auf diesem Gerät</string>
     <string name="cadentia_library_this_device_hint">Dateien und iCloud Drive</string>
     <string name="cadentia_library_will_separate_again">Wird neu getrennt</string>
     <string name="cadentia_piano_sustain">Sustain</string>

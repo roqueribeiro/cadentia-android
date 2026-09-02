@@ -6,8 +6,26 @@ data class ScaleType(
     /** Semitons a partir da tônica. */
     val intervals: List<Int>,
 ) {
-    /** Chave de i18n (web `music.scales.types.*`). */
-    val nameKey: String get() = "music.scales.types.$id"
+    /**
+     * Chave de i18n (web `music.scales.types.*`): id kebab → camel
+     * (minor-natural → minorNatural), como no iOS. Sem esta conversão o
+     * Piano em modo Escalas caía com "chave i18n desconhecida" — achado do
+     * QA no emulador.
+     */
+    val nameKey: String
+        get() {
+            val camel = StringBuilder()
+            var upperNext = false
+            for (ch in id) {
+                if (ch == '-') {
+                    upperNext = true
+                    continue
+                }
+                camel.append(if (upperNext) ch.uppercaseChar() else ch)
+                upperNext = false
+            }
+            return "music.scales.types.$camel"
+        }
 
     /** Classes de altura para tônica + tipo: ("C", major) → C D E F G A B. */
     fun notes(root: String): List<String> {

@@ -14,9 +14,9 @@
     <string name="cadentia_about_privacy_title">निजता</string>
     <string name="cadentia_about_rafael_role">संगीतकार। Cadentia उनके कहने पर बना, और वाद्य पृथक्करण उन्हीं का विचार था। हाथ में वाद्य लेकर अभ्यास करने वाले के लिए वास्तव में क्या काम आता है, उसका पैमाना उन्हीं से आता है।</string>
     <string name="cadentia_about_roque_role">Cadentia के डेवलपर और RoqueOS के रचयिता। तकनीक में पच्चीस वर्ष का अनुभव, जिसमें Mercado Livre, Netshoes और Avanade शामिल हैं, तथा UFSCar से MBA।</string>
-    <string name="cadentia_about_roqueos_body">Cadentia का जन्म RoqueOS के भीतर हुआ, एक ऑपरेटिंग सिस्टम जो ब्राउज़र में चलता है, जिसमें दर्जनों ऐप, अपना सर्वर और स्थानीय एआई है। वहाँ का संगीत ऐप यह नेटिव ऐप बन गया। दोनों को जोड़ने पर आप अपने RoqueOS में मौजूद गाने iPhone पर खोल सकते हैं।</string>
+    <string name="cadentia_about_roqueos_body">Cadentia का जन्म RoqueOS के भीतर हुआ, एक ऑपरेटिंग सिस्टम जो ब्राउज़र में चलता है, जिसमें दर्जनों ऐप, अपना सर्वर और स्थानीय एआई है। वहाँ का संगीत ऐप यह नेटिव ऐप बन गया। दोनों को जोड़ने पर आप अपने RoqueOS में मौजूद गाने फ़ोन पर खोल सकते हैं।</string>
     <string name="cadentia_about_roqueos_title">यह कहाँ से आया</string>
-    <string name="cadentia_about_separation_body">किसी गाने को आवाज़, ड्रम, बेस और बाकी हिस्सों में बाँटता है, ताकि आप कोई एक वाद्य हटाकर खुद बजा सकें। मॉडल iPhone के अपने GPU पर चलता है, बिना इंटरनेट काम करता है, और संगीत डिवाइस से बाहर नहीं जाता।</string>
+    <string name="cadentia_about_separation_body">किसी गाने को आवाज़, ड्रम, बेस और बाकी हिस्सों में बाँटता है, ताकि आप कोई एक वाद्य हटाकर खुद बजा सकें। मॉडल इसी डिवाइस पर चलता है, बिना इंटरनेट काम करता है, और संगीत डिवाइस से बाहर नहीं जाता।</string>
     <string name="cadentia_about_separation_title">वाद्य पृथक्करण</string>
     <string name="cadentia_about_tagline">संगीत सीखने वालों के लिए एक पॉकेट स्टूडियो।</string>
     <string name="cadentia_about_title">परिचय</string>
@@ -52,7 +52,7 @@
     <string name="cadentia_library_shared_folder">साझा फ़ोल्डर</string>
     <string name="cadentia_library_shared_folder_hint">आपके RoqueOS सर्वर का /shared फ़ोल्डर</string>
     <string name="cadentia_library_shared_forbidden">इस API कुंजी को सर्वर पर फ़ाइलें पढ़ने की अनुमति नहीं है।</string>
-    <string name="cadentia_library_this_device">इस iPhone पर</string>
+    <string name="cadentia_library_this_device">इस डिवाइस पर</string>
     <string name="cadentia_library_this_device_hint">फ़ाइलें और iCloud Drive</string>
     <string name="cadentia_library_will_separate_again">फिर से अलग किया जाएगा</string>
     <string name="cadentia_piano_sustain">सस्टेन</string>

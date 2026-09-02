@@ -116,6 +116,7 @@ fun TimelineRuler(layout: TimelineLayout, modifier: Modifier = Modifier) {
 /** Um clipe: forma de onda, triângulos de fade e a borda de seleção. */
 @Composable
 fun ClipView(
+    revision: Int,
     clip: RecorderProject.Clip,
     color: Color,
     isSelected: Boolean,
@@ -123,6 +124,7 @@ fun ClipView(
     peaks: WaveformPeaks?,
     modifier: Modifier = Modifier,
 ) {
+    @Suppress("UNUSED_EXPRESSION") revision // modelo mutável: sem isto o strong skipping pula a recomposição
     val density = LocalDensity.current
     val width = with(density) { maxOf(6.0, clip.duration * layout.pixelsPerSecond).dp }
     Canvas(
@@ -185,6 +187,7 @@ fun ClipView(
 /** Cabeçalho da trilha: identidade e os três interruptores de um take. */
 @Composable
 fun TrackHeaderView(
+    revision: Int,
     track: RecorderProject.Track,
     isRecordTarget: Boolean,
     onArm: () -> Unit,
@@ -192,6 +195,7 @@ fun TrackHeaderView(
     onSolo: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
+    @Suppress("UNUSED_EXPRESSION") revision // modelo mutável: sem isto o strong skipping pula a recomposição
     val color = TrackPalette.color(track.colorIndex)
     Box(
         modifier = Modifier

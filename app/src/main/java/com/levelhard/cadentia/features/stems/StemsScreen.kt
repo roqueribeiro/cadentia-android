@@ -26,6 +26,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -988,6 +990,7 @@ private fun LibraryState(
                 }
                 for (song in filtered) {
                     SongRow(
+                        revision = revision,
                         song = song,
                         ready = isReady(song),
                         accent = accent,
@@ -1036,17 +1039,18 @@ private fun LibraryState(
                         .padding(8.dp),
                 )
             }
-            if (setlists.lists.isEmpty()) {
-                Text(
-                    text = stringResource(R.string.cadentia_setlists_empty),
-                    fontSize = 12.sp,
-                    color = CzTokens.textTertiary,
-                )
-            }
+            // Sem repertório nenhum o iOS mostra só o cabeçalho e o criar:
+            // cadentia.setlists.empty ("use Adicionar músicas aqui em cima") é
+            // do detalhe de UM repertório sem músicas — aqui apontava para um
+            // botão que não existe (achado do QA no emulador).
             for (list in setlists.lists) {
                 SetlistCard(
+                    revision = revision,
                     list = list,
                     accent = accent,
+                    candidates = recent.songs.filter { candidate -> list.songs.none { it.id == candidate.id } },
+                    hasRecents = recent.songs.isNotEmpty(),
+                    onAddSong = { onAddToSetlist(it, list.id) },
                     onPlayOrdered = { onPlaySetlist(list, SetQueue.Mode.Ordered) },
                     onPlayShuffled = { onPlaySetlist(list, SetQueue.Mode.Shuffled) },
                     onPlayFrom = { onPlayFromSetlist(list, it) },
@@ -1062,6 +1066,7 @@ private fun LibraryState(
 
 @Composable
 private fun SongRow(
+    revision: Int,
     song: RecentSong,
     ready: Boolean,
     accent: Color,
@@ -1070,6 +1075,7 @@ private fun SongRow(
     onForget: () -> Unit,
     onAddTo: (String) -> Unit,
 ) {
+    @Suppress("UNUSED_EXPRESSION") revision // modelo mutável: sem isto o strong skipping pula a recomposição
     var showAdd by remember { mutableStateOf(false) }
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -1133,8 +1139,12 @@ private fun SongRow(
 
 @Composable
 private fun SetlistCard(
+    revision: Int,
     list: Setlist,
     accent: Color,
+    candidates: List<RecentSong>,
+    hasRecents: Boolean,
+    onAddSong: (RecentSong) -> Unit,
     onPlayOrdered: () -> Unit,
     onPlayShuffled: () -> Unit,
     onPlayFrom: (RecentSong) -> Unit,
@@ -1143,9 +1153,21 @@ private fun SetlistCard(
     onRename: (String) -> Unit,
     onDelete: () -> Unit,
 ) {
+    @Suppress("UNUSED_EXPRESSION") revision // modelo mutável: sem isto o strong skipping pula a recomposição
     var expanded by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf(false) }
     var editName by remember { mutableStateOf(list.name) }
+    var adding by remember { mutableStateOf(false) }
+
+    if (adding) {
+        AddSongsSheet(
+            accent = accent,
+            candidates = candidates,
+            hasRecents = hasRecents,
+            onAdd = onAddSong,
+            onDismiss = { adding = false },
+        )
+    }
 
     CzCard(modifier = Modifier.fillMaxWidth()) {
         Column(
@@ -1217,11 +1239,45 @@ private fun SetlistCard(
                 }
             }
             if (expanded) {
-                if (list.songs.isEmpty()) {
+                // "Adicionar músicas" de verdade (o botão do detalhe do iOS):
+                // abre a folha com as Recentes que ainda não estão na lista.
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(CzTokens.surface, RoundedCornerShape(CzTokens.radiusMD))
+                        .clickable { adding = true }
+                        .padding(horizontal = 12.dp, vertical = 10.dp)
+                        .testTag("setlist.addSongs"),
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.AddCircle,
+                        contentDescription = null,
+                        tint = accent,
+                        modifier = Modifier.size(16.dp),
+                    )
                     Text(
                         text = stringResource(R.string.cadentia_setlists_add_songs),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = CzTokens.textPrimary,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = CzTokens.textTertiary,
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
+                if (list.songs.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.cadentia_setlists_empty),
                         fontSize = 12.sp,
                         color = CzTokens.textTertiary,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
                     )
                 }
                 for (song in list.songs) {
@@ -1254,6 +1310,107 @@ private fun SetlistCard(
                                 .size(20.dp)
                                 .clickable { onRemoveSong(song.id) }
                                 .padding(3.dp),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Folha "Adicionar músicas" — port do picker do SetlistDetailSheet: as
+ * Recentes que ainda não estão no repertório, com busca sem acento; sem
+ * Recentes explica que é preciso abrir uma música primeiro.
+ */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+private fun AddSongsSheet(
+    accent: Color,
+    candidates: List<RecentSong>,
+    hasRecents: Boolean,
+    onAdd: (RecentSong) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var search by remember { mutableStateOf("") }
+    androidx.compose.material3.ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = CzTokens.stageTop,
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 32.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.cadentia_setlists_add_songs),
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold,
+                color = CzTokens.textPrimary,
+            )
+            if (!hasRecents) {
+                Text(
+                    text = stringResource(R.string.cadentia_setlists_no_recents),
+                    fontSize = 13.sp,
+                    color = CzTokens.textSecondary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                )
+            } else {
+                OutlinedTextField(
+                    value = search,
+                    onValueChange = { search = it },
+                    label = { Text(stringResource(R.string.cadentia_setlists_search_songs)) },
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = CzTokens.textPrimary,
+                        unfocusedTextColor = CzTokens.textPrimary,
+                        focusedBorderColor = accent,
+                        unfocusedBorderColor = CzTokens.hairline,
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                val filtered = SongSearch.filter(candidates, search)
+                if (filtered.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.cadentia_setlists_no_matches),
+                        fontSize = 12.sp,
+                        color = CzTokens.textTertiary,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                    )
+                }
+                for (song in filtered) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(CzTokens.surface, RoundedCornerShape(CzTokens.radiusMD))
+                            .clickable { onAdd(song) }
+                            .padding(horizontal = 12.dp, vertical = 12.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.MusicNote,
+                            contentDescription = null,
+                            tint = accent,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Text(
+                            text = song.title,
+                            fontSize = 14.sp,
+                            maxLines = 1,
+                            color = CzTokens.textPrimary,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Icon(
+                            imageVector = Icons.Filled.AddCircle,
+                            contentDescription = null,
+                            tint = CzTokens.textTertiary,
+                            modifier = Modifier.size(18.dp),
                         )
                     }
                 }

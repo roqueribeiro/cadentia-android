@@ -86,7 +86,36 @@ def load_catalog() -> dict[str, dict[str, str]]:
         print("Catálogo incompleto — toda chave entra nos 10 idiomas ou não entra:")
         print("\n".join(missing))
         sys.exit(1)
+    apply_android_overrides(table)
     return table
+
+
+OVERRIDES = REPO / "i18n" / "android-overrides.json"
+
+
+def apply_android_overrides(table: dict[str, dict[str, str]]) -> None:
+    """Ajustes só de plataforma (iPhone → aparelho) por trecho, chave e idioma.
+
+    Falha alto se o trecho não existir: um texto que mudou na fonte não pode
+    carregar um ajuste velho em silêncio.
+    """
+    if not OVERRIDES.exists():
+        return
+    problems = []
+    for item in json.loads(OVERRIDES.read_text())["overrides"]:
+        key, locale = item["key"], item["locale"]
+        current = table.get(key, {}).get(locale)
+        if current is None:
+            problems.append(f"  {key}/{locale}: chave ou idioma inexistente no catálogo")
+            continue
+        if item["find"] not in current:
+            problems.append(f"  {key}/{locale}: trecho {item['find']!r} não está mais no texto")
+            continue
+        table[key][locale] = current.replace(item["find"], item["replace"])
+    if problems:
+        print("android-overrides.json desatualizado em relação ao catálogo:")
+        print("\n".join(problems))
+        sys.exit(1)
 
 
 def existing_names(path: Path) -> set[str]:

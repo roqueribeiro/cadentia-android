@@ -32,6 +32,11 @@ android {
                 // O AAR do Oboe é compilado contra a STL compartilhada; sem
                 // isto o prefab rejeita a biblioteca (CXX1212).
                 arguments += "-DANDROID_STL=c++_shared"
+                // Páginas de 16 KB: o NDK 27 ainda linka a 4 KB por padrão e o
+                // Android 15+ (e a Play) exigem LOAD alinhado a 16 KB. Achado
+                // no emulador com imagem ps16k: "This app isn't 16 KB
+                // compatible" apontando libcadentia_audio.so.
+                arguments += "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
             }
         }
     }

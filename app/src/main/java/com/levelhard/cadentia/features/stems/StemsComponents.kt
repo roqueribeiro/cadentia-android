@@ -292,7 +292,7 @@ fun StemMixerSheet(
                 color = CzTokens.textTertiary,
             )
             for (track in engine.tracks) {
-                MixerRow(engine = engine, track = track, accent = accent, onChanged = onChanged)
+                MixerRow(revision = revision, engine = engine, track = track, accent = accent, onChanged = onChanged)
             }
             StepperCard(
                 title = stringResource(R.string.cadentia_stems_key),
@@ -334,11 +334,13 @@ fun stepSpeed(current: Double, delta: Double): Double {
 
 @Composable
 private fun MixerRow(
+    revision: Int,
     engine: StemPlayerEngine,
     track: StemPlayerEngine.Track,
     accent: Color,
     onChanged: () -> Unit,
 ) {
+    @Suppress("UNUSED_EXPRESSION") revision // modelo mutável: sem isto o strong skipping pula a recomposição
     val color = stemColors[track.id] ?: accent
     val anySolo = engine.tracks.any { it.isSoloed }
     val audible = if (anySolo) track.isSoloed else !track.isMuted

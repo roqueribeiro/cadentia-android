@@ -14,9 +14,9 @@
     <string name="cadentia_about_privacy_title">隐私</string>
     <string name="cadentia_about_rafael_role">音乐人。Cadentia 因他的提议而存在，乐器分离也是他的想法。什么才真正对手握乐器练习的人有用，这把尺子来自他。</string>
     <string name="cadentia_about_roque_role">Cadentia 的开发者，RoqueOS 的创造者。二十五年技术从业经历，曾任职于 Mercado Livre、Netshoes 和 Avanade，UFSCar 工商管理硕士。</string>
-    <string name="cadentia_about_roqueos_body">Cadentia 诞生于 RoqueOS，一个在浏览器里运行的操作系统，拥有数十个应用、自己的服务器和本地人工智能。那里的音乐应用变成了这个原生应用。把两者连起来，你就能在 iPhone 上打开已经存在 RoqueOS 里的音乐。</string>
+    <string name="cadentia_about_roqueos_body">Cadentia 诞生于 RoqueOS，一个在浏览器里运行的操作系统，拥有数十个应用、自己的服务器和本地人工智能。那里的音乐应用变成了这个原生应用。把两者连起来，你就能在手机上打开已经存在 RoqueOS 里的音乐。</string>
     <string name="cadentia_about_roqueos_title">从哪里来</string>
-    <string name="cadentia_about_separation_body">把一首歌分成人声、鼓、贝斯和其余部分，你可以抽掉某个乐器自己来演奏。模型在 iPhone 自己的 GPU 上运行，离线可用，音乐不会离开这台设备。</string>
+    <string name="cadentia_about_separation_body">把一首歌分成人声、鼓、贝斯和其余部分，你可以抽掉某个乐器自己来演奏。模型在这台设备上运行，离线可用，音乐不会离开这台设备。</string>
     <string name="cadentia_about_separation_title">乐器分离</string>
     <string name="cadentia_about_tagline">为学习音乐的人准备的口袋录音室。</string>
     <string name="cadentia_about_title">关于</string>

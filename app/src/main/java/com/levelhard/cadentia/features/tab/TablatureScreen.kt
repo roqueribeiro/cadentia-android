@@ -256,6 +256,7 @@ fun TablatureScreen(store: SettingsStore) {
                 .padding(top = 10.dp, bottom = 12.dp),
         ) {
             Header(
+                revision = revision,
                 tab = tab,
                 accent = accent,
                 isEditing = isEditing,
@@ -286,13 +287,16 @@ fun TablatureScreen(store: SettingsStore) {
                     selection = if (isEditing) selection else null,
                     accent = accent,
                     revision = revision,
-                    modifier = Modifier.weight(1f),
+                    // Altura natural (rows × gap): com weight(1f) o cartão ocupava a
+                    // tela inteira com 6 linhas no topo e um vazio escuro embaixo
+                    // (QA no emulador). O Spacer abaixo é quem empurra o transporte.
                     onTapCell = if (isEditing) {
                         { row, col -> selection = TabCellSelection(row = row, col = col) }
                     } else {
                         null
                     },
                 )
+                Spacer(Modifier.weight(1f))
                 if (isEditing) {
                     EditBar(
                         tab = current,
@@ -414,6 +418,7 @@ private fun cursorColumn(
 
 @Composable
 private fun Header(
+    revision: Int,
     tab: Tablature?,
     accent: Color,
     isEditing: Boolean,
@@ -422,6 +427,7 @@ private fun Header(
     onToggleEdit: () -> Unit,
     onOpen: () -> Unit,
 ) {
+    @Suppress("UNUSED_EXPRESSION") revision // modelo mutável: sem isto o strong skipping pula a recomposição
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -703,6 +709,7 @@ private fun EditBar(
         // Linha da nota: casas / toggle de bateria + figuras + limpar.
         if (selection != null) {
             NoteEditor(
+                revision = revision,
                 tab = tab,
                 track = track,
                 selectedTrack = selectedTrack,
@@ -758,6 +765,7 @@ private fun AddTrackChip(onMutate: ((Tablature) -> Unit) -> Unit) {
 
 @Composable
 private fun NoteEditor(
+    revision: Int,
     tab: Tablature,
     track: Tablature.Track,
     selectedTrack: Int,
@@ -765,6 +773,7 @@ private fun NoteEditor(
     accent: Color,
     onMutate: ((Tablature) -> Unit) -> Unit,
 ) {
+    @Suppress("UNUSED_EXPRESSION") revision // modelo mutável: sem isto o strong skipping pula a recomposição
     val located = tab.locate(selectedTrack, selection.col)
     val cell = located?.let { (measureIdx, stepIdx) ->
         track.measures.getOrNull(measureIdx)?.strings?.getOrNull(selection.row)?.steps?.getOrNull(stepIdx)

@@ -155,7 +155,7 @@ fun TabMixerSheet(
                                 modifier = Modifier.weight(1f),
                             )
                         }
-                        VoicePicker(index = index, track = track, accent = accent, onVoice = onVoice, onKit = onKit)
+                        VoicePicker(revision = revision, index = index, track = track, accent = accent, onVoice = onVoice, onKit = onKit)
                     }
                 }
             }
@@ -185,12 +185,14 @@ private fun ToggleChip(text: String, active: Boolean, color: Color, onClick: () 
  */
 @Composable
 private fun VoicePicker(
+    revision: Int,
     index: Int,
     track: Tablature.Track,
     accent: Color,
     onVoice: (Int, String) -> Unit,
     onKit: (Int, String) -> Unit,
 ) {
+    @Suppress("UNUSED_EXPRESSION") revision // modelo mutável: sem isto o strong skipping pula a recomposição
     var open by remember { mutableStateOf(false) }
     val labelKey = if (track.type == "drums") {
         DrumSynth.kitNameKey(track.kitId ?: "acoustic")

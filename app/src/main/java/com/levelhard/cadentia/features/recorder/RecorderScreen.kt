@@ -346,38 +346,48 @@ fun RecorderScreen(store: SettingsStore) {
                     accent = accent,
                 ) { snapToGrid = !snapToGrid }
 
-                // BPM ±5
+                // BPM ±5. O alvo de toque é a altura inteira do pill (40 dp):
+                // minimumInteractiveComponentSize aqui somava com o padding e
+                // fazia o pill crescer para 64 dp (achado do QA no emulador).
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(5.dp),
                     modifier = Modifier
+                        .height(40.dp)
                         .background(CzTokens.surface, RoundedCornerShape(50))
-                        .padding(horizontal = 10.dp, vertical = 8.dp),
+                        .padding(horizontal = 2.dp),
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.Remove,
-                        contentDescription = null, // PENDÊNCIA a11y: sem chave "diminuir" no catálogo
-                        tint = CzTokens.textSecondary,
+                    Box(
+                        contentAlignment = Alignment.Center,
                         modifier = Modifier
-                            .minimumInteractiveComponentSize()
-                            .size(14.dp)
+                            .size(40.dp)
                             .clickable { mutateProject(recordHistory = false) { it.bpm = (it.bpm - 5).coerceIn(40, 240) } },
-                    )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Remove,
+                            contentDescription = null, // PENDÊNCIA a11y: sem chave "diminuir" no catálogo
+                            tint = CzTokens.textSecondary,
+                            modifier = Modifier.size(14.dp),
+                        )
+                    }
                     Text(
                         text = "${project.bpm} " + stringResource(R.string.tablature_bpm),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = CzTokens.textPrimary,
                     )
-                    Icon(
-                        imageVector = Icons.Filled.Add,
-                        contentDescription = null, // PENDÊNCIA a11y: sem chave "aumentar" no catálogo
-                        tint = CzTokens.textSecondary,
+                    Box(
+                        contentAlignment = Alignment.Center,
                         modifier = Modifier
-                            .minimumInteractiveComponentSize()
-                            .size(14.dp)
+                            .size(40.dp)
                             .clickable { mutateProject(recordHistory = false) { it.bpm = (it.bpm + 5).coerceIn(40, 240) } },
-                    )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = null, // PENDÊNCIA a11y: sem chave "aumentar" no catálogo
+                            tint = CzTokens.textSecondary,
+                            modifier = Modifier.size(14.dp),
+                        )
+                    }
                 }
 
                 Box {
@@ -738,6 +748,7 @@ private fun TimelineArea(
             Spacer(Modifier.height(TimelineLayout.rulerHeight))
             for (track in project.tracks) {
                 TrackHeaderView(
+                    revision = revision,
                     track = track,
                     isRecordTarget = track.id == recordTrackId,
                     onArm = { onArm(track.id) },
@@ -752,7 +763,7 @@ private fun TimelineArea(
                 modifier = Modifier
                     .width(TimelineLayout.headerWidth)
                     .height(30.dp)
-                    .background(CzTokens.surface.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                    .background(CzTokens.surface, RoundedCornerShape(8.dp)) // surface já é branco a 5%; copy(alpha=0.5) virava branco a 50% (QA)
                     .clickable(onClick = onAddTrack)
                     .padding(horizontal = 8.dp)
                     .testTag("recorder.addTrack"),
@@ -799,6 +810,7 @@ private fun TimelineArea(
                 )
                 for (track in project.tracks) {
                     Lane(
+                        revision = revision,
                         track = track,
                         layout = layout,
                         selectedClipId = selectedClipId,
@@ -844,6 +856,7 @@ private fun TimelineArea(
 
 @Composable
 private fun Lane(
+    revision: Int,
     track: RecorderProject.Track,
     layout: TimelineLayout,
     selectedClipId: String?,
@@ -855,6 +868,7 @@ private fun Lane(
     onDragEnd: (RecorderProject.Clip, String) -> Unit,
     onTrim: (RecorderProject.Clip, TrimEdge, Double) -> Unit,
 ) {
+    @Suppress("UNUSED_EXPRESSION") revision // modelo mutável: sem isto o strong skipping pula a recomposição
     val density = LocalDensity.current
     // O zoom pode mudar entre a montagem do gesto e o arrasto: a conversão
     // px→segundos tem que ler o valor vivo.
@@ -897,6 +911,7 @@ private fun Lane(
                     },
             ) {
                 ClipView(
+                    revision = revision,
                     clip = clip,
                     color = TrackPalette.color(track.colorIndex),
                     isSelected = selectedClipId == clip.id,

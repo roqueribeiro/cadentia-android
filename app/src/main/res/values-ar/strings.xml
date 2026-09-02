@@ -14,9 +14,9 @@
     <string name="cadentia_about_privacy_title">الخصوصية</string>
     <string name="cadentia_about_rafael_role">موسيقي. وُجد Cadentia لأنه طلبه، وفصل الآلات كان فكرته. ومنه يأتي المعيار لما ينفع فعلاً من يتمرّن والآلة في يده.</string>
     <string name="cadentia_about_roque_role">مطوّر Cadentia وصانع RoqueOS. خمسة وعشرون عاماً في التقنية، مروراً بـ Mercado Livre وNetshoes وAvanade، وماجستير إدارة أعمال من UFSCar.</string>
-    <string name="cadentia_about_roqueos_body">وُلد Cadentia داخل RoqueOS، وهو نظام تشغيل يعمل في المتصفح، بعشرات التطبيقات وخادم خاص وذكاء اصطناعي محلي. تطبيق الموسيقى هناك صار هذا التطبيق الأصلي. وبربط الاثنين تفتح على الآيفون الأغاني الموجودة في RoqueOS لديك.</string>
+    <string name="cadentia_about_roqueos_body">وُلد Cadentia داخل RoqueOS، وهو نظام تشغيل يعمل في المتصفح، بعشرات التطبيقات وخادم خاص وذكاء اصطناعي محلي. تطبيق الموسيقى هناك صار هذا التطبيق الأصلي. وبربط الاثنين تفتح على الهاتف الأغاني الموجودة في RoqueOS لديك.</string>
     <string name="cadentia_about_roqueos_title">من أين جاء</string>
-    <string name="cadentia_about_separation_body">يفصل الأغنية إلى غناء وطبول وباص وبقية الآلات، لتزيح آلة وتعزفها بنفسك. النموذج يعمل على معالج الرسوميات داخل الآيفون، ويشتغل بلا إنترنت، والموسيقى لا تغادر جهازك.</string>
+    <string name="cadentia_about_separation_body">يفصل الأغنية إلى غناء وطبول وباص وبقية الآلات، لتزيح آلة وتعزفها بنفسك. النموذج يعمل على الجهاز نفسه، ويشتغل بلا إنترنت، والموسيقى لا تغادر جهازك.</string>
     <string name="cadentia_about_separation_title">فصل الآلات</string>
     <string name="cadentia_about_tagline">استوديو في جيبك لمن يدرس الموسيقى.</string>
     <string name="cadentia_about_title">حول</string>
@@ -52,7 +52,7 @@
     <string name="cadentia_library_shared_folder">المجلد المشترك</string>
     <string name="cadentia_library_shared_folder_hint">مجلد ‏/shared في خادم RoqueOS</string>
     <string name="cadentia_library_shared_forbidden">مفتاح API هذا لا يملك إذن قراءة الملفات على الخادم.</string>
-    <string name="cadentia_library_this_device">على هذا الـ iPhone</string>
+    <string name="cadentia_library_this_device">على هذا الجهاز</string>
     <string name="cadentia_library_this_device_hint">الملفات وiCloud Drive</string>
     <string name="cadentia_library_will_separate_again">سيُعاد فصلها</string>
     <string name="cadentia_piano_sustain">الإطالة</string>

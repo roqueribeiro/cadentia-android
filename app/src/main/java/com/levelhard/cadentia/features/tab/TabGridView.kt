@@ -111,11 +111,16 @@ fun TabGridView(
                         if (onTapCell == null) return@pointerInput
                         detectTapGestures { offset ->
                             val column = ((offset.x - inset) / columnWidth).toInt()
-                            val row = ((offset.y - topBand + rowGap / 2) / rowGap).toInt()
+                            val displayRow = ((offset.y - topBand + rowGap / 2) / rowGap).toInt()
                             if (offset.x >= inset && column in 0 until track.totalColumns &&
-                                row in 0 until track.rowCount
+                                displayRow in 0 until track.rowCount
                             ) {
-                                onTapCell(row, column)
+                                // O toque chega em linha DE TELA; o modelo é a linha
+                                // invertida (aguda em cima, em guitarra e baixo). Sem
+                                // esta volta, tocar na corda A selecionava a B —
+                                // achado do QA no emulador (o iOS tem o mesmo desvio).
+                                val modelRow = TabRowDisplay.displayRow(displayRow, track.rowCount, track.type)
+                                onTapCell(modelRow, column)
                             }
                         }
                     },
