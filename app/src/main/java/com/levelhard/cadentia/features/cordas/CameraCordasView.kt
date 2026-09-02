@@ -43,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -159,12 +160,16 @@ fun CameraCordasView(model: CordasModel, accent: Color, replay: Boolean, modifie
     Box(
         modifier
             .fillMaxSize()
+            .clipToBounds()
             .background(Color.Black)
             .onSizeChanged { sizePx = it }
             .testTag("cordas.camera"),
     ) {
         tracker.previewView?.let { preview ->
-            AndroidView(factory = { preview }, modifier = Modifier.fillMaxSize())
+            // `clipToBounds`: a prévia em "cover" é maior que o Box e, sem o
+            // recorte do Compose, vazava por cima da barra de modos (visto no
+            // emulador, com SurfaceView e com TextureView).
+            AndroidView(factory = { preview }, modifier = Modifier.fillMaxSize().clipToBounds())
             Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.46f)))
         }
         val strumHere = stringResource(R.string.cadentia_cordas_camera_strum_here)
@@ -391,6 +396,10 @@ private class CameraPainter(
     private fun px(value: Double): Float = (value * density).toFloat()
     private fun off(x: Double, y: Double) = Offset(px(x), px(y))
 
+    private companion object {
+        const val CHORD_STRIP_HEIGHT = 62.0
+    }
+
     private fun label(value: String, x: Double, y: Double, color: Color, sizeSp: Float, weight: FontWeight = FontWeight.Bold, mono: Boolean = false) {
         val measured = text.measure(
             value,
@@ -460,9 +469,14 @@ private class CameraPainter(
             label(note, 18.0, y - 11, if (level > 0.06) accent else Color.White.copy(alpha = 0.65f), sizeSp = 11f, weight = FontWeight.Black, mono = true)
         }
 
-        // Sem a mão da batida no quadro, as cordas sozinhas não explicam o que fazer.
-        if (frame.pickHand == null) {
-            label(strumHereLabel, width / 2, panelBottom + 18, Color.White.copy(alpha = 0.75f), sizeSp = 13f, weight = FontWeight.SemiBold)
+        // Sem a mão da batida no quadro, as cordas sozinhas não explicam o que
+        // fazer. A frase fica na margem de CIMA do painel, entre a borda e a
+        // primeira corda: embaixo dele, num telefone de 690 pt de altura útil,
+        // ela caía em cima da faixa de acordes (visto no emulador).
+        // E só depois de calibrado: enquanto o cartão "Segure o violão" está
+        // na tela, ele já diz o que fazer — e ficava por cima da frase.
+        if (frame.pickHand == null && frame.calibration == AirGuitarGeometry.Calibration.Ready) {
+            label(strumHereLabel, width / 2, panelTop + margin / 2, Color.White.copy(alpha = 0.75f), sizeSp = 13f, weight = FontWeight.SemiBold)
         }
     }
 
@@ -518,7 +532,7 @@ private class CameraPainter(
         val shapes = HandChordMapping.shapes
         val slots = shapes.size
         if (names.isEmpty()) return
-        val stripHeight = 62.0
+        val stripHeight = CHORD_STRIP_HEIGHT
         val y = height - stripHeight - 26
         scope.drawRoundRect(Color.Black.copy(alpha = 0.78f), off(10.0, y), Size(px(width - 20), px(stripHeight)), CornerRadius(px(14.0)))
         val slotWidth = (width - 20) / slots

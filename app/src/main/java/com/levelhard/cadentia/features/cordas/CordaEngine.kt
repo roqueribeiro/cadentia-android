@@ -1,5 +1,6 @@
 package com.levelhard.cadentia.features.cordas
 
+import android.util.Log
 import com.levelhard.cadentia.audio.PolyphonicSampler
 import com.levelhard.cadentia.kit.SampleBank
 import com.levelhard.cadentia.kit.cordas.CordaBody
@@ -373,6 +374,9 @@ class CordaEngine {
             // ainda é mais barato que engolir a nota que a pessoa pediu.
             val base = makeBuffer(frequency, bucket, instrument, sampleRate) ?: FloatArray(64)
             if (muted) muffle(base, sampleRate) else base
+        }
+        if (Log.isLoggable(CordasModel.TELEMETRY_TAG, Log.DEBUG)) {
+            Log.d(CordasModel.TELEMETRY_TAG, "pluck corda=$string midi=$midi vel=${"%.2f".format(java.util.Locale.ROOT, velocity)} tag=$tag muted=$muted")
         }
         if (tag == 0L) return
         val length = if (muted) MUTED_SECONDS else minOf(CordaString.MAX_CACHED_DURATION, instrument.tone.decay)

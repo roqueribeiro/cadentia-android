@@ -1,5 +1,6 @@
 package com.levelhard.cadentia.features.cordas
 
+import android.util.Log
 import com.levelhard.cadentia.kit.cordas.ChordTranspose
 import com.levelhard.cadentia.kit.cordas.FretboardLayout
 import com.levelhard.cadentia.kit.cordas.NailCapture
@@ -158,6 +159,13 @@ class FretboardTouchController(private val scope: CoroutineScope = MainScope()) 
                 touch.previousX, x, dt, touch.nail,
                 muted = palmMuting(except = id, time, layout), layout = layout,
             )
+            if (Log.isLoggable(CordasModel.TELEMETRY_TAG, Log.DEBUG)) {
+                Log.d(
+                    CordasModel.TELEMETRY_TAG,
+                    "sweep ${"%.0f".format(java.util.Locale.ROOT, touch.previousX)}→${"%.0f".format(java.util.Locale.ROOT, x)} " +
+                        "cordas=${layout.stringX.size} plucks=${plucks.map { it.string }} armadas=${model.nail.armedForTesting}",
+                )
+            }
             model.play(plucks)
             if (plucks.size > 2) model.haptics?.medium() else if (plucks.isNotEmpty()) model.haptics?.light()
         }
@@ -176,7 +184,24 @@ class FretboardTouchController(private val scope: CoroutineScope = MainScope()) 
                 releaseNeck(touch)
             }
             Zone.Rail -> railEnded(id, time)
-            Zone.Strum -> model.nail.touchUp(x, y, time)
+            Zone.Strum -> {
+                // O ÚLTIMO trecho da passada vem no UP. Uma batida rápida que
+                // sai pela borda chega com o dedo vários vãos além da última
+                // amostra de movimento; sem varrer daqui até o ponto de soltar,
+                // as cordas do fim ficavam mudas (visto no emulador: E-A-D-G
+                // soando, B e mi agudo não).
+                val current = layout
+                if (current != null && x != touch.x) {
+                    val dt = maxOf(0.001, time - touch.time)
+                    val plucks = model.nail.sweep(
+                        touch.x, x, dt, touch.nail,
+                        muted = palmMuting(except = id, time, current), layout = current,
+                    )
+                    model.play(plucks)
+                    if (plucks.isNotEmpty()) model.haptics?.light()
+                }
+                model.nail.touchUp(x, y, time)
+            }
             Zone.Bridge -> Unit
         }
         touches.remove(id)

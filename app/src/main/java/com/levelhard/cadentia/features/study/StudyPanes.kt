@@ -459,7 +459,9 @@ internal fun ScaleFretboard(
             // Faixa própria para os números das casas, ABAIXO da última corda:
             // desenhados na borda do canvas eles ficavam por baixo das bolinhas
             // do mi grave (visto no QA do emulador).
-            val markerBand = 14.dp.toPx()
+            // 18 e não 14: a bolinha da tônica tem 6,5 dp de raio e, com o
+            // número 3 dp abaixo da linha, ela cobria o número (QA v6, baixo).
+            val markerBand = 18.dp.toPx()
             val gridWidth = size.width - insetX - 10.dp.toPx()
             val gridHeight = size.height - insetY * 2 - markerBand
             val stringGap = gridHeight / (strings - 1)
@@ -500,7 +502,7 @@ internal fun ScaleFretboard(
                     color = Color.White.copy(alpha = 0.35f),
                     topLeft = Offset(
                         insetX + (marker - 0.5f) * fretGap - label.size.width / 2f,
-                        insetY + gridHeight + 3.dp.toPx(),
+                        insetY + gridHeight + 8.dp.toPx(),
                     ),
                 )
             }

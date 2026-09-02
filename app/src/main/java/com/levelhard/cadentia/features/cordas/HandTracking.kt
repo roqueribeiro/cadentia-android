@@ -229,7 +229,14 @@ class MediaPipeHandTracker(
 
     private fun bind(provider: ProcessCameraProvider) {
         val executor = executor ?: return
-        val preview = PreviewView(context).apply { scaleType = PreviewView.ScaleType.FILL_CENTER }
+        val preview = PreviewView(context).apply {
+            scaleType = PreviewView.ScaleType.FILL_CENTER
+            // TextureView, não SurfaceView: o SurfaceView fura a janela e o
+            // recorte "cover" vazava por cima da barra de modos (visto no
+            // emulador). O TextureView é uma View comum: recortada pelo Box,
+            // que é o retângulo em que os landmarks são mapeados.
+            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+        }
         // Prévia e análise com a MESMA proporção: o mapeamento "cover" dos
         // pontos assume que as duas mostram o mesmo recorte do sensor.
         val ratio = AspectRatioStrategy(AspectRatio.RATIO_16_9, AspectRatioStrategy.FALLBACK_RULE_AUTO)
