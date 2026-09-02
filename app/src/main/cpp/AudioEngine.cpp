@@ -276,9 +276,14 @@ oboe::DataCallbackResult AudioEngine::onAudioReady(
             if (v.dampStep > 0.0f) {
                 v.damp -= v.dampStep;
                 if (v.damp <= 0.0f) {
+                    // Morreu abafada: NÃO lê mais nada deste buffer. A versão
+                    // anterior fazia pos = frames e ainda lia interleaved[pos]
+                    // — um frame além do fim. Quase sempre inofensivo; quando o
+                    // vetor termina exatamente numa página do Scudo, é SIGSEGV
+                    // na thread de áudio (achado no emulador, Gravador ao parar).
                     v.damp = 0.0f;
-                    v.pos = buf.frames; // morreu: sai do laço no próximo teste
-                    g = 0.0f;
+                    v.pos = buf.frames;
+                    break;
                 }
             }
             out[i * 2] += buf.interleaved[static_cast<size_t>(v.pos) * 2] * g;
