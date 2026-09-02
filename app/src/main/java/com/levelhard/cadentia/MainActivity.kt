@@ -32,6 +32,18 @@ class MainActivity : ComponentActivity() {
             edit = intent.getBooleanExtra("qa-edit", false),
             showCatalog = intent.getBooleanExtra("qa-show-catalog", false),
             studioAutoplay = intent.getBooleanExtra("qa-studio-autoplay", false),
+            cordasMode = intent.getStringExtra("qa-cordas-mode"),
+            cordasInstrument = intent.getStringExtra("qa-cordas-instrument"),
+            cordasHandsFree = when {
+                intent.getBooleanExtra("qa-cordas-hands-free", false) -> true
+                intent.getBooleanExtra("qa-cordas-strummed", false) -> false
+                else -> null
+            },
+            cordasPanel = intent.getBooleanExtra("qa-cordas-panel", false),
+            cordasSelftest = intent.getBooleanExtra("qa-cordas-selftest", false),
+            cordasCoach = intent.getBooleanExtra("qa-cordas-coach", false),
+            cordasReplay = intent.getBooleanExtra("qa-cordas-replay", false),
+            studyInstrument = intent.getStringExtra("qa-study-instrument"),
         )
 
         val store = SettingsStore(applicationContext)

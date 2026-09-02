@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Afinador e gravador escutam o instrumento. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -9,6 +10,12 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Cordas, modo câmera: o violão aparece entre as mãos. Pedida ao entrar
+         no modo, nunca antes; sem câmera o braço e os acordes seguem valendo. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
     <!-- Latência baixa: declara que o app quer o caminho de áudio pro. -->
     <uses-feature
         android:name="android.hardware.audio.low_latency"
@@ -55,6 +62,20 @@
                 <data android:scheme="cadentia" />
             </intent-filter>
         </activity>
+
+        <!-- O MediaPipe (Cordas, câmera) traz o datatransport da Google, que
+             registra o backend "cct" por este meta-data e usaria ele para
+             mandar estatística de uso ao Google. Sem o registro, o runtime
+             descarta cada evento ("Transport backend 'cct' is not registered")
+             e nada sai do aparelho. Não há opção pública no MediaPipe para
+             desligar isso; esta é a única porta. -->
+        <service
+            android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+            android:exported="false">
+            <meta-data
+                android:name="backend:com.google.android.datatransport.cct.CctBackendFactory"
+                tools:node="remove" />
+        </service>
 
         <!-- Compartilhar .rostab (o ShareSheet do iOS): expõe só o cache/share. -->
         <provider

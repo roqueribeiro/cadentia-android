@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.UnfoldMore
+import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -54,11 +55,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -71,6 +74,8 @@ import com.levelhard.cadentia.kit.InstrumentSynth
 import com.levelhard.cadentia.kit.InstrumentVoice
 import com.levelhard.cadentia.kit.MusicNotes
 import com.levelhard.cadentia.kit.ScaleType
+import com.levelhard.cadentia.kit.cordas.CordaChords
+import com.levelhard.cadentia.kit.cordas.CordaInstrument
 import com.levelhard.cadentia.settings.SettingsStore
 import com.levelhard.cadentia.ui.CzCard
 import com.levelhard.cadentia.ui.CzTokens
@@ -97,6 +102,8 @@ internal fun ChordsPane(
     accent: Color,
     play: (Double, Double) -> Unit,
     scope: kotlinx.coroutines.CoroutineScope,
+    /** `null` = piano. O acorde é o mesmo; muda só onde ele é desenhado. */
+    instrument: CordaInstrument? = null,
 ) {
     val settings by store.settings.collectAsState()
     val chord = ChordLibrary.find(settings.piano.chordRoot, settings.piano.chordQuality)
@@ -138,11 +145,41 @@ internal fun ChordsPane(
                     fontWeight = FontWeight.Medium,
                     color = accent,
                 )
-                GuitarChordDiagram(
-                    frets = chord.guitarFrets,
-                    accent = accent,
-                    modifier = Modifier.size(width = 190.dp, height = 200.dp),
-                )
+                // O mesmo acorde, no instrumento escolhido. As formas de corda
+                // saem de `CordaChords`, não de `chord.guitarFrets`: a viola
+                // caipira não usa a mesma afinação, e uma forma de violão num
+                // braço de viola é uma forma ERRADA — pior que nenhuma, porque
+                // parece certa. No baixo, a CAIXA de arpejo, não a fundamental
+                // sozinha: um ponto e três cruzes não ensinam nada.
+                if (instrument == null) {
+                    StudyKeyboard(highlighted = chord.pianoNotes, accent = accent, root = chord.root)
+                } else {
+                    val shape = CordaChords.bassBox(chord.id, instrument) ?: CordaChords.frets(chord.id, instrument)
+                    if (shape != null) {
+                        GuitarChordDiagram(
+                            frets = shape,
+                            accent = accent,
+                            stringCount = instrument.courseCount,
+                            modifier = Modifier.size(width = 190.dp, height = 200.dp),
+                        )
+                    } else {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(7.dp),
+                            modifier = Modifier.size(width = 190.dp, height = 200.dp).testTag("study.chord.noShape"),
+                        ) {
+                            Spacer(Modifier.weight(1f))
+                            Icon(Icons.Outlined.HelpOutline, contentDescription = null, tint = CzTokens.textTertiary, modifier = Modifier.size(26.dp))
+                            Text(
+                                text = stringResource(R.string.cadentia_study_no_shape),
+                                fontSize = 12.5.sp,
+                                color = CzTokens.textTertiary,
+                                textAlign = TextAlign.Center,
+                            )
+                            Spacer(Modifier.weight(1f))
+                        }
+                    }
+                }
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     ActionPill(
                         stringResource(R.string.music_chords_strum),
@@ -182,10 +219,20 @@ internal fun playChord(
  * dedos, ✕/○ sobre a pestana, número da casa quando a forma sobe o braço.
  */
 @Composable
-internal fun GuitarChordDiagram(frets: List<Int>, accent: Color, modifier: Modifier = Modifier) {
+internal fun GuitarChordDiagram(
+    frets: List<Int>,
+    accent: Color,
+    /**
+     * O braço desenhado é o DO INSTRUMENTO. Era 6, fixo: escolher Baixo
+     * desenhava seis cordas para um instrumento de quatro, e os pontos caíam
+     * nas cordas erradas.
+     */
+    stringCount: Int = 6,
+    modifier: Modifier = Modifier,
+) {
     val textMeasurer = rememberTextMeasurer()
     Canvas(modifier) {
-        val stringCount = 6
+        val stringCount = maxOf(2, stringCount)
         val fretCount = 5
         val inset = 22.dp.toPx()
         val gridWidth = size.width - inset * 2
@@ -270,10 +317,16 @@ internal fun ScalesPane(
     accent: Color,
     play: (Double, Double) -> Unit,
     scope: kotlinx.coroutines.CoroutineScope,
+    /** `null` = piano. */
+    instrument: CordaInstrument? = null,
 ) {
     val settings by store.settings.collectAsState()
     val scale = ScaleType.find(settings.piano.scaleType)
-    val notes = scale.notesWithFrequency(settings.piano.scaleRoot, octaveBase = 4)
+    // A oitava em que a escala TOCA. Quatro é o meio do piano; num baixo isso
+    // é duas oitavas acima de onde o instrumento vive (a mi solta é 41 Hz e a
+    // escala saía em 262). Dois é a oitava do braço de um baixo de quatro cordas.
+    val octaveBase = if (instrument?.id == "baixo") 2 else 4
+    val notes = scale.notesWithFrequency(settings.piano.scaleRoot, octaveBase = octaveBase)
 
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -323,23 +376,29 @@ internal fun ScalesPane(
         }
     }
 
-    ScaleFretboard(
-        scaleNotes = scale.notes(settings.piano.scaleRoot),
-        root = settings.piano.scaleRoot,
-        accent = accent,
-        modifier = Modifier.fillMaxWidth().height(184.dp),
-    )
+    // A escala no instrumento escolhido. O braço já existia; o teclado é o desenho que faltava.
+    if (instrument == null) {
+        StudyKeyboard(highlighted = scale.notes(settings.piano.scaleRoot), accent = accent, root = settings.piano.scaleRoot)
+    } else {
+        ScaleFretboard(
+            scaleNotes = scale.notes(settings.piano.scaleRoot),
+            root = settings.piano.scaleRoot,
+            accent = accent,
+            instrument = instrument,
+            modifier = Modifier.fillMaxWidth().height(200.dp),
+        )
+    }
 
     ActionPill(
         stringResource(R.string.music_scales_play_scale),
         Icons.Filled.PlayArrow, accent, prominent = true,
     ) {
         val sequence = notes.toMutableList()
-        MusicNotes.noteToMidi(settings.piano.scaleRoot, 4)?.let { rootMidi ->
+        MusicNotes.noteToMidi(settings.piano.scaleRoot, octaveBase)?.let { rootMidi ->
             val octaveUp = rootMidi + 12
             sequence.add(
                 ScaleType.ScaleNote(
-                    settings.piano.scaleRoot, 5, octaveUp, MusicNotes.midiToFrequency(octaveUp),
+                    settings.piano.scaleRoot, octaveBase + 1, octaveUp, MusicNotes.midiToFrequency(octaveUp),
                 ),
             )
         }
@@ -361,12 +420,28 @@ internal fun ScaleFretboard(
     scaleNotes: List<String>,
     root: String,
     accent: Color,
+    /**
+     * O braço é o DO INSTRUMENTO, e não um violão sempre: escolher Baixo
+     * desenhava seis cordas com os nomes errados por cima, e a escala aparecia
+     * em posições que não existem no instrumento escolhido.
+     */
+    instrument: CordaInstrument? = null,
     modifier: Modifier = Modifier,
 ) {
     val textMeasurer = rememberTextMeasurer()
-    // Afinação padrão, aguda EM CIMA como cifra impressa.
-    val openStrings = listOf("E", "B", "G", "D", "A", "E")
-    val openPitchClass = listOf(4, 11, 7, 2, 9, 4)
+    // Uma linha por ORDEM, e não por corda: a viola caipira tem dez cordas em
+    // cinco ordens. De cima para baixo, da mais aguda para a mais grave, como
+    // se lê diagrama de braço; a mais grave de cada ordem dá o nome da corda.
+    val openPitchClass = remember(instrument?.id) {
+        if (instrument == null) {
+            listOf(4, 11, 7, 2, 9, 4)
+        } else {
+            val byCourse = HashMap<Int, Int>()
+            for (spec in instrument.strings) byCourse[spec.course] = minOf(byCourse[spec.course] ?: Int.MAX_VALUE, spec.midi)
+            byCourse.keys.sortedDescending().map { ((byCourse.getValue(it) % 12) + 12) % 12 }
+        }
+    }
+    val openStrings = openPitchClass.map { MusicNotes.noteNames[it] }
 
     Box(
         modifier
@@ -374,7 +449,8 @@ internal fun ScaleFretboard(
             .background(Color.Black.copy(alpha = 0.25f)),
     ) {
         Canvas(Modifier.fillMaxSize()) {
-            val strings = 6
+            val strings = openPitchClass.size
+            // O baixo tem escala longa e vinte casas; o violão, dezessete. Doze é a volta da oitava e cabe em qualquer um.
             val frets = 12
             val insetX = 38.dp.toPx()
             val labelRight = 17.dp.toPx()
@@ -394,7 +470,7 @@ internal fun ScaleFretboard(
                 drawLine(
                     Color.White.copy(alpha = 0.3f),
                     Offset(insetX, y), Offset(insetX + gridWidth, y),
-                    strokeWidth = (if (s < 3) 1.dp else 1.6.dp).toPx(),
+                    strokeWidth = (if (s < strings / 2) 1.dp else 1.6.dp).toPx(),
                 )
                 val label = textMeasurer.measure(
                     openStrings[s],

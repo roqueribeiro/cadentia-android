@@ -366,12 +366,49 @@ private fun LicensesSheet(onDismiss: () -> Unit) {
                     )
                 }
             }
+            // O modo câmera do Cordas roda o Hand Landmarker do MediaPipe. O
+            // iOS usa o Vision e não deve nada a ninguém; aqui a Apache-2.0
+            // pede o aviso — e ele fica onde a pessoa pode ler.
+            CzCard(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.padding(16.dp),
+                ) {
+                    Text(
+                        text = "MediaPipe Tasks (Hand Landmarker)", // i18n-verbatim: nome do projeto
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = CzTokens.textPrimary,
+                    )
+                    Text(
+                        text = "github.com/google-ai-edge/mediapipe", // i18n-verbatim: endereço
+                        fontSize = 12.sp,
+                        fontFamily = FontFamily.Monospace,
+                        color = CzTokens.textTertiary,
+                    )
+                    Text(
+                        text = APACHE_NOTICE, // i18n-verbatim: texto legal original
+                        fontSize = 11.sp,
+                        fontFamily = FontFamily.Monospace,
+                        color = CzTokens.textSecondary,
+                    )
+                }
+            }
             // Os bancos de sample são obra de outras pessoas: mesma pergunta
             // ("de onde veio esse som?"), mesma seção da folha de Som.
             SampleCreditsSection(remember { SampleBank.shared.installed })
         }
     }
 }
+
+/** O aviso da Apache-2.0 como o MediaPipe publica, sem alteração. */
+private const val APACHE_NOTICE = """Copyright 2019 The MediaPipe Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License."""
 
 /** Texto da MIT como publicado no repositório do Demucs, sem alteração. */
 private const val MIT_LICENSE = """MIT License

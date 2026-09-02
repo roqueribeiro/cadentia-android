@@ -21,6 +21,22 @@ data class QaFlags(
     val showCatalog: Boolean = false,
     /** Frequência: começa tocando ao abrir (screenshot do osciloscópio vivo). */
     val studioAutoplay: Boolean = false,
+    /** Cordas: `frets`, `chords` ou `camera` (o `-qa-cordas-mode` do iOS). */
+    val cordasMode: String? = null,
+    /** Cordas: `violao`, `guitarra`, `viola` ou `baixo`. */
+    val cordasInstrument: String? = null,
+    /** Cordas: `true` = braço sem mão direita (`-qa-cordas-hands-free`); `false` = com batida (`-qa-cordas-strummed`). */
+    val cordasHandsFree: Boolean? = null,
+    /** Cordas: abre com o painel por cima, expandido. */
+    val cordasPanel: Boolean = false,
+    /** Cordas: toca um acorde em cada instrumento sem dedo e loga `QA-CORDAS-SELFTEST-OK`. */
+    val cordasSelftest: Boolean = false,
+    /** Cordas: mostra o treinador mesmo com `qa-tab` (que normalmente o cala). */
+    val cordasCoach: Boolean = false,
+    /** Cordas: câmera trocada por uma pose gravada — sem permissão, sem mão. */
+    val cordasReplay: Boolean = false,
+    /** Estudo: abre já no instrumento (`violao`, `guitarra`, `viola`, `baixo`). */
+    val studyInstrument: String? = null,
 )
 
 val LocalQaFlags = compositionLocalOf { QaFlags() }

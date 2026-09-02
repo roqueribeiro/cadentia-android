@@ -10,7 +10,10 @@ package com.levelhard.cadentia.audio
  * o buffer de uma voz que ainda toca via shared_ptr, então despejar do cache
  * nunca corta som no ar.
  */
-class PolyphonicSampler {
+class PolyphonicSampler(
+    /** Teto do cache em bytes. O Cordas pede 48 MB, como o `CordaEngine` do iOS. */
+    private val maxCacheBytes: Long = MAX_CACHE_BYTES,
+) {
     private val engine = AudioEngineBridge()
 
     private data class Entry(val id: Int, val bytes: Int)
@@ -38,6 +41,12 @@ class PolyphonicSampler {
 
     /** Latência estrutural reportável: frames por burst do stream. */
     val framesPerBurst: Int get() = engine.framesPerBurst()
+
+    /** Buffer real do stream (2 bursts no EXCLUSIVE); latência = isto / taxa. */
+    val bufferSizeInFrames: Int get() = engine.bufferSizeInFrames()
+
+    /** Underruns desde o start: a prova no aparelho de que o callback cabe no tempo. */
+    val xrunCount: Int get() = engine.xrunCount()
 
     /**
      * Start/stop e o cache moram sob o MESMO lock: o aquecimento insere de
@@ -74,6 +83,9 @@ class PolyphonicSampler {
         }
     }
 
+    /** Bytes de PCM guardados agora (diagnóstico e testes de aquecimento). */
+    val cachedBytes: Long get() = synchronized(cache) { cacheBytes }
+
     /** Já renderizado? Quem aquece pergunta ANTES de renderizar, não dentro do insert. */
     fun hasCached(key: String): Boolean = synchronized(cache) { cache.containsKey(key) }
 
@@ -85,13 +97,13 @@ class PolyphonicSampler {
      * render terminar para descobrir que a nota já estava no cache. Se duas
      * threads renderizarem a mesma chave, a segunda joga o PCM fora.
      */
-    fun prewarm(key: String, render: () -> FloatArray) {
+    fun prewarm(key: String, mono: Boolean = false, render: () -> FloatArray) {
         if (!engine.isRunning) return
         synchronized(cache) { if (cache.containsKey(key)) return }
         val pcm = render()
         synchronized(cache) {
             if (!engine.isRunning || cache.containsKey(key)) return
-            insertLocked(key, pcm)
+            insertLocked(key, pcm, if (mono) 1 else 2)
         }
     }
 
@@ -102,22 +114,34 @@ class PolyphonicSampler {
     /**
      * Agenda o PCM da `key` para `atSeconds` no relógio do stream (passado =
      * toca já). `render` roda UMA vez por chave e devolve estéreo intercalado.
-     * Devolve a tag da voz (0 = não agendou).
+     * `pan` vai de -1 (esquerda) a 1 (direita) em potência constante; `rate`
+     * é a taxa de leitura (1 = normal), o varispeed que o Cordas usa para a
+     * humanização e para o bend; `mono` diz que `render` devolve UM canal (o
+     * motor abre a imagem pelo pan, e o cache gasta metade). Devolve a tag da
+     * voz (0 = não agendou).
      */
-    fun schedule(key: String, atSeconds: Double, gain: Float = 1f, render: () -> FloatArray): Long {
+    fun schedule(
+        key: String,
+        atSeconds: Double,
+        gain: Float = 1f,
+        pan: Float = 0f,
+        rate: Float = 1f,
+        mono: Boolean = false,
+        render: () -> FloatArray,
+    ): Long {
         if (!engine.isRunning) return 0
         val id = synchronized(cache) { cache[key]?.id } ?: run {
             // Render fora do lock (ver `prewarm`); a inserção confere de novo.
             val pcm = render()
             synchronized(cache) {
                 if (!engine.isRunning) return 0
-                cache[key]?.id ?: insertLocked(key, pcm)
+                cache[key]?.id ?: insertLocked(key, pcm, if (mono) 1 else 2)
             }
         }
         return synchronized(cache) {
             if (!engine.isRunning) return 0
             val atFrame = (atSeconds * engine.sampleRate()).toLong()
-            engine.schedule(id, atFrame, gain)
+            engine.schedule(id, atFrame, gain, pan, rate)
         }
     }
 
@@ -125,15 +149,24 @@ class PolyphonicSampler {
 
     fun dampAll(overSeconds: Float) = engine.dampAll(overSeconds)
 
+    /** Muda a taxa de uma voz no ar: bend e glissando do Cordas. */
+    fun setVoiceRate(voiceTag: Long, rate: Float) = engine.setVoiceRate(voiceTag, rate)
+
+    /** Barramento elétrico do Cordas (drive + gabinete) antes do reverb. */
+    fun setDrive(enabled: Boolean, amount: Float) = engine.setDrive(enabled, amount)
+
+    /** Volume mestre do bus (0…1), aplicado ao vivo antes do limiter. */
+    fun setMasterGain(gain: Float) = engine.setMasterGain(gain)
+
     fun setReverb(enabled: Boolean, mix: Float) = engine.setReverb(enabled, mix)
 
     fun setDelay(enabled: Boolean, timeMs: Float, feedback: Float, mix: Float) =
         engine.setDelay(enabled, timeMs, feedback, mix)
 
     /** Chamar com o lock de `cache`. Registra no motor e devolve o id. */
-    private fun insertLocked(key: String, pcm: FloatArray): Int {
+    private fun insertLocked(key: String, pcm: FloatArray, channels: Int = 2): Int {
         val entry = Entry(id = nextId++, bytes = pcm.size * 4)
-        engine.registerBuffer(entry.id, pcm)
+        engine.registerBuffer(entry.id, pcm, channels)
         cache[key] = entry
         cacheBytes += entry.bytes
         evictIfNeeded()
@@ -142,7 +175,7 @@ class PolyphonicSampler {
 
     private fun evictIfNeeded() {
         val it = cache.entries.iterator()
-        while (cacheBytes > MAX_CACHE_BYTES && it.hasNext()) {
+        while (cacheBytes > maxCacheBytes && it.hasNext()) {
             val eldest = it.next()
             engine.releaseBuffer(eldest.value.id)
             cacheBytes -= eldest.value.bytes

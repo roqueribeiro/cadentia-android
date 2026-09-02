@@ -42,10 +42,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.levelhard.cadentia.InstrumentDestination
 import com.levelhard.cadentia.R
+import com.levelhard.cadentia.features.cordas.CordasScreen
 import com.levelhard.cadentia.features.drums.DrumsScreen
 import com.levelhard.cadentia.features.piano.PianoScreen
 import com.levelhard.cadentia.features.study.StudyKind
 import com.levelhard.cadentia.features.study.StudyScreen
+import com.levelhard.cadentia.kit.cordas.CordaInstrument
 import com.levelhard.cadentia.settings.SettingsStore
 import com.levelhard.cadentia.ui.CzTokens
 import com.levelhard.cadentia.ui.PremiumBackground
@@ -60,9 +62,8 @@ import com.levelhard.cadentia.ui.rememberReduceMotion
  * coisa. A seção Estudo fica aqui pelo mesmo motivo: acorde e escala não
  * pertencem a um instrumento, pertencem a quem toca qualquer um deles.
  *
- * Cordas e Baixo (que abre o Cordas já no baixo) entram na fase 8, com o Kit
- * do Cordas. Até lá os cards deles NÃO aparecem: card que leva a "em obra" é
- * pior que card nenhum.
+ * Cordas e Baixo (que abre o Cordas já no baixo) chegam com o Kit do Cordas
+ * (fase 8): quatro cards, na ordem do iOS.
  */
 @Composable
 fun InstrumentsHub(
@@ -83,6 +84,8 @@ fun InstrumentsHub(
     ) { dest ->
         when (dest) {
             null -> HubList(onOpen = onDestinationChange)
+            InstrumentDestination.Cordas -> CordasScreen(onBack = { onDestinationChange(null) })
+            InstrumentDestination.Bass -> CordasScreen(opening = CordaInstrument.baixo, onBack = { onDestinationChange(null) })
             InstrumentDestination.Piano -> PianoScreen(store)
             InstrumentDestination.Drums -> DrumsScreen(store)
             InstrumentDestination.Chords -> StudyScreen(store, StudyKind.Chords)

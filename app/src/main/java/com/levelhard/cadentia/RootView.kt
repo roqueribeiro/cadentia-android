@@ -54,10 +54,13 @@ enum class CadentiaTab(val qaName: String) {
 /**
  * Destinos dentro de Instrumentos. Os nomes de QA são os apelidos antigos de
  * `-qa-tab` (piano, drums, chords, scales): o atalho continua valendo, o
- * destino é que mudou. Cordas e Baixo entram na fase 8.
+ * destino é que mudou. `bass` abre o Cordas já no baixo: ele não é uma tela, é
+ * um braço com quatro cordas, e o Cordas já é um motor de braço com cordas.
  */
 enum class InstrumentDestination(val qaName: String) {
+    Cordas("cordas"),
     Piano("piano"),
+    Bass("bass"),
     Drums("drums"),
     Chords("chords"),
     Scales("scales"),

@@ -47,6 +47,8 @@ bool AudioEngine::start() {
     stream->setBufferSizeInFrames(stream->getFramesPerBurst() * 2);
 
     initReverb();
+
+    initCabinet();
     mDelayLineL.assign(static_cast<size_t>(mSampleRate) * 2, 0.0f);
     mDelayLineR.assign(static_cast<size_t>(mSampleRate) * 2, 0.0f);
     mDelayPos = 0;
@@ -86,10 +88,24 @@ void AudioEngine::stop() {
     mFrameClock.store(0);
 }
 
-void AudioEngine::registerBuffer(int32_t id, const float* interleaved, int32_t frames) {
+int32_t AudioEngine::xrunCount() const {
+    auto stream = mStream;
+    if (!stream) return -1;
+    auto result = stream->getXRunCount();
+    return result ? result.value() : -1;
+}
+
+int32_t AudioEngine::bufferSizeInFrames() const {
+    auto stream = mStream;
+    return stream ? stream->getBufferSizeInFrames() : 0;
+}
+
+void AudioEngine::registerBuffer(int32_t id, const float* interleaved, int32_t frames, int32_t channels) {
     auto buffer = std::make_shared<PcmBuffer>();
     buffer->frames = frames;
-    buffer->interleaved.assign(interleaved, interleaved + static_cast<size_t>(frames) * 2);
+    buffer->channels = channels == 1 ? 1 : 2;
+    buffer->interleaved.assign(
+            interleaved, interleaved + static_cast<size_t>(frames) * static_cast<size_t>(buffer->channels));
     std::lock_guard<std::mutex> lock(mBufferMutex);
     mBuffers[id] = std::move(buffer);
 }
@@ -100,7 +116,7 @@ void AudioEngine::releaseBuffer(int32_t id) {
     // Vozes que ainda tocam este buffer seguram o shared_ptr até o fim.
 }
 
-int64_t AudioEngine::schedule(int32_t id, int64_t atFrame, float gain) {
+int64_t AudioEngine::schedule(int32_t id, int64_t atFrame, float gain, float pan, float rate) {
     std::shared_ptr<PcmBuffer> buffer;
     {
         std::lock_guard<std::mutex> lock(mBufferMutex);
@@ -114,8 +130,33 @@ int64_t AudioEngine::schedule(int32_t id, int64_t atFrame, float gain) {
     c.atFrame = atFrame;
     c.voiceTag = tag;
     c.a = gain;
+    c.b = std::min(1.0f, std::max(-1.0f, pan));
+    c.c = std::min(8.0f, std::max(0.125f, rate));
     c.buffer = std::move(buffer);
     return pushCommand(std::move(c)) ? tag : 0;
+}
+
+void AudioEngine::setVoiceRate(int64_t voiceTag, float rate) {
+    Command c{};
+    c.type = CmdType::Rate;
+    c.voiceTag = voiceTag;
+    c.a = std::min(8.0f, std::max(0.125f, rate));
+    pushCommand(std::move(c));
+}
+
+void AudioEngine::setDrive(bool enabled, float amount) {
+    Command c{};
+    c.type = CmdType::Drive;
+    c.flag = enabled;
+    c.a = std::min(1.0f, std::max(0.0f, amount));
+    pushCommand(std::move(c));
+}
+
+void AudioEngine::setMasterGain(float gain) {
+    Command c{};
+    c.type = CmdType::Master;
+    c.a = std::min(1.0f, std::max(0.0f, gain));
+    pushCommand(std::move(c));
 }
 
 void AudioEngine::damp(int64_t voiceTag, float overSeconds) {
@@ -174,6 +215,14 @@ void AudioEngine::drainCommands() {
                 v.buffer = std::move(c.buffer);
                 v.startFrame = c.atFrame;
                 v.pos = 0;
+                v.fpos = 0.0;
+                v.rate = c.c;
+                {
+                    // Pan de potência constante: -1 tudo à esquerda, 0 centro.
+                    const float angle = (c.b + 1.0f) * 0.78539816f; // π/4
+                    v.panL = std::cos(angle) * 1.41421356f;
+                    v.panR = std::sin(angle) * 1.41421356f;
+                }
                 v.tag = c.voiceTag;
                 v.gain = c.a;
                 v.damp = 1.0f;
@@ -181,6 +230,23 @@ void AudioEngine::drainCommands() {
                 v.active = true;
                 break;
             }
+            case CmdType::Rate:
+                for (auto& v : mVoices) {
+                    if (v.active && v.tag == c.voiceTag) {
+                        // Ao sair da taxa 1 a posição fracionária herda a inteira.
+                        if (v.rate == 1.0f && c.a != 1.0f) v.fpos = static_cast<double>(v.pos);
+                        v.rate = c.a;
+                    }
+                }
+                break;
+            case CmdType::Master:
+                mMasterGain = c.a;
+                break;
+            case CmdType::Drive:
+                mDriveOn = c.flag;
+                // Mistura wet do drive: 10…90%, como o iOS (piso de 10%).
+                mDriveMix = std::min(0.9f, std::max(0.1f, c.a * 0.9f));
+                break;
             case CmdType::Damp:
                 for (auto& v : mVoices) {
                     if (v.active && v.tag == c.voiceTag) {
@@ -286,9 +352,33 @@ oboe::DataCallbackResult AudioEngine::onAudioReady(
                     break;
                 }
             }
-            out[i * 2] += buf.interleaved[static_cast<size_t>(v.pos) * 2] * g;
-            out[i * 2 + 1] += buf.interleaved[static_cast<size_t>(v.pos) * 2 + 1] * g;
-            ++v.pos;
+            // `ch - 1` é o deslocamento do canal direito: 1 no estéreo, 0 no
+            // mono (o mesmo sample nos dois lados; o pan da voz faz a imagem).
+            const size_t ch = static_cast<size_t>(buf.channels);
+            const float* s = buf.interleaved.data();
+            if (v.rate == 1.0f) {
+                const size_t base = static_cast<size_t>(v.pos) * ch;
+                out[i * 2] += s[base] * g * v.panL;
+                out[i * 2 + 1] += s[base + (ch - 1)] * g * v.panR;
+                ++v.pos;
+            } else {
+                // Taxa != 1: leitura com interpolação linear entre dois frames.
+                // É o varispeed do Cordas (bend, glissando, humanização de
+                // ±0,25%). A posição inteira acompanha para o fim do buffer e
+                // a evicção continuarem certos.
+                const int32_t i0 = static_cast<int32_t>(v.fpos);
+                if (i0 >= buf.frames) { v.pos = buf.frames; break; }
+                const int32_t i1 = std::min(i0 + 1, buf.frames - 1);
+                const float frac = static_cast<float>(v.fpos - static_cast<double>(i0));
+                const size_t b0 = static_cast<size_t>(i0) * ch;
+                const size_t b1 = static_cast<size_t>(i1) * ch;
+                const float l = s[b0] * (1.0f - frac) + s[b1] * frac;
+                const float r = s[b0 + (ch - 1)] * (1.0f - frac) + s[b1 + (ch - 1)] * frac;
+                out[i * 2] += l * g * v.panL;
+                out[i * 2 + 1] += r * g * v.panR;
+                v.fpos += static_cast<double>(v.rate);
+                v.pos = static_cast<int32_t>(v.fpos);
+            }
         }
 
         if (v.pos >= buf.frames) {
@@ -299,6 +389,10 @@ oboe::DataCallbackResult AudioEngine::onAudioReady(
     }
 
     renderBusEffects(out, numFrames);
+
+    if (mMasterGain != 1.0f) {
+        for (int32_t i = 0; i < numFrames * 2; ++i) out[i] *= mMasterGain;
+    }
 
     // Limiter de pico no fim do bus (papel do PeakLimiter do iOS): ataque
     // instantâneo, release ~50 ms, teto -0,3 dBFS.
@@ -359,7 +453,76 @@ float AudioEngine::processReverb(Comb* combs, Allpass* aps, float in) {
     return acc;
 }
 
+AudioEngine::Biquad AudioEngine::lowpass(float frequency, float q, float sampleRate) {
+    Biquad f;
+    const float w = 2.0f * 3.14159265f * frequency / sampleRate;
+    const float alpha = std::sin(w) / (2.0f * q);
+    const float cw = std::cos(w);
+    const float a0 = 1.0f + alpha;
+    f.b0 = ((1.0f - cw) / 2.0f) / a0; f.b1 = (1.0f - cw) / a0; f.b2 = f.b0;
+    f.a1 = (-2.0f * cw) / a0; f.a2 = (1.0f - alpha) / a0;
+    return f;
+}
+
+AudioEngine::Biquad AudioEngine::peaking(float frequency, float bandwidth, float gainDB, float sampleRate) {
+    Biquad f;
+    const float A = std::pow(10.0f, gainDB / 40.0f);
+    const float w = 2.0f * 3.14159265f * frequency / sampleRate;
+    const float sw = std::sin(w), cw = std::cos(w);
+    // Q a partir da largura de banda em oitavas (a convenção do AVAudioUnitEQ).
+    const float alpha = sw * std::sinh(0.6931472f / 2.0f * bandwidth * w / sw);
+    const float a0 = 1.0f + alpha / A;
+    f.b0 = (1.0f + alpha * A) / a0; f.b1 = (-2.0f * cw) / a0; f.b2 = (1.0f - alpha * A) / a0;
+    f.a1 = (-2.0f * cw) / a0; f.a2 = (1.0f - alpha / A) / a0;
+    return f;
+}
+
+AudioEngine::Biquad AudioEngine::highShelf(float frequency, float gainDB, float sampleRate) {
+    Biquad f;
+    const float A = std::pow(10.0f, gainDB / 40.0f);
+    const float w = 2.0f * 3.14159265f * frequency / sampleRate;
+    const float sw = std::sin(w), cw = std::cos(w);
+    const float alpha = sw / 2.0f * std::sqrt((A + 1.0f / A) * (1.0f / 0.707f - 1.0f) + 2.0f);
+    const float sqrtA2alpha = 2.0f * std::sqrt(A) * alpha;
+    const float a0 = (A + 1.0f) - (A - 1.0f) * cw + sqrtA2alpha;
+    f.b0 = (A * ((A + 1.0f) + (A - 1.0f) * cw + sqrtA2alpha)) / a0;
+    f.b1 = (-2.0f * A * ((A - 1.0f) + (A + 1.0f) * cw)) / a0;
+    f.b2 = (A * ((A + 1.0f) + (A - 1.0f) * cw - sqrtA2alpha)) / a0;
+    f.a1 = (2.0f * ((A - 1.0f) - (A + 1.0f) * cw)) / a0;
+    f.a2 = ((A + 1.0f) - (A - 1.0f) * cw - sqrtA2alpha) / a0;
+    return f;
+}
+
+void AudioEngine::initCabinet() {
+    const float sr = static_cast<float>(mSampleRate);
+    for (int ch = 0; ch < 2; ++ch) {
+        mCabinet[ch][0] = lowpass(4200.0f, 0.707f, sr);
+        mCabinet[ch][1] = peaking(2100.0f, 0.7f, 4.0f, sr);
+        mCabinet[ch][2] = highShelf(6000.0f, -14.0f, sr);
+    }
+}
+
 void AudioEngine::renderBusEffects(float* out, int32_t numFrames) {
+    if (mDriveOn) {
+        // O `multiDistortedCubed` da Apple com preGain −6 dB: clip cúbico suave
+        // em cima de uma entrada com ganho, misturado wet/dry, e o gabinete
+        // depois — a ordem que um amplificador de verdade tem.
+        const float pre = 0.5012f * 3.2f;   // −6 dB, e depois o drive
+        for (int32_t i = 0; i < numFrames; ++i) {
+            for (int ch = 0; ch < 2; ++ch) {
+                const float dry = out[i * 2 + ch];
+                float x = dry * pre;
+                if (x > 1.0f) x = 1.0f; else if (x < -1.0f) x = -1.0f;
+                const float wet = x - (x * x * x) / 3.0f;   // cúbico suave
+                float mixed = dry * (1.0f - mDriveMix) + wet * 0.9f * mDriveMix;
+                mixed = mCabinet[ch][0].process(mixed);
+                mixed = mCabinet[ch][1].process(mixed);
+                mixed = mCabinet[ch][2].process(mixed);
+                out[i * 2 + ch] = mixed;
+            }
+        }
+    }
+
     if (mDelayOn && mDelaySamples > 0) {
         const int32_t lineSize = static_cast<int32_t>(mDelayLineL.size());
         for (int32_t i = 0; i < numFrames; ++i) {

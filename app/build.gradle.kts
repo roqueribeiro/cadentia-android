@@ -138,6 +138,23 @@ dependencies {
     implementation("androidx.core:core-ktx:1.16.0")
     implementation("androidx.documentfile:documentfile:1.1.0")
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
+
+    // Cordas, modo câmera. O iOS usa o Vision (zero bytes no bundle); o Android
+    // não tem equivalente do sistema, então entra o MediaPipe Hand Landmarker
+    // (Apache-2.0, crédito na tela Sobre) com o modelo `hand_landmarker.task`
+    // nos assets (7,8 MB). As .so do tasks-core são alinhadas a 16 KB
+    // (conferido com readelf: LOAD align 0x4000).
+    //
+    // O tasks-core traz o datatransport da Google para mandar estatística de
+    // uso ("COREML_ON_DEVICE_SOLUTIONS"), sem opção pública de desligar. O
+    // manifesto remove o registro do backend CCT (ver AndroidManifest.xml), e
+    // o runtime descarta os eventos com "Transport backend 'cct' is not
+    // registered": nada sai do aparelho. Confira no logcat ao abrir a câmera.
+    implementation("com.google.mediapipe:tasks-vision:1.0.0")
+    implementation("androidx.camera:camera-core:1.6.2")
+    implementation("androidx.camera:camera-camera2:1.6.2")
+    implementation("androidx.camera:camera-lifecycle:1.6.2")
+    implementation("androidx.camera:camera-view:1.6.2")
     implementation("androidx.work:work-runtime-ktx:2.10.1")
 
     debugImplementation("androidx.compose.ui:ui-tooling")

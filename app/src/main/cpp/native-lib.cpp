@@ -47,12 +47,23 @@ Java_com_levelhard_cadentia_audio_AudioEngineBridge_nativeFramesPerBurst(JNIEnv*
     return engine(handle)->framesPerBurst();
 }
 
+JNIEXPORT jint JNICALL
+Java_com_levelhard_cadentia_audio_AudioEngineBridge_nativeXRunCount(JNIEnv*, jobject, jlong handle) {
+    return engine(handle)->xrunCount();
+}
+
+JNIEXPORT jint JNICALL
+Java_com_levelhard_cadentia_audio_AudioEngineBridge_nativeBufferSizeInFrames(JNIEnv*, jobject, jlong handle) {
+    return engine(handle)->bufferSizeInFrames();
+}
+
 JNIEXPORT void JNICALL
 Java_com_levelhard_cadentia_audio_AudioEngineBridge_nativeRegisterBuffer(
-        JNIEnv* env, jobject, jlong handle, jint id, jfloatArray interleaved) {
+        JNIEnv* env, jobject, jlong handle, jint id, jfloatArray interleaved, jint channels) {
     const jsize len = env->GetArrayLength(interleaved);
+    const jint ch = channels == 1 ? 1 : 2;
     jfloat* data = env->GetFloatArrayElements(interleaved, nullptr);
-    engine(handle)->registerBuffer(id, data, len / 2);
+    engine(handle)->registerBuffer(id, data, len / ch, ch);
     env->ReleaseFloatArrayElements(interleaved, data, JNI_ABORT);
 }
 
@@ -64,8 +75,26 @@ Java_com_levelhard_cadentia_audio_AudioEngineBridge_nativeReleaseBuffer(
 
 JNIEXPORT jlong JNICALL
 Java_com_levelhard_cadentia_audio_AudioEngineBridge_nativeSchedule(
-        JNIEnv*, jobject, jlong handle, jint bufferId, jlong atFrame, jfloat gain) {
-    return engine(handle)->schedule(bufferId, atFrame, gain);
+        JNIEnv*, jobject, jlong handle, jint bufferId, jlong atFrame, jfloat gain, jfloat pan, jfloat rate) {
+    return engine(handle)->schedule(bufferId, atFrame, gain, pan, rate);
+}
+
+JNIEXPORT void JNICALL
+Java_com_levelhard_cadentia_audio_AudioEngineBridge_nativeSetVoiceRate(
+        JNIEnv*, jobject, jlong handle, jlong voiceTag, jfloat rate) {
+    engine(handle)->setVoiceRate(voiceTag, rate);
+}
+
+JNIEXPORT void JNICALL
+Java_com_levelhard_cadentia_audio_AudioEngineBridge_nativeSetDrive(
+        JNIEnv*, jobject, jlong handle, jboolean enabled, jfloat amount) {
+    engine(handle)->setDrive(enabled == JNI_TRUE, amount);
+}
+
+JNIEXPORT void JNICALL
+Java_com_levelhard_cadentia_audio_AudioEngineBridge_nativeSetMasterGain(
+        JNIEnv*, jobject, jlong handle, jfloat gain) {
+    engine(handle)->setMasterGain(gain);
 }
 
 JNIEXPORT void JNICALL

@@ -55,6 +55,12 @@ data class InstrumentCard(
             tagRes = listOf(R.string.cadentia_instruments_tag_keys),
             tint = Color(0xFF8B6CC4),
         )
+        val cordas = InstrumentCard(
+            id = "cordas", destination = InstrumentDestination.Cordas,
+            titleRes = R.string.cadentia_cordas_title, detailRes = R.string.cadentia_instruments_cordas_detail,
+            tagRes = listOf(R.string.cadentia_instruments_tag_strings, R.string.cadentia_instruments_tag_camera),
+            tint = CzTokens.gold,
+        )
         val drums = InstrumentCard(
             id = "drums", destination = InstrumentDestination.Drums,
             titleRes = R.string.music_tabs_drums, detailRes = R.string.cadentia_instruments_drums_detail,
@@ -62,8 +68,16 @@ data class InstrumentCard(
             tint = CzTokens.danger,
         )
 
-        /** Cordas e Baixo entram na fase 8 (Kit do Cordas); até lá o hub é honesto. */
-        val playable: List<InstrumentCard> = listOf(piano, drums)
+        /** O baixo abre o Cordas já no baixo. */
+        val bass = InstrumentCard(
+            id = "bass", destination = InstrumentDestination.Bass,
+            titleRes = R.string.cadentia_instruments_bass, detailRes = R.string.cadentia_instruments_bass_detail,
+            tagRes = listOf(R.string.cadentia_instruments_tag_strings),
+            tint = Color(0xFF5EE3FF),
+        )
+
+        /** A mesma ordem do hub do iOS 1.16. */
+        val playable: List<InstrumentCard> = listOf(cordas, piano, bass, drums)
     }
 }
 
