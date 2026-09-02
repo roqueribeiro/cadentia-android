@@ -110,6 +110,7 @@ fun RootView(
                     CadentiaTab.Drums -> DrumsScreen(store)
                     CadentiaTab.Stems -> StemsScreen()
                     CadentiaTab.More -> MoreScreen(
+                        store = store,
                         destination = moreDestination,
                         onDestinationChange = { moreDestination = it },
                     )

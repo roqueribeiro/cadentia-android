@@ -9,6 +9,29 @@ data class ScaleType(
     /** Chave de i18n (web `music.scales.types.*`). */
     val nameKey: String get() = "music.scales.types.$id"
 
+    /** Classes de altura para tônica + tipo: ("C", major) → C D E F G A B. */
+    fun notes(root: String): List<String> {
+        val rootIdx = MusicNotes.noteNames.indexOf(root)
+        if (rootIdx < 0) return emptyList()
+        return intervals.map { MusicNotes.noteNames[(rootIdx + it) % 12] }
+    }
+
+    data class ScaleNote(val name: String, val octave: Int, val midi: Int, val frequency: Double)
+
+    /** A mesma escala com oitava + Hz ancorados em `octaveBase` (para tocar). */
+    fun notesWithFrequency(root: String, octaveBase: Int = 4): List<ScaleNote> {
+        val rootMidi = MusicNotes.noteToMidi(root, octaveBase) ?: return emptyList()
+        return intervals.map { semi ->
+            val midi = rootMidi + semi
+            ScaleNote(
+                name = MusicNotes.noteNames[midi % 12],
+                octave = midi / 12 - 1,
+                midi = midi,
+                frequency = MusicNotes.midiToFrequency(midi),
+            )
+        }
+    }
+
     companion object {
         val all: List<ScaleType> = listOf(
             ScaleType("major", listOf(0, 2, 4, 5, 7, 9, 11)),

@@ -121,4 +121,7 @@ object ChordLibrary {
     )
 
     fun find(id: String?): Chord? = all.firstOrNull { it.id == id }
+
+    fun find(root: String, quality: String): Chord? =
+        all.firstOrNull { it.root == root && it.quality == quality }
 }

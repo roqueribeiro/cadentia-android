@@ -2,6 +2,27 @@
 
 ## [Não lançado]
 
+### Fase 2 — Bateria e Piano (2026-09-02)
+
+- `:kit`: StereoBuffer, AudioDSP completo (banco modal, biquads RBJ com 8
+  tipos, compressor, envelopes, saturação), DrumKitHD (16 pads × 3 kits nas
+  razões de Bessel, round robin determinístico, velocity mudando timbre,
+  imagem estéreo), DrumPatterns (25 grooves), InstrumentSynth (13 vozes
+  sintetizadas: piano com parciais esticados, Rhodes FM, Hammond com Leslie,
+  mallets, arco com formantes, naipe, metais, sax, flauta, lead SVF),
+  StringVoices (8 modelos Karplus com corpo e afinação compensada) e
+  ChordLibrary com 77 acordes gerados do iOS. 93 testes JVM, incluindo pitch
+  de toda voz validado pelo YIN a ±12 cents.
+- Bateria: pads 3×3 edge-lit no chassi de hardware, disparo no toque para
+  baixo, modo edição com prévia de som, sequencer de 16 passos com playhead,
+  25 grooves por categoria, kits, BPM, volume e sala de reverb.
+- Piano: teclado vertical multitouch com glissando (graves embaixo, pretas
+  à esquerda), 13 vozes, oitavas C2–C6, pedal de sustain, modo Acordes (77
+  formas com diagrama de violão, bloco e arpejo) e modo Escalas (12 tônicas
+  × 12 tipos, braço de 12 casas, tocar a escala).
+- I18nMap.kt gerado do catálogo (chave do web → R.string) com verificação
+  no gate.
+
 ### Fase 1 — núcleo de áudio, Afinador e Metrônomo (2026-09-02)
 
 - `:kit`: port 1:1 com testes do YINPitchDetector, TunerSession,

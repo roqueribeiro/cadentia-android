@@ -49,6 +49,7 @@ import com.levelhard.cadentia.ui.pageTransition
  */
 @Composable
 fun MoreScreen(
+    store: com.levelhard.cadentia.settings.SettingsStore,
     destination: MoreDestination?,
     onDestinationChange: (MoreDestination?) -> Unit,
 ) {
@@ -57,12 +58,7 @@ fun MoreScreen(
     AnimatedContent(targetState = destination, label = "more-destination") { dest ->
         when (dest) {
             null -> MoreList(onOpen = onDestinationChange)
-            MoreDestination.Piano -> FeatureHero(
-                titleRes = R.string.music_tabs_piano,
-                icon = painterResource(R.drawable.ic_more_piano),
-                accent = CzTokens.gold,
-                modifier = Modifier.pageTransition(),
-            )
+            MoreDestination.Piano -> com.levelhard.cadentia.features.piano.PianoScreen(store)
             MoreDestination.Recorder -> FeatureHero(
                 titleRes = R.string.cadentia_recorder_title,
                 icon = painterResource(R.drawable.ic_more_recorder),

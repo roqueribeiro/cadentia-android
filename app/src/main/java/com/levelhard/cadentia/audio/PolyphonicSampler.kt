@@ -65,6 +65,15 @@ class PolyphonicSampler {
         return engine.nowFrames().toDouble() / rate
     }
 
+    /** Esvazia o cache (troca de voz): os buffers antigos não valem mais. */
+    fun invalidateCache() {
+        synchronized(cache) {
+            for (entry in cache.values) engine.releaseBuffer(entry.id)
+            cache.clear()
+            cacheBytes = 0
+        }
+    }
+
     /** Renderiza para o cache sem tocar: o primeiro hit sai sem soluço. */
     fun prewarm(key: String, render: () -> FloatArray) {
         if (!engine.isRunning) return
