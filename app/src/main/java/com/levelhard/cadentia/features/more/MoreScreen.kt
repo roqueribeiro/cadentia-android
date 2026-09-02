@@ -26,10 +26,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -85,6 +90,9 @@ fun MoreScreen(
 
 @Composable
 private fun MoreList(onOpen: (MoreDestination) -> Unit) {
+    var showSound by rememberSaveable { mutableStateOf(false) }
+    if (showSound) SoundSettingsSheet { showSound = false }
+
     Box(Modifier.fillMaxSize().pageTransition()) {
         PremiumBackground(accent = CzTokens.gold)
         Column(
@@ -104,24 +112,37 @@ private fun MoreList(onOpen: (MoreDestination) -> Unit) {
                     iconRes = R.drawable.ic_more_recorder,
                     color = CzTokens.recorderCyan,
                     detail = "multitrack", // i18n-verbatim: termo técnico, igual nos 10
+                    tag = "more.recorder",
                 ) { onOpen(MoreDestination.Recorder) }
                 FeatureCard(
                     titleRes = R.string.tablature_title,
                     iconRes = R.drawable.ic_more_tablature,
                     color = CzTokens.tabIndigo,
                     detail = "rostab", // i18n-verbatim: nome do formato
+                    tag = "more.tablature",
                 ) { onOpen(MoreDestination.Tablature) }
                 FeatureCard(
                     titleRes = R.string.music_tabs_frequency,
                     iconRes = R.drawable.ic_more_frequency,
                     color = CzTokens.studioPurple,
                     detail = "20Hz–20kHz", // i18n-verbatim: unidade física
+                    tag = "more.studio",
                 ) { onOpen(MoreDestination.Studio) }
+                // Sem banco de sample instalado (fase 7) o resumo do cartão é
+                // "síntese", exatamente o que o iOS mostra nesse estado.
+                FeatureCard(
+                    titleRes = R.string.cadentia_sound_title,
+                    iconRes = R.drawable.ic_more_sound,
+                    color = CzTokens.gold,
+                    detail = stringResource(R.string.cadentia_sound_mode_synth).lowercase(),
+                    tag = "more.sound",
+                ) { showSound = true }
                 FeatureCard(
                     titleRes = R.string.cadentia_about_title,
                     iconRes = R.drawable.ic_more_about,
                     color = CzTokens.stemsTeal,
                     detail = "RoqueOS", // i18n-verbatim: marca
+                    tag = "more.about",
                 ) { onOpen(MoreDestination.About) }
             }
 
@@ -155,10 +176,11 @@ private fun FeatureCard(
     iconRes: Int,
     color: Color,
     detail: String,
+    tag: String,
     onClick: () -> Unit,
 ) {
     val title = stringResource(titleRes)
-    CzCard(modifier = Modifier.fillMaxWidth()) {
+    CzCard(modifier = Modifier.fillMaxWidth().testTag(tag)) {
         Row(
             modifier = Modifier
                 .clickable(onClickLabel = title, onClick = onClick)
