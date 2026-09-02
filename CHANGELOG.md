@@ -2,6 +2,50 @@
 
 ## [Não lançado]
 
+### Fase 4 — Separar (stems) e Biblioteca RoqueOS (2026-09-02)
+
+- `:kit` (5ddf535): StemMix (solo vence mute) + StemMixSnapshot/Memory
+  (ajuste por música, neutro apaga, teto 200), RecentSongs (identidade
+  FNV-1a pela origem, teto 30) + SongSearch sem acento, Setlists + SetQueue
+  (embaralhado é permutação com Random injetável) e os seis contratos do
+  roqueos-server nascidos de bugs reais (NetworkStorage array-na-raiz,
+  ServerFilesystem envelope files, Headers com X-Firebase-Token,
+  SessionDurability, DownloadIntegrity, ServerSelection). 72 testes novos.
+- `:kit` (f7b46b4): RealFFT radix-2 própria + DemucsSpectrogram exato do
+  HTDemucs (nfft 4096/hop 1024/2048 bins, dois paddings empilhados) com
+  paridade < 1e-5 contra o PyTorch nas fixtures verbatim, na primeira
+  execução, tolerância intacta.
+- `:kit` (1891982): StemPipeline (janelas 7,8 s, overlap 0,25, cross-fade
+  sin², streaming com memória de UMA janela, StemBackend plugável),
+  StemCachePolicy e StemResampler (sinc 32 taps, tom a ±3 cents no YIN).
+  Formato dos tensores do modelo anotado para o backend futuro.
+- Separar (082e31f): StemPlayerEngine num AudioTrack único (mix nosso =
+  sincronia por construção; setPlaybackParams = velocidade 0,5–1,5x sem
+  mudar afinação e tom ±12 semitons sem mudar tempo), loop A/B pelo caminho
+  do seek, espectro de 48 bandas e medidores; StemsScreen completa
+  (biblioteca com busca e repertórios/fila, onda interpolada no ritmo da
+  tela, ThinSlider com o loop pintado nele, mixer em folha com chave e
+  velocidade em grade de 5%, memória de mix por música); normalizador
+  MediaExtractor/MediaCodec (decodifica pelo conteúdo) + resample 44,1 k.
+- Biblioteca RoqueOS (f381b8c, 1acb7b2): pareamento por código curto + QR
+  gerado no aparelho (zxing-core; URL de pareamento nunca sai para serviço
+  externo), claim idempotente com uid do claim, refresh token cifrado por
+  chave presa no Android Keystore, renovação coalescida que só derruba a
+  sessão quando o Firebase confirma revogação; as quatro fontes (Firebase,
+  discos mapeados com credencial POR servidor, /shared preso ao próprio
+  /shared, Google Drive por token de vida curta), download com dl=1 +
+  DownloadIntegrity e credencial só em cabeçalho; navegador integrado à
+  tela Separar, item remoto vira Recente e rebaixa por refetch.
+- FATOS documentados: o modelo de separação (103 MB no iOS) está ausente
+  até do clone — o Separar mostra o estado honesto de modelo indisponível e
+  o backend ONNX entra quando houver modelo exportado para validar contra
+  as fixtures; a config RoqueOS (chave de cliente Firebase) é gitignored e
+  gerada por scripts/gen-roqueos-config.py — ausente, o pareamento diz
+  "não configurado", como no clone do iOS.
+- Gate da fase: i18n-audit 465 × 10; 236 testes JVM; assembleDebug/Qa OK.
+- Pendente de aparelho: player de stems sem escuta humana; pareamento sem
+  teste contra servidor real (sem config no container).
+
 ### Fase 3 — Tablaturas, Gravador e Frequência (2026-09-02)
 
 - `:kit` (786650b): o modelo .rostab inteiro — Tablature/RostabParser com
