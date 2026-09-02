@@ -1,0 +1,1 @@
+First Cadentia release for Android: a tuner with 49 tunings, a metronome on the audio clock, Strings with guitar, electric guitar, viola caipira and bass, piano, drums, chord and scale study, multitrack tablature and a recorder. All offline, no ads.

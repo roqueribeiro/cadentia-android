@@ -1,0 +1,24 @@
+O Cadentia junta num app só as ferramentas que um músico abre todo dia. Afinador, metrônomo, cordas, piano, bateria, tablatura e gravador funcionam com o celular no modo avião.
+
+AFINADOR QUE NÃO TITUBEIA
+Detecção de nota pelo algoritmo YIN, com precisão perto de um centésimo de tom. O anel mostra vermelho, âmbar e verde, a nota aparece no meio e o desvio em cents logo acima. São 49 afinações, do violão padrão à viola caipira em cebolão, com busca. A referência vai de 415 a 466 Hz, para quem toca com orquestra ou com instrumento antigo. E tem o Analisar afinação: toque por até um minuto e veja quanto tempo você ficou dentro.
+
+METRÔNOMO QUE NÃO ESCORREGA
+O clique é agendado no relógio de áudio, não no relógio da tela, e por isso não desliza depois de dez minutos tocando. Compassos de 2/4 a 7/8, subdivisões, polirritmia, tap tempo, detector de BPM pelo microfone e timer de estudo.
+
+CORDAS NA TELA
+Violão, guitarra, viola caipira e baixo com o braço na tela: casas, cordas e a palhetada com o dedo, com corda modelada fisicamente (o mesmo timbre muda com a força do toque). Modo Acordes com os pads prontos, e modo Câmera, em que a sua mão no ar vira o acorde: a câmera lê a posição dos dedos no próprio aparelho, sem enviar imagem para lugar nenhum.
+
+BATERIA E PIANO DE VERDADE
+Os pads e as teclas não disparam gravações: o som é sintetizado na hora, com membranas em modos de Bessel na bateria e inarmonicidade real no piano. Na prática, a força do toque muda o timbre, não só o volume. Sequenciador de 16 passos, 25 grooves prontos, teclado vertical com glissando.
+
+ESTUDO
+77 acordes e 144 escalas, mostrados no teclado ou no braço do instrumento que você escolher, com o som de cada nota.
+
+TABLATURA COM BANDA ATRÁS
+Abra e edite tablaturas multipista com baixo, bateria e 48 backing tracks. É o mesmo arquivo .rostab que você escreve no RoqueOS pelo navegador: vai e volta sem converter nada.
+
+GRAVADOR MULTIPISTA
+Grave por cima do que já tocou, com cancelamento de eco do próprio Android. A linha do tempo é editável de verdade: cortar, dividir, fade, pan, desfazer. No fim, exporta a mixagem em M4A.
+
+Sem anúncio, sem cobrança e sem compra dentro do app. Em 10 idiomas.

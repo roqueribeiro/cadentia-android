@@ -1,0 +1,24 @@
+Cadentia puts the tools a musician reaches for every day into one app. Tuner, metronome, strings, piano, drums, tablature and recorder all work with the phone in airplane mode.
+
+A TUNER THAT DOESN'T WOBBLE
+Pitch detection through the YIN algorithm, accurate to about one cent. The ring runs red, amber, green; the note sits in the middle and the deviation in cents just above it. 49 tunings, from standard guitar to the Brazilian viola caipira, with search. Reference pitch goes from 415 to 466 Hz, for orchestra players and period instruments. There is also Analyse tuning: play for up to a minute and see how much of it you spent in tune.
+
+A METRONOME THAT DOESN'T DRIFT
+The click is scheduled on the audio clock, not the screen clock, so it still lands where it should after ten minutes. Time signatures from 2/4 to 7/8, subdivisions, polyrhythm, tap tempo, a microphone BPM detector and a practice timer.
+
+STRINGS ON THE SCREEN
+Guitar, electric guitar, viola caipira and bass with the neck on screen: frets, strings and strumming with your finger, on a physically modelled string (the timbre changes with how hard you play). A Chords mode with ready pads, and a Camera mode where your hand in the air becomes the chord: the camera reads your finger positions on the device itself, and no image leaves it.
+
+REAL DRUMS AND A REAL PIANO
+The pads and the keys don't fire samples: the sound is synthesised as you play, with Bessel-mode membranes on the drums and true inharmonicity on the piano. In practice: how hard you hit changes the timbre, not just the volume. Sixteen-step sequencer, 25 ready grooves, a vertical multitouch keyboard with glissando.
+
+STUDY
+77 chords and 144 scales, shown on the keyboard or on the neck of the instrument you pick, with the sound of every note.
+
+TABLATURE WITH A BAND BEHIND IT
+Open and edit multitrack tablature with bass, drums and 48 backing tracks. It is the same .rostab file you write in RoqueOS in the browser: back and forth, nothing to convert.
+
+MULTITRACK RECORDER
+Play over what you already recorded, with Android's own echo cancellation. The timeline actually edits: trim, split, fade, pan, undo. Export the mix as M4A when you're done.
+
+No ads, no charges, no in-app purchases. In 10 languages.

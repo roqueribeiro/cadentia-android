@@ -1,0 +1,1 @@
+Primeira versão do Cadentia para Android: afinador com 49 afinações, metrônomo no relógio de áudio, Cordas com violão, guitarra, viola caipira e baixo, piano, bateria, estudo de acordes e escalas, tablatura multipista e gravador. Tudo offline, sem anúncio.
