@@ -65,6 +65,24 @@ class PolyphonicSampler {
         return engine.nowFrames().toDouble() / rate
     }
 
+    /** Renderiza para o cache sem tocar: o primeiro hit sai sem soluço. */
+    fun prewarm(key: String, render: () -> FloatArray) {
+        if (!engine.isRunning) return
+        synchronized(cache) {
+            if (cache.containsKey(key)) return
+            val pcm = render()
+            val entry = Entry(id = nextId++, bytes = pcm.size * 4)
+            engine.registerBuffer(entry.id, pcm)
+            cache[key] = entry
+            cacheBytes += entry.bytes
+            evictIfNeeded()
+        }
+    }
+
+    /** Toca já (atalho de `schedule` no agora do relógio). */
+    fun play(key: String, gain: Float = 1f, render: () -> FloatArray): Long =
+        schedule(key, atSeconds = 0.0, gain = gain, render = render)
+
     /**
      * Agenda o PCM da `key` para `atSeconds` no relógio do stream (passado =
      * toca já). `render` roda UMA vez por chave e devolve estéreo intercalado.

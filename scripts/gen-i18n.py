@@ -142,10 +142,33 @@ def main() -> None:
         out_dir.mkdir(parents=True, exist_ok=True)
         out_path.write_text(content)
 
+    # O mapa chave→R.string para labels que chegam do :kit como chave do web
+    # ("music.drums.pads.kick"). Gerado junto para nunca divergir do catálogo.
+    kt_path = REPO / "app" / "src" / "main" / "java" / "com" / "levelhard" / "cadentia" / "I18nMap.kt"
+    kt_lines = [
+        "package com.levelhard.cadentia",
+        "",
+        "/** GERADO por scripts/gen-i18n.py — chave do catálogo -> R.string. Não edite. */",
+        "object I18nMap {",
+        "    val byKey: Map<String, Int> = mapOf(",
+    ]
+    for name in sorted(names):
+        kt_lines.append(f'        "{names[name]}" to R.string.{name},')
+    kt_lines.append("    )")
+    kt_lines.append("")
+    kt_lines.append("    /** Falha alto em chave desconhecida: chave errada é bug de port, não fallback. */")
+    kt_lines.append('    fun res(key: String): Int = requireNotNull(byKey[key]) { "chave i18n desconhecida: $key" }')
+    kt_lines.append("}")
+    kt_content = "\n".join(kt_lines) + "\n"
+
     if check_only:
+        if not kt_path.exists() or kt_path.read_text() != kt_content:
+            print("DESATUALIZADO: I18nMap.kt difere do catálogo. Rode scripts/gen-i18n.py.")
+            sys.exit(1)
         print(f"i18n em dia: {len(names)} chaves × {len(LOCALE_DIRS)} idiomas.")
     else:
-        print(f"Gerado: {len(names)} chaves × {len(LOCALE_DIRS)} idiomas.")
+        kt_path.write_text(kt_content)
+        print(f"Gerado: {len(names)} chaves × {len(LOCALE_DIRS)} idiomas + I18nMap.kt.")
 
 
 if __name__ == "__main__":
