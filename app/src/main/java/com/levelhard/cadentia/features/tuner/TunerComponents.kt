@@ -214,7 +214,14 @@ fun TunerRingGauge(
                     text = note, // i18n-verbatim: nome de nota
                     fontSize = 76.sp,
                     fontWeight = FontWeight.Bold,
-                    color = if (isTuned) accent else CzTokens.textPrimary,
+                    // Em repouso a nota é "—": em Roboto Bold 76 sp o travessão vira
+                    // uma barra branca sólida no meio do anel (QA no emulador). Sem
+                    // sinal ele fica terciário, como espaço reservado e não como dado.
+                    color = when {
+                        isTuned -> accent
+                        !active -> CzTokens.textTertiary
+                        else -> CzTokens.textPrimary
+                    },
                 )
                 Text(
                     text = octave, // i18n-verbatim: número

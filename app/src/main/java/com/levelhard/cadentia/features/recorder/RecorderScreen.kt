@@ -1096,6 +1096,9 @@ private fun TrackSettingsSheet(
                     unfocusedTextColor = CzTokens.textPrimary,
                     focusedBorderColor = TrackPalette.color(track.colorIndex),
                     unfocusedBorderColor = CzTokens.hairline,
+                    focusedLabelColor = TrackPalette.color(track.colorIndex),
+                    unfocusedLabelColor = CzTokens.textTertiary,
+                    cursorColor = TrackPalette.color(track.colorIndex),
                 ),
                 modifier = Modifier.fillMaxWidth(),
             )

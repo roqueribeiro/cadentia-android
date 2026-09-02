@@ -977,6 +977,9 @@ private fun LibraryState(
                         unfocusedTextColor = CzTokens.textPrimary,
                         focusedBorderColor = accent,
                         unfocusedBorderColor = CzTokens.hairline,
+                        focusedLabelColor = accent, // rótulo em dourado (primary do tema) sobre borda teal (QA)
+                        unfocusedLabelColor = CzTokens.textTertiary,
+                        cursorColor = accent,
                     ),
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -1023,6 +1026,9 @@ private fun LibraryState(
                         unfocusedTextColor = CzTokens.textPrimary,
                         focusedBorderColor = accent,
                         unfocusedBorderColor = CzTokens.hairline,
+                        focusedLabelColor = accent, // rótulo em dourado (primary do tema) sobre borda teal (QA)
+                        unfocusedLabelColor = CzTokens.textTertiary,
+                        cursorColor = accent,
                     ),
                     modifier = Modifier.weight(1f),
                 )
@@ -1221,6 +1227,9 @@ private fun SetlistCard(
                             unfocusedTextColor = CzTokens.textPrimary,
                             focusedBorderColor = accent,
                             unfocusedBorderColor = CzTokens.hairline,
+                            focusedLabelColor = accent, // rótulo em dourado (primary do tema) sobre borda teal (QA)
+                            unfocusedLabelColor = CzTokens.textTertiary,
+                            cursorColor = accent,
                         ),
                         modifier = Modifier.weight(1f),
                     )
@@ -1370,6 +1379,9 @@ private fun AddSongsSheet(
                         unfocusedTextColor = CzTokens.textPrimary,
                         focusedBorderColor = accent,
                         unfocusedBorderColor = CzTokens.hairline,
+                        focusedLabelColor = accent, // rótulo em dourado (primary do tema) sobre borda teal (QA)
+                        unfocusedLabelColor = CzTokens.textTertiary,
+                        cursorColor = accent,
                     ),
                     modifier = Modifier.fillMaxWidth(),
                 )
