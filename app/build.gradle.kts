@@ -58,11 +58,22 @@ android {
         release {
             val keystore = rootProject.file("keystore.properties")
             signingConfig = if (keystore.exists()) signingConfigs.getByName("release") else null
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
         debug {
             // Sufixo para conviver com o release no mesmo aparelho durante QA.
             applicationIdSuffix = ".debug"
+        }
+        // APK enxuto assinado com a chave de debug: o que dá para mandar por
+        // canal com limite de tamanho e instalar com adb, sem keystore da Play.
+        create("qa") {
+            initWith(getByName("debug"))
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            matchingFallbacks += "debug"
         }
     }
 
