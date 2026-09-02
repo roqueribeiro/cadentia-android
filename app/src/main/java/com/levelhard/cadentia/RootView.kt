@@ -24,6 +24,7 @@ import com.levelhard.cadentia.features.metronome.MetronomeScreen
 import com.levelhard.cadentia.features.more.MoreScreen
 import com.levelhard.cadentia.features.stems.StemsScreen
 import com.levelhard.cadentia.features.tuner.TunerScreen
+import com.levelhard.cadentia.settings.SettingsStore
 import com.levelhard.cadentia.ui.CzTokens
 
 /**
@@ -59,6 +60,7 @@ enum class MoreDestination(val qaName: String) {
 
 @Composable
 fun RootView(
+    store: SettingsStore,
     initialTab: CadentiaTab = CadentiaTab.Tuner,
     initialMoreDestination: MoreDestination? = null,
 ) {
@@ -103,7 +105,7 @@ fun RootView(
         Box(Modifier.fillMaxSize().padding(padding)) {
             key(tab) {
                 when (tab) {
-                    CadentiaTab.Tuner -> TunerScreen()
+                    CadentiaTab.Tuner -> TunerScreen(store)
                     CadentiaTab.Metronome -> MetronomeScreen()
                     CadentiaTab.Drums -> DrumsScreen()
                     CadentiaTab.Stems -> StemsScreen()
