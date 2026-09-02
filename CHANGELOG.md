@@ -2,6 +2,39 @@
 
 ## [Não lançado]
 
+### Fase 7 — Bancos de sample (2026-09-02)
+
+- Kit (9d56468): SamplePack/SampleFamily/SampleSelection e SampleBank
+  portados do 1.16 — o MESMO manifesto JSON que o iOS lê, cache LRU por
+  bytes (96 MB), Hermite de 4 pontos, loop, rampa de release, pan,
+  percussão sem transposição, aquecimento com orçamento, purge e a chave
+  por família (generation). InstrumentSynth.render e DrumSynth.renderStereo
+  consultam o banco antes da síntese; sem pack ou com a família desligada,
+  nada muda. AppSettings.sound.sampled (tudo ligado por padrão). 29 testes,
+  incluindo um pack de verdade em WAV medido pelo YIN e o manifesto real do
+  pack de bateria.
+- App (9d56468, eaa4f65): decodificador FLAC por MediaExtractor/MediaCodec,
+  instalação em `filesDir/samples` (ou externalFilesDir), purge em
+  onTrimMemory, chave síntese × sample seguindo as configurações.
+  DrumVoicing (chave por arquivo, acento no ganho da voz), soundGeneration
+  nas chaves do Piano, Estudo, tablatura e prévia dos pads. Folha Som dos
+  instrumentos completa (interruptor por família, origem e licença de cada
+  banco, créditos — também nas licenças do Sobre), cartão de Mais com
+  "N/M · gravações reais". Aquecimento da bateria como no 1.16 (pads da
+  levada + núcleo, fora da thread principal, também no Start).
+- Pipeline: scripts/fetch-samples.mjs e samples.config.mjs do iOS, tal
+  qual, com a saída em `samples/` (fora do git e do APK). Rodado: 7 packs
+  CC0 (FreePats ×5, Karoryfer Growlybass, Versilian Virtuosity Drums),
+  37 MB de FLAC, LICENSE.txt por pack.
+- QA no emulador (v5 → v5d) com os 7 packs: instalação, folha de Som,
+  Piano aquecendo em fundo, bateria acústica em sample (21 arquivos em
+  fundo, Start sem frame pulado), tablatura demo com violão + baixo +
+  bateria em sample, família desligada zerando as decodificações. Achados
+  corrigidos: Start pulava 84 frames (aquecimento síncrono), nomes dos
+  bancos cortados, tag de log inválida.
+- Em aberto: como entregar os 37 MB no aparelho (asset pack, download ou
+  build sem bancos) — decisão do Roque; escuta no aparelho.
+
 ### Fase 6 — Base 1.16 (2026-09-02)
 
 - i18n (e8ae9c2): catálogo da 1.16 — 631 chaves × 10 idiomas gerados do
