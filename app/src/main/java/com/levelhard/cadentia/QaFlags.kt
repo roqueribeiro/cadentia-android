@@ -47,6 +47,13 @@ data class QaFlags(
     val stemsMany: Boolean = false,
     /** Separar: a faixa da leva por cima da biblioteca, terminada com K falhas (`-qa-stems-banner K`). */
     val stemsBanner: Int? = null,
+    /**
+     * Separar: abre e separa o arquivo neste caminho ao entrar
+     * (`-qa-stems-file /sdcard/Download/musica.wav`). É o que deixa o QA
+     * exercitar a separação REAL sem passar pelo seletor do sistema, que o
+     * adb não dirige. Caminhos separados por `;` viram uma leva.
+     */
+    val stemsFile: String? = null,
 )
 
 val LocalQaFlags = compositionLocalOf { QaFlags() }

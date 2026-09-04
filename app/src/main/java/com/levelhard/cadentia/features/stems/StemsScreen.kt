@@ -197,6 +197,21 @@ fun StemsScreen() {
             model.showSeparatingForQA("Bohemian Rhapsody", percent, 100, 9.0, qa.stemsBatch)
         }
         qa.stemsBanner?.let { failed -> model.showBatchBannerForQA(total = 5, failed = failed) }
+        // `-qa-stems-file a.wav;b.mp3`: separação de verdade, sem o seletor.
+        qa.stemsFile?.let { paths ->
+            val picks = paths.split(';').map { it.trim() }.filter { it.isNotEmpty() }.map { path ->
+                val file = java.io.File(path)
+                StemsModel.Pick(
+                    uri = Uri.fromFile(file),
+                    song = RecentSong(
+                        title = file.nameWithoutExtension,
+                        source = RecentSong.Source.Device(persistedUri = Uri.fromFile(file).toString(), filename = file.name),
+                        lastOpenedEpochMillis = System.currentTimeMillis(),
+                    ),
+                )
+            }
+            if (picks.isNotEmpty()) separate(picks)
+        }
     }
     // Ticker: playhead, loop A/B e fim natural.
     LaunchedEffect(Unit) {
@@ -234,6 +249,7 @@ fun StemsScreen() {
                         accent = accent,
                         startedAtMillis = model.workStartedAt,
                         batch = batch,
+                        modelDownload = model.modelDownload,
                         modifier = Modifier
                             .align(Alignment.Center)
                             .widthIn(max = 560.dp)

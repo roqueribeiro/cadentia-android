@@ -41015,6 +41015,201 @@
           }
         }
       }
+    },
+    "cadentia.stems.modelDownloading": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baixando o modelo de separação"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloading the separation model"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descargando el modelo de separación"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Téléchargement du modèle de séparation"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trennmodell wird heruntergeladen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分離モデルをダウンロード中"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在下载分离模型"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सेपरेशन मॉडल डाउनलोड हो रहा है"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Загрузка модели разделения"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جارٍ تنزيل نموذج الفصل"
+          }
+        }
+      }
+    },
+    "cadentia.stems.modelDownloadHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uma vez só, cerca de 170 MB. Depois tudo roda no aparelho, sem internet."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Once only, about 170 MB. After that everything runs on the device, offline."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una sola vez, unos 170 MB. Después todo funciona en el dispositivo, sin conexión."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une seule fois, environ 170 Mo. Ensuite tout tourne sur l’appareil, hors ligne."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einmalig, etwa 170 MB. Danach läuft alles offline auf dem Gerät."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一度だけ、約170 MB。その後はすべて端末内でオフラインで動きます。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅需一次，约 170 MB。之后一切都在设备上离线运行。"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सिर्फ़ एक बार, लगभग 170 MB। उसके बाद सब कुछ डिवाइस पर ऑफ़लाइन चलता है।"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Только один раз, около 170 МБ. Дальше всё работает на устройстве, без интернета."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مرة واحدة فقط، نحو 170 ميغابايت. بعدها يعمل كل شيء على الجهاز دون إنترنت."
+          }
+        }
+      }
+    },
+    "cadentia.stems.modelDownloadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível baixar o modelo de separação. Confira a conexão e tente de novo."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't download the separation model. Check your connection and try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo descargar el modelo de separación. Revisa la conexión e inténtalo de nuevo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de télécharger le modèle de séparation. Vérifiez la connexion et réessayez."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Trennmodell konnte nicht heruntergeladen werden. Prüfe die Verbindung und versuche es erneut."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分離モデルをダウンロードできませんでした。接続を確認してもう一度お試しください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法下载分离模型。请检查网络连接后重试。"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सेपरेशन मॉडल डाउनलोड नहीं हो सका। कनेक्शन जाँचें और फिर कोशिश करें।"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось загрузить модель разделения. Проверьте соединение и попробуйте ещё раз."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذّر تنزيل نموذج الفصل. تحقّق من الاتصال وحاول مرة أخرى."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

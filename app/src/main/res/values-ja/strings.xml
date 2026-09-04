@@ -240,6 +240,9 @@
     <string name="cadentia_stems_leave_free">アプリを閉じても大丈夫です。分離は続き、完了したらお知らせします。</string>
     <string name="cadentia_stems_loop">練習ループ</string>
     <string name="cadentia_stems_mixer">ミキサー</string>
+    <string name="cadentia_stems_model_download_failed">分離モデルをダウンロードできませんでした。接続を確認してもう一度お試しください。</string>
+    <string name="cadentia_stems_model_download_hint">一度だけ、約170 MB。その後はすべて端末内でオフラインで動きます。</string>
+    <string name="cadentia_stems_model_downloading">分離モデルをダウンロード中</string>
     <string name="cadentia_stems_model_missing">このビルドには分離モデルが含まれていません。</string>
     <string name="cadentia_stems_other">ギターとキーボード</string>
     <string name="cadentia_stems_preparing">音声を準備中</string>

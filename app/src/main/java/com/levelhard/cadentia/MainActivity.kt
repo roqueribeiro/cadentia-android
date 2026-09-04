@@ -49,6 +49,7 @@ class MainActivity : ComponentActivity() {
             stemsBatch = intent.getStringExtra("qa-stems-batch")?.toIntOrNull(),
             stemsMany = intent.getBooleanExtra("qa-stems-many", false),
             stemsBanner = intent.getStringExtra("qa-stems-banner")?.toIntOrNull(),
+            stemsFile = intent.getStringExtra("qa-stems-file"),
         )
 
         val store = SettingsStore(applicationContext)

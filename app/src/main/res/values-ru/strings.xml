@@ -240,6 +240,9 @@
     <string name="cadentia_stems_leave_free">Можно выйти из приложения — разделение продолжится и сообщит, когда закончит.</string>
     <string name="cadentia_stems_loop">Учебный цикл</string>
     <string name="cadentia_stems_mixer">Микшер</string>
+    <string name="cadentia_stems_model_download_failed">Не удалось загрузить модель разделения. Проверьте соединение и попробуйте ещё раз.</string>
+    <string name="cadentia_stems_model_download_hint">Только один раз, около 170 МБ. Дальше всё работает на устройстве, без интернета.</string>
+    <string name="cadentia_stems_model_downloading">Загрузка модели разделения</string>
     <string name="cadentia_stems_model_missing">Модель разделения не установлена в этой сборке.</string>
     <string name="cadentia_stems_other">Гитара и клавишные</string>
     <string name="cadentia_stems_preparing">Подготовка звука</string>

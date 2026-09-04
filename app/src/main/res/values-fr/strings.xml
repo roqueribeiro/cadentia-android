@@ -240,6 +240,9 @@
     <string name="cadentia_stems_leave_free">Vous pouvez quitter l\'app : la séparation continue et vous prévient à la fin.</string>
     <string name="cadentia_stems_loop">Boucle de travail</string>
     <string name="cadentia_stems_mixer">Mixeur</string>
+    <string name="cadentia_stems_model_download_failed">Impossible de télécharger le modèle de séparation. Vérifiez la connexion et réessayez.</string>
+    <string name="cadentia_stems_model_download_hint">Une seule fois, environ 170 Mo. Ensuite tout tourne sur l’appareil, hors ligne.</string>
+    <string name="cadentia_stems_model_downloading">Téléchargement du modèle de séparation</string>
     <string name="cadentia_stems_model_missing">Le modèle de séparation n\'est pas installé dans cette version.</string>
     <string name="cadentia_stems_other">Guitare et clavier</string>
     <string name="cadentia_stems_preparing">Préparation de l\'audio</string>

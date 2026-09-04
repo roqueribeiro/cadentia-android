@@ -240,6 +240,9 @@
     <string name="cadentia_stems_leave_free">可以离开 App，分离会继续进行，完成后会通知你。</string>
     <string name="cadentia_stems_loop">练习循环</string>
     <string name="cadentia_stems_mixer">混音台</string>
+    <string name="cadentia_stems_model_download_failed">无法下载分离模型。请检查网络连接后重试。</string>
+    <string name="cadentia_stems_model_download_hint">仅需一次，约 170 MB。之后一切都在设备上离线运行。</string>
+    <string name="cadentia_stems_model_downloading">正在下载分离模型</string>
     <string name="cadentia_stems_model_missing">此版本未安装分离模型。</string>
     <string name="cadentia_stems_other">吉他和键盘</string>
     <string name="cadentia_stems_preparing">正在准备音频</string>

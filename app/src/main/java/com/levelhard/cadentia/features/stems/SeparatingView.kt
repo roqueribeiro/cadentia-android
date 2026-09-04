@@ -93,6 +93,8 @@ fun SeparatingView(
     startedAtMillis: Long,
     batch: StemsModel.ImportBatch?,
     modifier: Modifier = Modifier,
+    /** Bytes baixados e total enquanto o modelo desce na primeira separação. */
+    modelDownload: Pair<Long, Long>? = null,
 ) {
     val reduceMotion = rememberReduceMotion()
     // O relógio da estimativa: ela sai do tempo decorrido, então precisa ser
@@ -114,7 +116,7 @@ fun SeparatingView(
             .testTag("stems.working"),
     ) {
         Ring(progress, accent, reduceMotion)
-        Heading(progress, title)
+        Heading(progress, title, modelDownload)
         Tracks(progress, accent)
         if (batch != null && batch.total > 1) {
             Queue(batch, progress, accent, startedAtMillis, now, reduceMotion)
@@ -192,7 +194,7 @@ private fun Ring(progress: Double?, accent: Color, reduceMotion: Boolean) {
 }
 
 @Composable
-private fun Heading(progress: Double?, title: String) {
+private fun Heading(progress: Double?, title: String, modelDownload: Pair<Long, Long>?) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(3.dp)) {
         Text(
             text = title,
@@ -203,13 +205,32 @@ private fun Heading(progress: Double?, title: String) {
             color = CzTokens.textPrimary,
             modifier = Modifier.padding(horizontal = 24.dp),
         )
-        Text(
-            text = stringResource(
-                if (progress == null) R.string.cadentia_stems_preparing else R.string.cadentia_stems_separating,
-            ),
-            fontSize = 12.5.sp,
-            color = CzTokens.textTertiary,
-        )
+        if (modelDownload != null) {
+            // A primeira separação desce o modelo (174 MB) antes de começar:
+            // dizer o que está acontecendo é o que separa "travou" de "espera".
+            val (bytes, total) = modelDownload
+            val percent = if (total > 0) " ${(bytes * 100 / total).toInt()}%" else " ${bytes / 1_000_000} MB"
+            Text(
+                text = stringResource(R.string.cadentia_stems_model_downloading) + percent,
+                fontSize = 12.5.sp,
+                color = CzTokens.textTertiary,
+            )
+            Text(
+                text = stringResource(R.string.cadentia_stems_model_download_hint),
+                fontSize = 11.sp,
+                color = CzTokens.textTertiary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 32.dp, vertical = 2.dp),
+            )
+        } else {
+            Text(
+                text = stringResource(
+                    if (progress == null) R.string.cadentia_stems_preparing else R.string.cadentia_stems_separating,
+                ),
+                fontSize = 12.5.sp,
+                color = CzTokens.textTertiary,
+            )
+        }
     }
 }
 

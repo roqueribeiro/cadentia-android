@@ -240,6 +240,9 @@
     <string name="cadentia_stems_leave_free">يمكنك مغادرة التطبيق — سيستمر الفصل وسنُعلمك عند الانتهاء.</string>
     <string name="cadentia_stems_loop">حلقة التمرين</string>
     <string name="cadentia_stems_mixer">المزج</string>
+    <string name="cadentia_stems_model_download_failed">تعذّر تنزيل نموذج الفصل. تحقّق من الاتصال وحاول مرة أخرى.</string>
+    <string name="cadentia_stems_model_download_hint">مرة واحدة فقط، نحو 170 ميغابايت. بعدها يعمل كل شيء على الجهاز دون إنترنت.</string>
+    <string name="cadentia_stems_model_downloading">جارٍ تنزيل نموذج الفصل</string>
     <string name="cadentia_stems_model_missing">نموذج الفصل غير مثبت في هذه النسخة.</string>
     <string name="cadentia_stems_other">الغيتار ولوحة المفاتيح</string>
     <string name="cadentia_stems_preparing">جارٍ تحضير الصوت</string>

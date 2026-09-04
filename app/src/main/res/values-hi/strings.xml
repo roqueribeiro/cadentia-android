@@ -240,6 +240,9 @@
     <string name="cadentia_stems_leave_free">आप ऐप से बाहर जा सकते हैं — अलगाव जारी रहेगा और पूरा होने पर बताएगा।</string>
     <string name="cadentia_stems_loop">अभ्यास लूप</string>
     <string name="cadentia_stems_mixer">मिक्सर</string>
+    <string name="cadentia_stems_model_download_failed">सेपरेशन मॉडल डाउनलोड नहीं हो सका। कनेक्शन जाँचें और फिर कोशिश करें।</string>
+    <string name="cadentia_stems_model_download_hint">सिर्फ़ एक बार, लगभग 170 MB। उसके बाद सब कुछ डिवाइस पर ऑफ़लाइन चलता है।</string>
+    <string name="cadentia_stems_model_downloading">सेपरेशन मॉडल डाउनलोड हो रहा है</string>
     <string name="cadentia_stems_model_missing">इस बिल्ड में सेपरेशन मॉडल इंस्टॉल नहीं है।</string>
     <string name="cadentia_stems_other">गिटार और कीबोर्ड</string>
     <string name="cadentia_stems_preparing">ऑडियो तैयार हो रहा है</string>

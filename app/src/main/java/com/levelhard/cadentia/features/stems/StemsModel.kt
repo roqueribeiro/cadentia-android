@@ -28,6 +28,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -420,6 +421,12 @@ class StemsModel(context: Context) {
                 if (!playing) phase = Phase.Failed(firstError?.let { reason(it) } ?: "")
             } finally {
                 finishJob()
+                // A leva acabou: a sessão do modelo vai embora com ela. Medido
+                // no emulador (04/09): o processo fica em 1,5 GB de RSS com a
+                // sessão aberta depois de separar (pesos + arena do ORT), e é
+                // esse tamanho que o lowmemorykiller escolhe primeiro quando o
+                // app vai para trás tocando. Reabrir custa ~2,5 s na próxima leva.
+                releaseSeparator()
             }
             // Terminou sem tropeço: o aviso some sozinho. Com falha, fica até alguém ler.
             if (batch?.failed?.isEmpty() == true) {
@@ -519,13 +526,50 @@ class StemsModel(context: Context) {
     }
 
     /**
-     * A separação em si. Sem o modelo ONNX nesta build, para no fato: o mesmo
-     * `modelMissing` que o iOS mostra sem o `Separator.mlmodelc`. Quando o
-     * modelo existir, é aqui que as janelas de 7,8 s viram quatro faixas —
-     * com `progress(janela, total)` a cada uma.
+     * A separação em si — o `separateToFiles` do iOS, com o modelo em ONNX
+     * Runtime. Sem o modelo no aparelho, para no fato: o mesmo `modelMissing`
+     * que o iOS mostra sem o `Separator.mlmodelc`. A sessão do modelo fica
+     * aberta entre as músicas de uma leva (abrir custa segundos e 174 MB de
+     * pesos) e fecha com a tela.
      */
-    private suspend fun separate(@Suppress("UNUSED_PARAMETER") input: File, @Suppress("UNUSED_PARAMETER") into: File, @Suppress("UNUSED_PARAMETER") progress: (Int, Int) -> Unit) {
-        throw StemsError.ModelMissing()
+    private suspend fun separate(input: File, into: File, progress: (Int, Int) -> Unit) {
+        if (!StemModelStore.isAvailable(appContext)) {
+            if (!StemModelDownloader.isConfigured) throw StemsError.ModelMissing()
+            // Primeira separação: o modelo desce antes, com progresso na tela.
+            withContext(Dispatchers.IO) {
+                try {
+                    StemModelDownloader.ensure(appContext, shouldContinue = { isActive }) { bytes, total ->
+                        modelDownload = bytes to total
+                    }
+                } catch (error: StemModelDownloader.DownloadFailed) {
+                    throw StemsError.ModelDownloadFailed(error.message ?: "download")
+                } catch (_: InterruptedException) {
+                    throw CancellationException("download cancelado")
+                } finally {
+                    modelDownload = null
+                }
+            }
+        }
+        withContext(Dispatchers.Default) {
+            val backend = separatorBackend ?: OnnxStemBackend(StemModelStore.file(appContext)).also { separatorBackend = it }
+            try {
+                StemSeparator.separate(backend, input, into, progress) { isActive }
+            } catch (_: InterruptedException) {
+                throw CancellationException("separação cancelada")
+            }
+        }
+    }
+
+    private var separatorBackend: OnnxStemBackend? = null
+
+    /** Bytes baixados e total (−1 = desconhecido) enquanto o modelo desce; null fora disso. */
+    var modelDownload: Pair<Long, Long>? by mutableStateOf(null)
+        private set
+
+    /** Solta o modelo (174 MB de pesos) quando a área de stems é deixada. */
+    private fun releaseSeparator() {
+        separatorBackend?.let { runCatching { it.close() } }
+        separatorBackend = null
     }
 
     // ── voltar, fila do repertório, loop ─────────────────────────────────
@@ -535,6 +579,7 @@ class StemsModel(context: Context) {
         cancelBatch()
         persistMix()
         engine.stop()
+        releaseSeparator()
         songTitle = ""
         phase = Phase.Empty
         currentSongId = null
@@ -684,6 +729,7 @@ class StemsModel(context: Context) {
 
     private fun reason(error: Throwable): String = when (error) {
         is StemsError.ModelMissing -> appContext.getString(R.string.cadentia_stems_model_missing)
+        is StemsError.ModelDownloadFailed -> appContext.getString(R.string.cadentia_stems_model_download_failed)
         is StemsError.Unsupported -> appContext.getString(R.string.cadentia_stems_failed)
         is RoqueOSException -> error.display
         else -> error.message ?: error.javaClass.simpleName
@@ -702,5 +748,6 @@ class StemsModel(context: Context) {
 /** Os motivos de a separação parar, para a tela dizer o certo. */
 sealed class StemsError(message: String) : Exception(message) {
     class ModelMissing : StemsError("modelo de separação ausente")
+    class ModelDownloadFailed(detail: String) : StemsError("download do modelo: $detail")
     class Unsupported : StemsError("áudio não suportado")
 }

@@ -240,6 +240,9 @@
     <string name="cadentia_stems_leave_free">Du kannst die App verlassen – die Trennung läuft weiter und meldet sich, wenn sie fertig ist.</string>
     <string name="cadentia_stems_loop">Übungsschleife</string>
     <string name="cadentia_stems_mixer">Mixer</string>
+    <string name="cadentia_stems_model_download_failed">Das Trennmodell konnte nicht heruntergeladen werden. Prüfe die Verbindung und versuche es erneut.</string>
+    <string name="cadentia_stems_model_download_hint">Einmalig, etwa 170 MB. Danach läuft alles offline auf dem Gerät.</string>
+    <string name="cadentia_stems_model_downloading">Trennmodell wird heruntergeladen</string>
     <string name="cadentia_stems_model_missing">Das Trennmodell ist in diesem Build nicht installiert.</string>
     <string name="cadentia_stems_other">Gitarre und Keyboard</string>
     <string name="cadentia_stems_preparing">Audio wird vorbereitet</string>

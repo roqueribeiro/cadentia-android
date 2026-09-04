@@ -240,6 +240,9 @@
     <string name="cadentia_stems_leave_free">You can leave the app — separation keeps going and tells you when it\'s done.</string>
     <string name="cadentia_stems_loop">Practice loop</string>
     <string name="cadentia_stems_mixer">Mixer</string>
+    <string name="cadentia_stems_model_download_failed">Couldn\'t download the separation model. Check your connection and try again.</string>
+    <string name="cadentia_stems_model_download_hint">Once only, about 170 MB. After that everything runs on the device, offline.</string>
+    <string name="cadentia_stems_model_downloading">Downloading the separation model</string>
     <string name="cadentia_stems_model_missing">The separation model is not installed in this build.</string>
     <string name="cadentia_stems_other">Guitar and keys</string>
     <string name="cadentia_stems_preparing">Preparing the audio</string>

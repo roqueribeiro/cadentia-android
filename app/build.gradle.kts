@@ -23,6 +23,17 @@ android {
         versionName = "1.16.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
+        // De onde o app baixa o separator.onnx (174 MB) na primeira separação
+        // e o SHA-256 que ele confere. Vêm de gradle.properties ou do ambiente
+        // (CADENTIA_STEM_MODEL_URL / CADENTIA_STEM_MODEL_SHA256); vazios, o app
+        // mostra "modelo não instalado" em vez de tentar baixar de lugar nenhum.
+        val modelUrl = (project.findProperty("cadentia.stemModelUrl") as String?)
+            ?: System.getenv("CADENTIA_STEM_MODEL_URL") ?: ""
+        val modelSha = (project.findProperty("cadentia.stemModelSha256") as String?)
+            ?: System.getenv("CADENTIA_STEM_MODEL_SHA256") ?: ""
+        buildConfigField("String", "STEM_MODEL_URL", "\"$modelUrl\"")
+        buildConfigField("String", "STEM_MODEL_SHA256", "\"$modelSha\"")
+
         ndk {
             // O motor de áudio (Oboe) é C++. arm64 e x86_64 cobrem aparelho e
             // emulador; sem armeabi-v7a, que já não vale o peso.
@@ -187,6 +198,13 @@ dependencies {
     implementation("androidx.camera:camera-lifecycle:1.6.2")
     implementation("androidx.camera:camera-view:1.6.2")
     implementation("androidx.work:work-runtime-ktx:2.10.1")
+
+    // Separar: o htdemucs em ONNX (scripts/convert-stem-model.py) roda no
+    // ONNX Runtime, o equivalente do Core ML do iOS. O modelo (174 MB) não
+    // vai no pacote; chega por download na primeira separação. 1.23.2 porque
+    // é a primeira em que a libonnxruntime4j_jni.so também vem alinhada a
+    // 16 KB (a 1.20.0 vinha a 4 KB, conferido com readelf).
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.23.2")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 

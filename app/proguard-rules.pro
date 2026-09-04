@@ -16,3 +16,9 @@
 # registro pelo manifesto, mas as classes precisam existir para não cair.
 -keep class com.google.android.datatransport.** { *; }
 -dontwarn com.google.android.datatransport.**
+
+# ONNX Runtime: a JNI constrói TensorInfo/OnnxTensor/OrtSession$Result pelo
+# nome (NewObjectV). O R8 apagava o construtor de TensorInfo e a primeira
+# inferência morria com SIGABRT "JNI NewObjectV called with pending
+# exception NoSuchMethodError" (achado no emulador, 04/09).
+-keep class ai.onnxruntime.** { *; }
