@@ -117,10 +117,10 @@ import kotlinx.coroutines.withContext
  * separação com a fila, o player das quatro faixas com onda viva, loop A/B em
  * um botão, mixer em folha e memória de ajuste por música.
  *
- * A SEPARAÇÃO em si não existe nesta build: o modelo (103 MB no iOS, ausente
- * até do clone) não tem equivalente ONNX gerado ainda. Abrir uma música nova
- * normaliza o arquivo, sobe o serviço de primeiro plano e para no fato, com
- * todas as letras (`cadentia.stems.modelMissing`) — o MESMO estado do iOS sem o
+ * A separação roda no `OnnxStemBackend` com o modelo em `filesDir/models`.
+ * Sem o modelo, abrir uma música nova normaliza o arquivo, sobe o serviço de
+ * primeiro plano e para no fato, com todas as letras
+ * (`cadentia.stems.modelMissing`) — o MESMO estado do iOS sem o
  * `Separator.mlmodelc`. Quem já tem as quatro faixas em disco toca normal.
  */
 @Composable
@@ -197,6 +197,24 @@ fun StemsScreen() {
             model.showSeparatingForQA("Bohemian Rhapsody", percent, 100, 9.0, qa.stemsBatch)
         }
         qa.stemsBanner?.let { failed -> model.showBatchBannerForQA(total = 5, failed = failed) }
+        // `-qa-stems-demo`: quatro faixas prontas no cache e o player aberto
+        // direto — player, onda, medidores, mixer e velocidade sem separar.
+        // `-qa-stems-mixer` abre a folha do mixer por cima: o player sozinho
+        // mostra uma onda, e onda qualquer tocador tem; os quatro faders com
+        // nome é que provam a separação (captura de loja).
+        if (qa.stemsDemo) {
+            val seeded = withContext(Dispatchers.IO) { StemsQA.seed(model.cache, second = qa.stemsDemo2) }
+            if (seeded) {
+                if (qa.stemsDemo2) model.rememberForQA(StemsQA.secondSong)
+                model.reopen(StemsQA.song)
+                if (qa.stemsMixer) {
+                    // A folha só faz sentido sobre o player: espera as faixas abrirem.
+                    while (model.phase !is StemsModel.Phase.Ready) delay(50)
+                    showMixer = true
+                }
+            }
+            return@LaunchedEffect
+        }
         // `-qa-stems-file a.wav;b.mp3`: separação de verdade, sem o seletor.
         qa.stemsFile?.let { paths ->
             val picks = paths.split(';').map { it.trim() }.filter { it.isNotEmpty() }.map { path ->
@@ -245,7 +263,10 @@ fun StemsScreen() {
                     phase.isWorking -> SeparatingView(
                         progress = (phase as? StemsModel.Phase.Separating)
                             ?.let { if (it.total > 0) it.done.toDouble() / it.total else null },
-                        title = model.songTitle,
+                        // Numa leva, o nome de QUEM está separando agora. O iOS
+                        // 1.16 mostra `songTitle` (a primeira música, que já está
+                        // no player) durante a leva inteira — defeito dele.
+                        title = batch?.title?.takeIf { it.isNotEmpty() } ?: model.songTitle,
                         accent = accent,
                         startedAtMillis = model.workStartedAt,
                         batch = batch,

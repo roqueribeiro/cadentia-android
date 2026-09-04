@@ -54,6 +54,11 @@ data class QaFlags(
      * adb não dirige. Caminhos separados por `;` viram uma leva.
      */
     val stemsFile: String? = null,
+    /** Separar: quatro faixas sintéticas no cache e o player aberto (`-qa-stems-demo`); `stemsDemo2` semeia a segunda música nas Recentes. */
+    val stemsDemo: Boolean = false,
+    val stemsDemo2: Boolean = false,
+    /** Separar: com `stemsDemo`, a folha do mixer já aberta (`-qa-stems-mixer`) — a captura de loja que prova a separação. */
+    val stemsMixer: Boolean = false,
 )
 
 val LocalQaFlags = compositionLocalOf { QaFlags() }

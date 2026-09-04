@@ -50,6 +50,9 @@ class MainActivity : ComponentActivity() {
             stemsMany = intent.getBooleanExtra("qa-stems-many", false),
             stemsBanner = intent.getStringExtra("qa-stems-banner")?.toIntOrNull(),
             stemsFile = intent.getStringExtra("qa-stems-file"),
+            stemsDemo = intent.getBooleanExtra("qa-stems-demo", false),
+            stemsDemo2 = intent.getBooleanExtra("qa-stems-demo2", false),
+            stemsMixer = intent.getBooleanExtra("qa-stems-mixer", false),
         )
 
         val store = SettingsStore(applicationContext)

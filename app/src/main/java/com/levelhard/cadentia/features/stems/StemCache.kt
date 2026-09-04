@@ -87,8 +87,7 @@ class StemCache(context: Context) {
     }
 
     /** A faixa `name` na pasta, no formato que estiver lá (WAV das separações antigas, AAC das novas). */
-    fun existingTrack(folder: File, name: String): File? =
-        TRACK_EXTENSIONS.map { File(folder, "$name.$it") }.firstOrNull { it.isFile && it.length() > 0 }
+    fun existingTrack(folder: File, name: String): File? = Companion.existingTrack(folder, name)
 
     /**
      * Só conta como pronta se as **quatro** faixas estiverem lá. Uma separação
@@ -174,11 +173,15 @@ class StemCache(context: Context) {
         private const val TAG = "CadentiaStems"
 
         /**
-         * O que o player daqui decodifica. O iOS 1.16 grava AAC (33 MB por
-         * música contra 323 em WAV float32) e aceita os dois; o `StemPlayerEngine`
-         * do Android lê WAV. O AAC entra junto com o separador — listar `.m4a`
-         * antes disso faria `isComplete` prometer uma pasta que o player não abre.
+         * O que o player daqui abre, na ordem de preferência. O iOS 1.16 grava
+         * AAC (33 MB por música contra 323 em WAV float32) e aceita os dois;
+         * aqui o separador grava `.m4a` (`StemTrackCodec`) e as separações
+         * antigas continuam em `.wav`.
          */
-        val TRACK_EXTENSIONS = listOf("wav")
+        val TRACK_EXTENSIONS = listOf(StemTrackCodec.EXTENSION, "wav")
+
+        /** O `StemSeparator.existingTrackURL` do iOS: a primeira extensão da lista que existe com conteúdo. */
+        fun existingTrack(folder: File, name: String): File? =
+            TRACK_EXTENSIONS.map { File(folder, "$name.$it") }.firstOrNull { it.isFile && it.length() > 0 }
     }
 }

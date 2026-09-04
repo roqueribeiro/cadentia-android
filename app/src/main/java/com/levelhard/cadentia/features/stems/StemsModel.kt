@@ -37,12 +37,13 @@ import kotlinx.coroutines.withContext
  * `StemsModel.swift` (1.16), com o estado em Compose (o papel do
  * `@Observable`).
  *
- * A SEPARAÇÃO em si não existe nesta build: o modelo (103 MB no iOS, ausente
- * até do clone) não tem equivalente ONNX gerado ainda. O caminho inteiro está
- * de pé — fila, serviço de primeiro plano, pasta parcial publicada por
- * `rename`, cache que só apaga sem espaço — e para no fato, com todas as
- * letras (`cadentia.stems.modelMissing`), no mesmo lugar em que o iOS para sem
- * o `Separator.mlmodelc`. Quem já tem as quatro faixas em disco toca normal.
+ * A separação roda no `OnnxStemBackend` (htdemucs em ONNX Runtime, o Core ML
+ * daqui) com o modelo em `filesDir/models/separator.onnx`, que chega por
+ * download na primeira separação. Sem ele, o caminho inteiro continua de pé
+ * — fila, serviço de primeiro plano, pasta parcial publicada por `rename`,
+ * cache que só apaga sem espaço — e para no fato, com todas as letras
+ * (`cadentia.stems.modelMissing`), no mesmo lugar em que o iOS para sem o
+ * `Separator.mlmodelc`. Quem já tem as quatro faixas em disco toca normal.
  */
 class StemsModel(context: Context) {
     private val appContext = context.applicationContext
@@ -67,7 +68,7 @@ class StemsModel(context: Context) {
      */
     data class Pick(val uri: Uri, val song: RecentSong, val temporary: Boolean = false)
 
-    val engine = StemPlayerEngine()
+    val engine = StemPlayerEngine(File(context.cacheDir, "stems-play"))
     val stores = StemStores(appContext)
     val cache: StemCache get() = stores.cache
     val account: RoqueOSAccount = RoqueOSAccount.shared(appContext)
@@ -223,11 +224,30 @@ class StemsModel(context: Context) {
         }
     }
 
+    /**
+     * Abre uma música que já está separada. Fora da thread principal: as
+     * faixas AAC decodificam para PCM na abertura (1,7 s para 4 × 20 s no
+     * emulador; uma música inteira leva mais), e a tela mostra "Preparando"
+     * enquanto isso. Uma abertura nova cancela a anterior.
+     */
     private fun openCached(song: RecentSong) {
-        if (!engine.load(cache.directory(song.id), StemPipeline.sourceNames)) {
-            phase = Phase.Failed(appContext.getString(R.string.cadentia_stems_failed))
-            return
+        openJob?.cancel()
+        phase = Phase.Preparing
+        songTitle = song.title
+        openJob = scope.launch {
+            val loaded = withContext(Dispatchers.IO) { engine.load(cache.directory(song.id), StemPipeline.sourceNames) }
+            ensureActive()
+            if (!loaded) {
+                phase = Phase.Failed(appContext.getString(R.string.cadentia_stems_failed))
+                return@launch
+            }
+            finishOpen(song)
         }
+    }
+
+    private var openJob: Job? = null
+
+    private fun finishOpen(song: RecentSong) {
         cache.touch(song.id)
         remember(song)
         currentSongId = song.id
@@ -296,7 +316,7 @@ class StemsModel(context: Context) {
                     if (total > 0) reportJob(pick.song.title, appContext.getString(R.string.cadentia_stems_job_title), done, total)
                 }
                 ensureActive()
-                if (!engine.load(folder, StemPipeline.sourceNames)) throw StemsError.Unsupported()
+                if (!withContext(Dispatchers.IO) { engine.load(folder, StemPipeline.sourceNames) }) throw StemsError.SeparationFailed()
                 remember(pick.song)
                 currentSongId = pick.song.id
                 loopAnchor = null
@@ -379,6 +399,7 @@ class StemsModel(context: Context) {
                 for (pick in picks) {
                     ensureActive()
                     val position = (batch?.done ?: 0) + 1
+                    Log.i(TAG, "leva: $position de ${picks.size} — ${pick.song.title}")
                     batch = batch?.copy(title = pick.song.title, windowsDone = 0, windowsTotal = 0)
                     val subtitle = appContext.getString(R.string.cadentia_stems_job_position, position, picks.size)
                     reportJob(pick.song.title, subtitle, (position - 1) * 1000, picks.size * 1000)
@@ -396,7 +417,7 @@ class StemsModel(context: Context) {
                         remember(pick.song)
                         // A PRIMEIRA QUE DER CERTO vai para o player, não a primeira da lista.
                         if (!playing) {
-                            if (!engine.load(folder, StemPipeline.sourceNames)) throw StemsError.Unsupported()
+                            if (!withContext(Dispatchers.IO) { engine.load(folder, StemPipeline.sourceNames) }) throw StemsError.SeparationFailed()
                             playing = true
                             songTitle = pick.song.title
                             currentSongId = pick.song.id
@@ -418,7 +439,16 @@ class StemsModel(context: Context) {
                     bump()
                 }
                 // O MOTIVO, não o nome da música.
-                if (!playing) phase = Phase.Failed(firstError?.let { reason(it) } ?: "")
+                if (!playing) {
+                    phase = Phase.Failed(firstError?.let { reason(it) } ?: "")
+                } else {
+                    // A leva acabou e a primeira música está no player: a tela
+                    // volta para ele. Sem isto o `phase` ficava em
+                    // `Separating(total, total)` — anel em 100 %, "Separando os
+                    // instrumentos", sem botão de sair (visto no emulador em
+                    // 04/09 numa leva de 2). O iOS 1.16 tem o mesmo fim de laço.
+                    phase = Phase.Ready
+                }
             } finally {
                 finishJob()
                 // A leva acabou: a sessão do modelo vai embora com ela. Medido
@@ -442,11 +472,18 @@ class StemsModel(context: Context) {
      * de todo lugar que significa "quero outra coisa agora".
      */
     fun cancelBatch() {
+        if (batchJob?.isActive == true) {
+            Log.i(TAG, "leva cancelada por: " + Throwable().stackTrace.drop(1).take(5)
+                .joinToString(" < ") { "${it.className.substringAfterLast('.')}.${it.methodName}" })
+        }
         batchJob?.cancel()
         batchJob = null
         finishJob()
         batch = null
         downloadingId = null
+        // Cancelada no meio, a tela não pode ficar no anel parado: volta para o
+        // player se alguma música já carregou, senão para a biblioteca.
+        if (phase.isWorking) phase = if (engine.tracks.isNotEmpty()) Phase.Ready else Phase.Empty
     }
 
     /** O botão do aviso: cancela se ainda está rodando, dispensa se acabou. */
@@ -557,6 +594,9 @@ class StemsModel(context: Context) {
             } catch (_: InterruptedException) {
                 throw CancellationException("separação cancelada")
             }
+            ensureActive()
+            // WAV → AAC como o iOS 1.16; os WAV saem da pasta parcial.
+            StemTrackCodec.encodeFolder(into, StemPipeline.sourceNames)
         }
     }
 
@@ -576,6 +616,7 @@ class StemsModel(context: Context) {
 
     /** Volta para a biblioteca. Sair da tela mata a leva: ela continuando invisível é o caminho para duas separações. */
     fun reset() {
+        openJob?.cancel()
         cancelBatch()
         persistMix()
         engine.stop()
@@ -731,6 +772,8 @@ class StemsModel(context: Context) {
         is StemsError.ModelMissing -> appContext.getString(R.string.cadentia_stems_model_missing)
         is StemsError.ModelDownloadFailed -> appContext.getString(R.string.cadentia_stems_model_download_failed)
         is StemsError.Unsupported -> appContext.getString(R.string.cadentia_stems_failed)
+        // O iOS mostra o nome cru do caso; aqui a frase já traduzida serve aos dois.
+        is StemsError.SeparationFailed -> appContext.getString(R.string.cadentia_stems_failed)
         is RoqueOSException -> error.display
         else -> error.message ?: error.javaClass.simpleName
     }
@@ -750,4 +793,6 @@ sealed class StemsError(message: String) : Exception(message) {
     class ModelMissing : StemsError("modelo de separação ausente")
     class ModelDownloadFailed(detail: String) : StemsError("download do modelo: $detail")
     class Unsupported : StemsError("áudio não suportado")
+    /** As faixas não estão lá inteiras (pasta apagada por baixo, comprimentos diferentes): o `separationFailed` do iOS. */
+    class SeparationFailed : StemsError("faixas separadas inválidas")
 }

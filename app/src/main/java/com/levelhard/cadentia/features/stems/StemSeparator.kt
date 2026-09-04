@@ -179,6 +179,10 @@ object StemSeparator {
             val total = reader.frames
             val writers = StemPipeline.sourceNames.map { StereoWavWriter(File(into, "$it.wav"), StemPipeline.SAMPLE_RATE) }
             val started = System.nanoTime()
+            // Os contadores do backend acumulam pela vida da sessão (uma leva
+            // inteira); o log desta música é a diferença.
+            val modelBefore = (backend as? OnnxStemBackend)?.modelNanos ?: 0L
+            val transformBefore = (backend as? OnnxStemBackend)?.transformNanos ?: 0L
             try {
                 StemPipeline.separate(
                     total = total,
@@ -200,7 +204,7 @@ object StemSeparator {
             val seconds = (System.nanoTime() - started) / 1e9
             val audioSeconds = total / StemPipeline.SAMPLE_RATE.toDouble()
             val backendLog = (backend as? OnnxStemBackend)?.let {
-                " (modelo ${it.modelNanos / 1e9}s, transformadas ${it.transformNanos / 1e9}s)"
+                " (modelo ${"%.1f".format((it.modelNanos - modelBefore) / 1e9)} s, transformadas ${"%.1f".format((it.transformNanos - transformBefore) / 1e9)} s)"
             } ?: ""
             Log.i(
                 OnnxStemBackend.TAG,
@@ -218,6 +222,7 @@ internal class StereoWavReader(file: File) : AutoCloseable {
     private val channels: Int
     private val dataOffset: Long
     val frames: Int
+    val sampleRate: Int
 
     init {
         val header = ByteArray(12)
@@ -227,6 +232,7 @@ internal class StereoWavReader(file: File) : AutoCloseable {
         }
         var channelCount = 2
         var bits = 16
+        var rate = StemPipeline.SAMPLE_RATE
         var offset = -1L
         var dataBytes = 0L
         val chunk = ByteArray(8)
@@ -240,7 +246,7 @@ internal class StereoWavReader(file: File) : AutoCloseable {
                 val bb = ByteBuffer.wrap(fmt).order(ByteOrder.LITTLE_ENDIAN)
                 bb.short // formato
                 channelCount = bb.short.toInt()
-                bb.int // taxa
+                rate = bb.int
                 bb.int // bytes/s
                 bb.short // alinhamento
                 bits = bb.short.toInt()
@@ -255,7 +261,30 @@ internal class StereoWavReader(file: File) : AutoCloseable {
         require(offset >= 0 && bits == 16) { "WAV sem bloco data ou não é 16-bit" }
         channels = channelCount
         dataOffset = offset
+        sampleRate = rate
         frames = (dataBytes / (2L * channels)).toInt()
+    }
+
+    /** Quadros crus 16-bit estéreo (mono duplicado), para alimentar um codec sem passar por float. */
+    fun readRaw(start: Int, count: Int): ByteArray {
+        val available = (frames - start).coerceIn(0, count)
+        if (channels == 2) {
+            val bytes = ByteArray(available * 4)
+            raf.seek(dataOffset + start.toLong() * 4)
+            raf.readFully(bytes)
+            return bytes
+        }
+        val source = ByteArray(available * 2 * channels)
+        raf.seek(dataOffset + start.toLong() * 2 * channels)
+        raf.readFully(source)
+        val bb = ByteBuffer.wrap(source).order(ByteOrder.LITTLE_ENDIAN)
+        val out = ByteBuffer.allocate(available * 4).order(ByteOrder.LITTLE_ENDIAN)
+        for (i in 0 until available) {
+            val l = bb.short
+            for (extra in 1 until channels) bb.short
+            out.putShort(l).putShort(l)
+        }
+        return out.array()
     }
 
     fun read(start: Int, count: Int): Array<FloatArray> {
@@ -310,9 +339,20 @@ internal class StereoWavWriter(file: File, private val sampleRate: Int) {
         dataBytes += count * 4L
     }
 
+    /** Bytes já em PCM 16-bit estéreo little-endian (saída de decoder). */
+    fun writeRawStereo16(bytes: ByteArray) {
+        raf.write(bytes)
+        dataBytes += bytes.size.toLong()
+    }
+
     fun finish() {
         raf.seek(0)
         raf.write(header(dataBytes.toInt()))
         raf.close()
+    }
+
+    companion object {
+        /** A taxa das faixas: o separador normaliza para ela e o player assume. */
+        const val EXPECTED_RATE = StemPipeline.SAMPLE_RATE
     }
 }

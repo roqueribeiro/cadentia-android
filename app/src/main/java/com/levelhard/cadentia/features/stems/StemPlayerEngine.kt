@@ -4,6 +4,8 @@ import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
 import android.media.PlaybackParams
+import android.util.Log
+import com.levelhard.cadentia.kit.PeakLimiter
 import com.levelhard.cadentia.kit.PracticeLoop
 import com.levelhard.cadentia.kit.RealFFT
 import com.levelhard.cadentia.kit.SpectrumBands
@@ -34,8 +36,15 @@ import kotlin.math.sqrt
  * nova. O loop A/B usa o MESMO caminho do seek do dedo, como no iOS — a
  * volta custa um respiro curto no ponto do loop, aceitável para estudo e um
  * caminho só no código.
+ *
+ * As faixas em `.m4a` (as que o separador grava desde a 1.16) são
+ * decodificadas para WAV 16-bit em [scratch] ao abrir a música — o leitor
+ * precisa de seek por quadro e o AAC não dá isso de graça; o iOS faz o mesmo
+ * por baixo no `AVAudioFile`. O `.wav` antigo abre direto.
+ *
+ * @param scratch pasta de cache para o PCM decodificado (uma música por vez).
  */
-class StemPlayerEngine {
+class StemPlayerEngine(private val scratch: File? = null) {
     data class Track(
         val id: String,
         var volume: Float = 1f,
@@ -44,6 +53,7 @@ class StemPlayerEngine {
     )
 
     private companion object {
+        const val TAG = "CadentiaStems"
         const val RATE = 44_100
         const val FEED_FRAMES = 4096
         const val FFT_SIZE = 2048
@@ -86,6 +96,12 @@ class StemPlayerEngine {
         private set
 
     private var readers = mapOf<String, StemWavReader>()
+    /**
+     * O teto da saída, ANTES do tom/velocidade como no iOS (`StemPlayer.swift`:
+     * mixer → limitador → TimePitch). Aqui o tom é do AudioTrack, então a
+     * ordem é a mesma: o limitador age sobre a soma que os faders controlam.
+     */
+    private val limiter = PeakLimiter(RATE)
     private var audioTrack: AudioTrack? = null
     private var feeder: Thread? = null
     @Volatile private var feederStop = false
@@ -116,29 +132,80 @@ class StemPlayerEngine {
 
     // ---- carga ----
 
-    /** Carrega as faixas presentes em `directory` (name.wav por fonte). */
+    /**
+     * Carrega as faixas presentes em `directory` (`name.m4a` ou `name.wav` por
+     * fonte). Devolve false quando não há faixa nenhuma OU quando os
+     * comprimentos diferem — as quatro são a mesma música cortada em quatro;
+     * com `max`, uma faixa mais curta sumiria da mistura em silêncio (o iOS
+     * lança `separationFailed` nos dois casos).
+     */
     fun load(directory: File, names: List<String>): Boolean {
         stop()
         closeReaders()
         val loaded = mutableMapOf<String, StemWavReader>()
-        var frames = 0L
-        for (name in names) {
-            val file = File(directory, "$name.wav")
-            if (!file.exists()) continue
-            val reader = StemWavReader.open(file) ?: continue
+        val started = System.nanoTime()
+        val present = names.mapNotNull { name -> StemCache.existingTrack(directory, name)?.let { name to it } }
+        // As faixas AAC decodificam em paralelo (quatro decoders de software
+        // independentes); a pasta de scratch é preparada uma vez antes.
+        val aac = present.filter { !it.second.extension.equals("wav", ignoreCase = true) }
+        if (aac.isNotEmpty()) prepareScratch(directory)
+        val decodedFiles = java.util.concurrent.ConcurrentHashMap<String, File>()
+        aac.map { (name, file) ->
+            Thread({ decodedCopy(directory, file)?.let { decodedFiles[name] = it } }, "stem-decode-$name").apply { start() }
+        }.forEach { it.join() }
+        for ((name, file) in present) {
+            val pcm = if (file.extension.equals("wav", ignoreCase = true)) file else decodedFiles[name] ?: continue
+            val reader = StemWavReader.open(pcm) ?: continue
             loaded[name] = reader
-            frames = maxOf(frames, reader.frames)
         }
+        val decoded = decodedFiles.size
         if (loaded.isEmpty()) return false
+        val lengths = loaded.values.map { it.frames }.toSet()
+        if (lengths.size != 1) {
+            Log.w(TAG, "faixas com comprimentos diferentes em ${directory.name}: $lengths")
+            loaded.values.forEach { it.close() }
+            return false
+        }
+        if (decoded > 0) {
+            Log.i(TAG, "$decoded faixas AAC decodificadas em ${(System.nanoTime() - started) / 1_000_000} ms")
+        }
         readers = loaded
         tracks = loaded.keys.map { Track(id = it) }
-        duration = frames.toDouble() / RATE
+        duration = lengths.first().toDouble() / RATE
         practiceLoop = null
         seekOrigin = 0.0
         pausedAt = 0.0
         smoothed.fill(0f)
         meterDecay.clear()
+        limiter.reset()
         return true
+    }
+
+    /**
+     * O WAV decodificado de uma faixa AAC, em `scratch/<música>/<faixa>.wav`.
+     * Reaproveita o que já está lá para a mesma música (reabrir não decodifica
+     * de novo) e limpa as outras músicas: é cache, e o PCM de uma música de
+     * 4 minutos são 170 MB.
+     */
+    private fun prepareScratch(directory: File) {
+        val root = scratch ?: return
+        val songDir = File(root, directory.name)
+        root.listFiles()?.forEach { if (it.name != songDir.name) it.deleteRecursively() }
+        songDir.mkdirs()
+    }
+
+    private fun decodedCopy(directory: File, track: File): File? {
+        val root = scratch ?: return null
+        val songDir = File(root, directory.name)
+        val target = File(songDir, "${track.nameWithoutExtension}.wav")
+        if (target.isFile && target.length() > 44 && target.lastModified() >= track.lastModified()) return target
+        val partial = File(songDir, "${track.nameWithoutExtension}.parcial")
+        partial.delete()
+        if (!StemTrackCodec.decode(track, partial) || !partial.renameTo(target)) {
+            partial.delete()
+            return null
+        }
+        return target
     }
 
     // ---- mix ----
@@ -345,6 +412,9 @@ class StemPlayerEngine {
                 return
             }
 
+            // O teto: uma faixa isolada (baixo sem o resto que o cancelava)
+            // passa de 0 dBFS com facilidade, e a cadeia toda está em ganho 1.
+            limiter.process(left, right, FEED_FRAMES)
             absorbSpectrum(left, right)
 
             for (i in 0 until FEED_FRAMES) {
