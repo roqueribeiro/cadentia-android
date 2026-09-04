@@ -137,6 +137,13 @@ fun TablatureScreen(store: SettingsStore) {
         currentBeat = 0
     }
 
+    // Parado por fora (ligação, outro app, "Parar" na notificação): o botão acompanha.
+    engine.sessionLabel = stringResource(R.string.tablature_title)
+    engine.onSessionStopped = {
+        isPlaying = false
+        currentBeat = 0
+    }
+
     fun load(newTab: Tablature) {
         stopPlayback()
         tab = newTab

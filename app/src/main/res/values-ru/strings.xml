@@ -165,6 +165,9 @@
     <string name="cadentia_library_this_device_hint">Файлы</string>
     <string name="cadentia_library_will_separate_again">Будет разделена заново</string>
     <string name="cadentia_piano_sustain">Сустейн</string>
+    <string name="cadentia_playback_background">Воспроизведение в фоновом режиме</string>
+    <string name="cadentia_playback_channel">Воспроизведение</string>
+    <string name="cadentia_playback_stop">Остановить</string>
     <string name="cadentia_recorder_add_track">Новая дорожка</string>
     <string name="cadentia_recorder_adjust">Настроить</string>
     <string name="cadentia_recorder_clip_settings">Настройки клипа</string>

@@ -107,6 +107,10 @@ fun StudioScreen(store: SettingsStore) {
         }
     }
 
+    // Parado por fora (ligação, outro app, "Parar" na notificação): o botão acompanha.
+    engine.sessionLabel = stringResource(R.string.music_tabs_frequency)
+    engine.onSessionStopped = { isPlaying = false }
+
     // QA: autoplay para screenshot do osciloscópio vivo (o -qa-studio-autoplay).
     LaunchedEffect(Unit) {
         if (qa.studioAutoplay && !isPlaying) toggle()

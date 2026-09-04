@@ -1,5 +1,6 @@
 package com.levelhard.cadentia.features.metronome
 
+import com.levelhard.cadentia.audio.PlaybackSession
 import com.levelhard.cadentia.audio.PolyphonicSampler
 import com.levelhard.cadentia.kit.MetronomeClick
 import kotlinx.coroutines.CoroutineScope
@@ -49,6 +50,17 @@ class MetronomeEngine(private val sampler: PolyphonicSampler) {
     var isRunning = false
         private set
 
+    /** O que a notificação de reprodução mostra; a tela define com a string traduzida. */
+    var sessionLabel: String = "Metronome"
+
+    /**
+     * A sessão de áudio parou ou retomou o metrônomo por fora (ligação, outro
+     * app de música, "Parar" na notificação): a tela acompanha por aqui.
+     */
+    var onSessionChange: ((running: Boolean) -> Unit)? = null
+    private var lease: PlaybackSession.Lease? = null
+    private var lastScope: CoroutineScope? = null
+
     fun start(scope: CoroutineScope): Boolean {
         if (isRunning) return true
         if (!sampler.startIfNeeded()) return false
@@ -56,6 +68,19 @@ class MetronomeEngine(private val sampler: PolyphonicSampler) {
         nextBeatSeconds = sampler.nowSeconds() + 0.06
         polyNextBeatSeconds = nextBeatSeconds
         isRunning = true
+        lastScope = scope
+        lease = PlaybackSession.begin(
+            sessionLabel,
+            onInterrupt = {
+                stop()
+                onSessionChange?.invoke(false)
+            },
+            onResume = {
+                // Ligação acabou: volta a bater (o metrônomo é o caso em que
+                // parar e não voltar mais atrapalha).
+                if (lastScope?.let { start(it) } == true) onSessionChange?.invoke(true)
+            },
+        )
         schedulerJob = scope.launch {
             while (isActive && isRunning) {
                 scheduleAhead(this)
@@ -71,6 +96,8 @@ class MetronomeEngine(private val sampler: PolyphonicSampler) {
         schedulerJob?.cancel()
         schedulerJob = null
         sampler.stop()
+        lease?.let { PlaybackSession.end(it) }
+        lease = null
     }
 
     /** Três bipes acentuados a cada 0,25 s (alarme do practice timer). */

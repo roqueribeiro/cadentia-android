@@ -53,6 +53,11 @@ Java_com_levelhard_cadentia_audio_AudioEngineBridge_nativeXRunCount(JNIEnv*, job
 }
 
 JNIEXPORT jint JNICALL
+Java_com_levelhard_cadentia_audio_AudioEngineBridge_nativeRestartCount(JNIEnv*, jobject, jlong handle) {
+    return engine(handle)->restarts();
+}
+
+JNIEXPORT jint JNICALL
 Java_com_levelhard_cadentia_audio_AudioEngineBridge_nativeBufferSizeInFrames(JNIEnv*, jobject, jlong handle) {
     return engine(handle)->bufferSizeInFrames();
 }

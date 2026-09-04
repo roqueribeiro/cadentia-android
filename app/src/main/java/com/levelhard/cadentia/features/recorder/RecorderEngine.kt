@@ -5,6 +5,7 @@ import android.content.Context
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import com.levelhard.cadentia.audio.PlaybackSession
 import com.levelhard.cadentia.audio.PolyphonicSampler
 import com.levelhard.cadentia.kit.MetronomeClick
 import com.levelhard.cadentia.kit.RecorderMix
@@ -85,6 +86,13 @@ class RecorderEngine(context: Context) {
      * pedida. Devolve o nome do arquivo do take, ou null quando só toca —
      * e null com `record` se o stream ou o microfone não abrirem.
      */
+    /** O que a notificação de reprodução mostra; a tela define com a string traduzida. */
+    var sessionLabel: String = "Recorder"
+
+    /** A sessão de áudio parou isto por fora (ligação, outro app, "Parar" na notificação). */
+    var onSessionStopped: (() -> Unit)? = null
+    private var lease: PlaybackSession.Lease? = null
+
     fun start(project: RecorderProject, from: Double, record: RecordRequest?): String? {
         stopAll()
         if (!sampler.startIfNeeded()) return null
@@ -126,6 +134,12 @@ class RecorderEngine(context: Context) {
         val totalClickBeats = if (wantsClicks) countInBeats + runBeats else 0
 
         isRunning = true
+        // Gravando ou tocando, uma ligação para tudo; não volta sozinho (uma
+        // gravação retomada no meio de uma chamada seria pior que parada).
+        lease = PlaybackSession.begin(sessionLabel, onInterrupt = {
+            stopAll()
+            onSessionStopped?.invoke()
+        })
         isRecording = record != null
 
         schedulerJob = scope.launch {
@@ -297,6 +311,8 @@ class RecorderEngine(context: Context) {
         playbackOrigin = parkedAt
         // Chunks já agendados no futuro seriam ~1,5 s de fantasma: cala tudo.
         sampler.dampAll(0.05f)
+        lease?.let { PlaybackSession.end(it) }
+        lease = null
     }
 
     fun shutdown() {

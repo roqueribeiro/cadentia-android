@@ -39,6 +39,9 @@ class AudioEngineBridge {
     /** Underruns do stream desde o start (Oboe). -1 = sem stream. */
     fun xrunCount(): Int = if (handle != 0L) nativeXRunCount(handle) else -1
 
+    /** Quantas vezes o stream caiu (troca de rota) e foi reaberto sozinho. */
+    fun restartCount(): Int = if (handle != 0L) nativeRestartCount(handle) else 0
+
     /** Buffer real do stream em frames: a latência estrutural é isto sobre a taxa. */
     fun bufferSizeInFrames(): Int = if (handle != 0L) nativeBufferSizeInFrames(handle) else 0
 
@@ -99,6 +102,7 @@ class AudioEngineBridge {
     private external fun nativeSampleRate(handle: Long): Int
     private external fun nativeFramesPerBurst(handle: Long): Int
     private external fun nativeXRunCount(handle: Long): Int
+    private external fun nativeRestartCount(handle: Long): Int
     private external fun nativeBufferSizeInFrames(handle: Long): Int
     private external fun nativeRegisterBuffer(handle: Long, id: Int, interleaved: FloatArray, channels: Int)
     private external fun nativeReleaseBuffer(handle: Long, id: Int)

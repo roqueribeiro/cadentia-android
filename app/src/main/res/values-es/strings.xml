@@ -165,6 +165,9 @@
     <string name="cadentia_library_this_device_hint">Archivos</string>
     <string name="cadentia_library_will_separate_again">Se separará de nuevo</string>
     <string name="cadentia_piano_sustain">Sostenido</string>
+    <string name="cadentia_playback_background">Reproduciendo en segundo plano</string>
+    <string name="cadentia_playback_channel">Reproducción</string>
+    <string name="cadentia_playback_stop">Detener</string>
     <string name="cadentia_recorder_add_track">Nueva pista</string>
     <string name="cadentia_recorder_adjust">Ajustes</string>
     <string name="cadentia_recorder_clip_settings">Ajustes del clip</string>

@@ -22,29 +22,14 @@ AudioEngine::~AudioEngine() {
 }
 
 bool AudioEngine::start() {
+    std::lock_guard<std::mutex> lock(mStreamMutex);
     if (mStream) return true;
 
-    oboe::AudioStreamBuilder builder;
-    builder.setDirection(oboe::Direction::Output)
-            ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
-            ->setSharingMode(oboe::SharingMode::Exclusive)
-            ->setFormat(oboe::AudioFormat::Float)
-            ->setChannelCount(2)
-            ->setSampleRate(48000)
-            ->setSampleRateConversionQuality(oboe::SampleRateConversionQuality::Medium)
-            ->setDataCallback(this);
-
-    std::shared_ptr<oboe::AudioStream> stream;
-    if (builder.openStream(stream) != oboe::Result::OK) {
-        // EXCLUSIVE pode ser negado; o modo compartilhado ainda é low-latency.
-        builder.setSharingMode(oboe::SharingMode::Shared);
-        if (builder.openStream(stream) != oboe::Result::OK) return false;
-    }
+    std::shared_ptr<oboe::AudioStream> stream = openStream();
+    if (!stream) return false;
 
     mSampleRate = stream->getSampleRate();
     mFramesPerBurst.store(stream->getFramesPerBurst());
-    // Buffer no dobro do burst: o clássico equilíbrio latência × robustez.
-    stream->setBufferSizeInFrames(stream->getFramesPerBurst() * 2);
 
     initReverb();
 
@@ -66,11 +51,64 @@ bool AudioEngine::start() {
     return true;
 }
 
+std::shared_ptr<oboe::AudioStream> AudioEngine::openStream() {
+    oboe::AudioStreamBuilder builder;
+    builder.setDirection(oboe::Direction::Output)
+            ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
+            ->setSharingMode(oboe::SharingMode::Exclusive)
+            ->setFormat(oboe::AudioFormat::Float)
+            ->setChannelCount(2)
+            // 48 kHz pedidos: se o aparelho novo for de outra taxa, o Oboe
+            // converte e os buffers registrados continuam valendo.
+            ->setSampleRate(48000)
+            ->setSampleRateConversionQuality(oboe::SampleRateConversionQuality::Medium)
+            ->setDataCallback(this)
+            ->setErrorCallback(this);
+
+    std::shared_ptr<oboe::AudioStream> stream;
+    if (builder.openStream(stream) != oboe::Result::OK) {
+        // EXCLUSIVE pode ser negado; o modo compartilhado ainda é low-latency.
+        builder.setSharingMode(oboe::SharingMode::Shared);
+        if (builder.openStream(stream) != oboe::Result::OK) return nullptr;
+    }
+    // Buffer no dobro do burst: o clássico equilíbrio latência × robustez.
+    stream->setBufferSizeInFrames(stream->getFramesPerBurst() * 2);
+    return stream;
+}
+
+// O stream morreu por baixo (fone ligado/desligado, Bluetooth, ligação): o
+// Oboe já o fechou e chama aqui numa thread própria. Sem isto o app ficava
+// mudo até ser reaberto — o iOS reencaminha sozinho no AVAudioSession.
+// Reabrir aqui é o caminho documentado do Oboe. O relógio de frames e as
+// vozes são nossos, não do stream: a música continua de onde estava.
+void AudioEngine::onErrorAfterClose(oboe::AudioStream* /*stream*/, oboe::Result error) {
+    std::lock_guard<std::mutex> lock(mStreamMutex);
+    if (!mStream) return; // `stop()` chegou antes: nada a reabrir.
+    mStream.reset();
+    std::shared_ptr<oboe::AudioStream> stream = openStream();
+    if (!stream) {
+        mRestartFailures.fetch_add(1);
+        return;
+    }
+    mFramesPerBurst.store(stream->getFramesPerBurst());
+    if (stream->requestStart() != oboe::Result::OK) {
+        stream->close();
+        mRestartFailures.fetch_add(1);
+        return;
+    }
+    mStream = stream;
+    mRestarts.fetch_add(1);
+    (void)error;
+}
+
 void AudioEngine::stop() {
-    if (mStream) {
-        mStream->stop();
-        mStream->close();
-        mStream.reset();
+    {
+        std::lock_guard<std::mutex> lock(mStreamMutex);
+        if (mStream) {
+            mStream->stop();
+            mStream->close();
+            mStream.reset();
+        }
     }
     if (mReleaseRunning.exchange(false)) {
         if (mReleaseThread.joinable()) mReleaseThread.join();
@@ -89,6 +127,7 @@ void AudioEngine::stop() {
 }
 
 int32_t AudioEngine::xrunCount() const {
+    std::lock_guard<std::mutex> lock(mStreamMutex);
     auto stream = mStream;
     if (!stream) return -1;
     auto result = stream->getXRunCount();
@@ -96,6 +135,7 @@ int32_t AudioEngine::xrunCount() const {
 }
 
 int32_t AudioEngine::bufferSizeInFrames() const {
+    std::lock_guard<std::mutex> lock(mStreamMutex);
     auto stream = mStream;
     return stream ? stream->getBufferSizeInFrames() : 0;
 }

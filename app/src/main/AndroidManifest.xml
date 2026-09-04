@@ -9,6 +9,9 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <!-- Android 15+: "processar mídia" é exatamente o que a separação faz. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROCESSING" />
+    <!-- Reprodução contínua com o app atrás (metrônomo, tablatura, stems): o
+         UIBackgroundModes: audio do iOS. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <!-- A CPU acordada durante a leva; com teto, no serviço. -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -89,6 +92,13 @@
             android:name=".features.stems.SeparationService"
             android:exported="false"
             android:foregroundServiceType="mediaProcessing|dataSync" />
+
+        <!-- O que toca com a tela bloqueada continua tocando: serviço de
+             reprodução enquanto algum motor contínuo está ativo (PlaybackSession). -->
+        <service
+            android:name=".audio.PlaybackService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
 
         <!-- Compartilhar .rostab (o ShareSheet do iOS): expõe só o cache/share. -->
         <provider

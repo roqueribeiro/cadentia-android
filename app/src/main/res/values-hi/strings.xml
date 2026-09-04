@@ -165,6 +165,9 @@
     <string name="cadentia_library_this_device_hint">फ़ाइलें</string>
     <string name="cadentia_library_will_separate_again">फिर से अलग किया जाएगा</string>
     <string name="cadentia_piano_sustain">सस्टेन</string>
+    <string name="cadentia_playback_background">बैकग्राउंड में चल रहा है</string>
+    <string name="cadentia_playback_channel">प्लेबैक</string>
+    <string name="cadentia_playback_stop">रोकें</string>
     <string name="cadentia_recorder_add_track">नया ट्रैक</string>
     <string name="cadentia_recorder_adjust">समायोजित</string>
     <string name="cadentia_recorder_clip_settings">क्लिप सेटिंग्स</string>

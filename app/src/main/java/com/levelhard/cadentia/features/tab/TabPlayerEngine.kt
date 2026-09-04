@@ -1,5 +1,6 @@
 package com.levelhard.cadentia.features.tab
 
+import com.levelhard.cadentia.audio.PlaybackSession
 import com.levelhard.cadentia.audio.PolyphonicSampler
 import com.levelhard.cadentia.features.drums.DrumVoicing
 import com.levelhard.cadentia.kit.DrumSynth
@@ -108,6 +109,13 @@ class TabPlayerEngine {
         }
     }
 
+    /** O que a notificação de reprodução mostra; a tela define com a string traduzida. */
+    var sessionLabel: String = "Tablature"
+
+    /** A sessão de áudio parou isto por fora (ligação, outro app, "Parar" na notificação). */
+    var onSessionStopped: (() -> Unit)? = null
+    private var lease: PlaybackSession.Lease? = null
+
     /** true = tocando; false = o stream de áudio não abriu. */
     fun play(fromBeat: Int = 0): Boolean {
         synchronized(lock) { if (tab == null) return false }
@@ -134,6 +142,10 @@ class TabPlayerEngine {
         }
         nextStepSeconds = startAt
         isPlaying = true
+        lease = PlaybackSession.begin(sessionLabel, onInterrupt = {
+            stop()
+            onSessionStopped?.invoke()
+        })
         task = scope.launch {
             while (isPlaying) {
                 scheduleAhead()
@@ -147,6 +159,8 @@ class TabPlayerEngine {
         isPlaying = false
         task?.cancel()
         task = null
+        lease?.let { PlaybackSession.end(it) }
+        lease = null
     }
 
     fun shutdown() {

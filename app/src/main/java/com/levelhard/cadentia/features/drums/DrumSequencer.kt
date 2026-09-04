@@ -1,5 +1,6 @@
 package com.levelhard.cadentia.features.drums
 
+import com.levelhard.cadentia.audio.PlaybackSession
 import com.levelhard.cadentia.audio.PolyphonicSampler
 import com.levelhard.cadentia.kit.DrumSynth
 import kotlinx.coroutines.CoroutineScope
@@ -150,6 +151,13 @@ class DrumSequencer {
         }
     }
 
+    /** O que a notificação de reprodução mostra; a tela define com a string traduzida. */
+    var sessionLabel: String = "Drums"
+
+    /** A sessão de áudio parou isto por fora (ligação, outro app, "Parar" na notificação). */
+    var onSessionStopped: (() -> Unit)? = null
+    private var lease: PlaybackSession.Lease? = null
+
     fun start(scope: CoroutineScope): Boolean {
         if (isRunning) return true
         if (!sampler.startIfNeeded()) return false
@@ -157,6 +165,10 @@ class DrumSequencer {
         stepIndex = 0
         nextStepSeconds = sampler.nowSeconds() + 0.06
         isRunning = true
+        lease = PlaybackSession.begin(sessionLabel, onInterrupt = {
+            stop()
+            onSessionStopped?.invoke()
+        })
         job = scope.launch {
             while (isActive && isRunning) {
                 scheduleAhead(this)
@@ -171,6 +183,8 @@ class DrumSequencer {
         job?.cancel()
         job = null
         synchronized(sounding) { sounding.clear() }
+        lease?.let { PlaybackSession.end(it) }
+        lease = null
     }
 
     fun shutdown() {

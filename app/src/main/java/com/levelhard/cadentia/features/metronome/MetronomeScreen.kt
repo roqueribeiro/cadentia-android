@@ -92,6 +92,14 @@ fun MetronomeScreen(store: SettingsStore) {
     var currentBeat by remember { mutableIntStateOf(-1) }
     var tapTimes by remember { mutableStateOf(listOf<Double>()) }
 
+    // A sessão de áudio pode parar o metrônomo por fora (ligação, "Parar" na
+    // notificação) e trazê-lo de volta; o botão acompanha.
+    engine.sessionLabel = stringResource(R.string.music_tabs_metronome)
+    engine.onSessionChange = { running ->
+        isRunning = running
+        if (!running) currentBeat = -1
+    }
+
     val beatsPerBar = settings.metronome.timeSignature.substringBefore("/").toIntOrNull() ?: 4
 
     fun setBpm(value: Int) {

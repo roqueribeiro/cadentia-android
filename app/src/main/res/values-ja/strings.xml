@@ -165,6 +165,9 @@
     <string name="cadentia_library_this_device_hint">ファイル</string>
     <string name="cadentia_library_will_separate_again">もう一度分離します</string>
     <string name="cadentia_piano_sustain">サステイン</string>
+    <string name="cadentia_playback_background">バックグラウンドで再生中</string>
+    <string name="cadentia_playback_channel">再生</string>
+    <string name="cadentia_playback_stop">停止</string>
     <string name="cadentia_recorder_add_track">新規トラック</string>
     <string name="cadentia_recorder_adjust">調整</string>
     <string name="cadentia_recorder_clip_settings">クリップ設定</string>

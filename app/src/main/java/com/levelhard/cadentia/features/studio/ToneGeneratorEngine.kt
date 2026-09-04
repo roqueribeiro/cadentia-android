@@ -1,5 +1,6 @@
 package com.levelhard.cadentia.features.studio
 
+import com.levelhard.cadentia.audio.PlaybackSession
 import com.levelhard.cadentia.audio.PolyphonicSampler
 import com.levelhard.cadentia.kit.AppSettings
 import com.levelhard.cadentia.kit.ToneSynth
@@ -55,6 +56,13 @@ class ToneGeneratorEngine {
     var isPlaying = false
         private set
 
+    /** O que a notificação de reprodução mostra; a tela define com a string traduzida. */
+    var sessionLabel: String = "Frequency"
+
+    /** A sessão de áudio parou isto por fora (ligação, outro app, "Parar" na notificação). */
+    var onSessionStopped: (() -> Unit)? = null
+    private var lease: PlaybackSession.Lease? = null
+
     fun start(settings: AppSettings.Studio): Boolean {
         apply(settings)
         if (isPlaying) return true
@@ -62,6 +70,10 @@ class ToneGeneratorEngine {
 
         smoothedVolume = 0f
         isPlaying = true
+        lease = PlaybackSession.begin(sessionLabel, onInterrupt = {
+            stop()
+            onSessionStopped?.invoke()
+        })
         job = scope.launch {
             var nextFrame = ((sampler.nowSeconds() + 0.06) * sampler.sampleRate).toLong()
             while (isPlaying) {
@@ -93,6 +105,8 @@ class ToneGeneratorEngine {
         job?.cancel()
         job = null
         sampler.dampAll(0.05f)
+        lease?.let { PlaybackSession.end(it) }
+        lease = null
     }
 
     fun shutdown() {

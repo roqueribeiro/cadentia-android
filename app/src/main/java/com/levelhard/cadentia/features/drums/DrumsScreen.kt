@@ -138,6 +138,13 @@ fun DrumsScreen(store: SettingsStore) {
         currentStep = -1
     }
 
+    // Parado por fora (ligação, outro app, "Parar" na notificação): o botão acompanha.
+    sequencer.sessionLabel = stringResource(R.string.music_tabs_drums)
+    sequencer.onSessionStopped = {
+        isPlaying = false
+        currentStep = -1
+    }
+
     LaunchedEffect(Unit) {
         syncEngine()
         sequencer.prewarm(this)

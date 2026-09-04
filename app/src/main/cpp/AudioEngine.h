@@ -30,13 +30,19 @@ struct PcmBuffer {
 // Regra dura de tempo real: o callback de áudio NUNCA aloca, trava mutex, faz
 // I/O ou libera memória. Comandos entram por uma fila SPSC; buffers que
 // terminaram saem por uma fila de liberação drenada por uma thread de fundo.
-class AudioEngine : public oboe::AudioStreamDataCallback {
+class AudioEngine : public oboe::AudioStreamDataCallback, public oboe::AudioStreamErrorCallback {
 public:
     AudioEngine();
     ~AudioEngine();
 
     bool start();
     void stop();
+
+    // Stream desconectado (troca de rota): reabre. Ver o .cpp.
+    void onErrorAfterClose(oboe::AudioStream* stream, oboe::Result error) override;
+    // Quantas vezes o stream foi reaberto depois de cair, e quantas não deu.
+    int32_t restarts() const { return mRestarts.load(); }
+    int32_t restartFailures() const { return mRestartFailures.load(); }
 
     int32_t sampleRate() const { return mSampleRate; }
     int32_t framesPerBurst() const { return mFramesPerBurst.load(); }
@@ -133,6 +139,12 @@ private:
     std::atomic<int64_t> mNextTag{1};
 
     std::shared_ptr<oboe::AudioStream> mStream;
+    // start/stop/reabertura falam com mStream sob este lock; o callback de
+    // dados não toca nele (recebe o stream por parâmetro).
+    mutable std::mutex mStreamMutex;
+    std::shared_ptr<oboe::AudioStream> openStream();
+    std::atomic<int32_t> mRestarts{0};
+    std::atomic<int32_t> mRestartFailures{0};
     int32_t mSampleRate = 48000;
     std::atomic<int32_t> mFramesPerBurst{192};
     std::atomic<int64_t> mFrameClock{0};

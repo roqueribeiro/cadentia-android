@@ -165,6 +165,9 @@
     <string name="cadentia_library_this_device_hint">文件</string>
     <string name="cadentia_library_will_separate_again">将重新分离</string>
     <string name="cadentia_piano_sustain">延音</string>
+    <string name="cadentia_playback_background">正在后台播放</string>
+    <string name="cadentia_playback_channel">播放</string>
+    <string name="cadentia_playback_stop">停止</string>
     <string name="cadentia_recorder_add_track">新建音轨</string>
     <string name="cadentia_recorder_adjust">调整</string>
     <string name="cadentia_recorder_clip_settings">片段设置</string>

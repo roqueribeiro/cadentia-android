@@ -248,6 +248,7 @@ class StemsModel(context: Context) {
     private var openJob: Job? = null
 
     private fun finishOpen(song: RecentSong) {
+        engine.sessionLabel = song.title
         cache.touch(song.id)
         remember(song)
         currentSongId = song.id
@@ -317,6 +318,7 @@ class StemsModel(context: Context) {
                 }
                 ensureActive()
                 if (!withContext(Dispatchers.IO) { engine.load(folder, StemPipeline.sourceNames) }) throw StemsError.SeparationFailed()
+                engine.sessionLabel = pick.song.title
                 remember(pick.song)
                 currentSongId = pick.song.id
                 loopAnchor = null
@@ -418,6 +420,7 @@ class StemsModel(context: Context) {
                         // A PRIMEIRA QUE DER CERTO vai para o player, não a primeira da lista.
                         if (!playing) {
                             if (!withContext(Dispatchers.IO) { engine.load(folder, StemPipeline.sourceNames) }) throw StemsError.SeparationFailed()
+                            engine.sessionLabel = pick.song.title
                             playing = true
                             songTitle = pick.song.title
                             currentSongId = pick.song.id

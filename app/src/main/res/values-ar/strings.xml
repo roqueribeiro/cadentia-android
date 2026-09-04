@@ -165,6 +165,9 @@
     <string name="cadentia_library_this_device_hint">الملفات</string>
     <string name="cadentia_library_will_separate_again">سيُعاد فصلها</string>
     <string name="cadentia_piano_sustain">الإطالة</string>
+    <string name="cadentia_playback_background">يتم التشغيل في الخلفية</string>
+    <string name="cadentia_playback_channel">التشغيل</string>
+    <string name="cadentia_playback_stop">إيقاف</string>
     <string name="cadentia_recorder_add_track">مسار جديد</string>
     <string name="cadentia_recorder_adjust">ضبط</string>
     <string name="cadentia_recorder_clip_settings">إعدادات المقطع</string>

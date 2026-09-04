@@ -198,6 +198,17 @@ fun RecorderScreen(store: SettingsStore) {
         playhead = recordStartedAt + duration
     }
 
+    // Parado por fora (ligação, outro app, "Parar" na notificação). Gravando,
+    // o take fecha como se a pessoa tivesse parado: o motor já encerrou a
+    // captura, e `finishRecording` só recolhe o arquivo para o projeto.
+    engine.sessionLabel = stringResource(R.string.cadentia_recorder_title)
+    engine.onSessionStopped = {
+        if (isRecording) finishRecording() else {
+            isPlaying = false
+            playhead = engine.currentTime
+        }
+    }
+
     fun stopEverything() {
         if (isRecording) {
             finishRecording()

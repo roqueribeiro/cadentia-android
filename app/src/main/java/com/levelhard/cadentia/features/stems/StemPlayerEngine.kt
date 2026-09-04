@@ -5,6 +5,7 @@ import android.media.AudioFormat
 import android.media.AudioTrack
 import android.media.PlaybackParams
 import android.util.Log
+import com.levelhard.cadentia.audio.PlaybackSession
 import com.levelhard.cadentia.kit.PeakLimiter
 import com.levelhard.cadentia.kit.PracticeLoop
 import com.levelhard.cadentia.kit.RealFFT
@@ -56,6 +57,7 @@ class StemPlayerEngine(private val scratch: File? = null) {
         const val TAG = "CadentiaStems"
         const val RATE = 44_100
         const val FEED_FRAMES = 4096
+        const val SCRATCH_SONGS = 3
         const val FFT_SIZE = 2048
         const val BAND_COUNT = 48
     }
@@ -86,6 +88,10 @@ class StemPlayerEngine(private val scratch: File? = null) {
 
     /** Chamado quando a música TERMINA sozinha (gancho do repertório). */
     @Volatile var onFinished: (() -> Unit)? = null
+
+    /** O que a notificação de reprodução mostra (o título da música). */
+    @Volatile var sessionLabel: String = ""
+    private var lease: PlaybackSession.Lease? = null
 
     /** Nível 0…1 por faixa, para a tela animar. */
     @Volatile var levels: Map<String, Float> = emptyMap()
@@ -187,11 +193,21 @@ class StemPlayerEngine(private val scratch: File? = null) {
      * de novo) e limpa as outras músicas: é cache, e o PCM de uma música de
      * 4 minutos são 170 MB.
      */
+    /**
+     * O PCM decodificado fica para as últimas [SCRATCH_SONGS] músicas, não
+     * só para a atual: decodificar custa ~25x o tempo real por faixa no
+     * MediaCodec (IPC por bloco de 1024 quadros; medido no emulador: 4 × 40 s
+     * em 1,6 s), e reabrir a música de ontem esperando 10 s não é o iOS. É
+     * `cacheDir`: o sistema pode limpar, e a próxima abertura decodifica de
+     * novo.
+     */
     private fun prepareScratch(directory: File) {
         val root = scratch ?: return
         val songDir = File(root, directory.name)
-        root.listFiles()?.forEach { if (it.name != songDir.name) it.deleteRecursively() }
+        val others = root.listFiles()?.filter { it.isDirectory && it.name != songDir.name }.orEmpty()
+        others.sortedByDescending { it.lastModified() }.drop(SCRATCH_SONGS - 1).forEach { it.deleteRecursively() }
         songDir.mkdirs()
+        songDir.setLastModified(System.currentTimeMillis())
     }
 
     private fun decodedCopy(directory: File, track: File): File? {
@@ -262,6 +278,11 @@ class StemPlayerEngine(private val scratch: File? = null) {
         feederStop = false
         track.play()
         isPlaying = true
+        // Foco de áudio + serviço de reprodução: ligação pausa e, terminada,
+        // volta a tocar de onde parou; outro app de música pausa e não volta.
+        if (lease == null) {
+            lease = PlaybackSession.begin(sessionLabel, onInterrupt = { pause() }, onResume = { play() })
+        }
         feeder = thread(name = "stem-feeder") { feedLoop(track) }
     }
 
@@ -343,6 +364,8 @@ class StemPlayerEngine(private val scratch: File? = null) {
 
     private fun stopTransport() {
         isPlaying = false
+        lease?.let { PlaybackSession.end(it) }
+        lease = null
         feederStop = true
         feeder?.join(1500)
         feeder = null
