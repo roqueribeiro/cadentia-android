@@ -57,6 +57,30 @@ class DrumSequencer {
         else -> 0.62f
     }
 
+    /**
+     * Quem cala quem — port 1:1 do `SamplerEngine.swift`.
+     *
+     * Um chimbal só existe num estado por vez: fechar o pedal abafa o que
+     * estava aberto. Com síntese isso quase passava, porque o aberto morria
+     * rápido; com sample ele soa por até 3,5 s e fica por cima da levada
+     * inteira. O SFZ do Virtuosity declara isso com `group`/`off_by`, mas esse
+     * par é o único entre os dezesseis pads: um grafo de choke inteiro para
+     * uma aresta seria arquitetura por esporte.
+     */
+    private val chokes = mapOf("hihat-c" to "hihat-o")
+    private val sounding = HashMap<String, Long>()
+
+    private fun remember(pad: String, voiceTag: Long) {
+        if (voiceTag != 0L) synchronized(sounding) { sounding[pad] = voiceTag }
+    }
+
+    /** Abafa quem este pad cala. `damp` é um fade, não um corte seco: cortar um prato no meio do ciclo é um clique. */
+    private fun choke(pad: String) {
+        val victim = chokes[pad] ?: return
+        val tag = synchronized(sounding) { sounding.remove(victim) } ?: return
+        sampler.damp(tag, 0.06f)
+    }
+
     /** Pad ao vivo (também com o sequencer rodando): velocity cheia, round robin anda. */
     fun hitPad(pad: String) {
         if (!sampler.startIfNeeded()) return
@@ -65,11 +89,13 @@ class DrumSequencer {
         val variation = roundRobin
         roundRobin = (roundRobin + 1) % DrumSynth.roundRobinCount
         val voicing = DrumVoicing.of(kit, pad, 1f, variation, volume)
-        sampler.play(voicing.key, gain = voicing.gain) {
+        choke(pad)
+        val tag = sampler.play(voicing.key, gain = voicing.gain) {
             DrumSynth.renderStereo(
                 kit, pad, 1f, variation, rate, gain = 1f, velocityGainApplied = voicing.sampled,
             ).interleaved()
         }
+        remember(pad, tag)
     }
 
     private var prewarmJob: Job? = null
@@ -144,6 +170,7 @@ class DrumSequencer {
         isRunning = false
         job?.cancel()
         job = null
+        synchronized(sounding) { sounding.clear() }
     }
 
     fun shutdown() {
@@ -173,11 +200,22 @@ class DrumSequencer {
                 // repetida circula os quatro renders em vez de repetir um.
                 val variation = (stepIndex / 16 + step) % DrumSynth.roundRobinCount
                 val voicing = DrumVoicing.of(kit, pad, velocity, variation, volume)
-                sampler.schedule(key = voicing.key, atSeconds = at, gain = voicing.gain) {
+                val tag = sampler.schedule(key = voicing.key, atSeconds = at, gain = voicing.gain) {
                     DrumSynth.renderStereo(
                         kit, pad, velocity, variation, rate, gain = 1f,
                         velocityGainApplied = voicing.sampled,
                     ).interleaved()
+                }
+                // O registro é IMEDIATO e o abafamento é que espera (lição do
+                // iOS: com aberto e fechado no mesmo passo, registrar depois
+                // da espera fazia o choke às vezes rodar antes de o aberto
+                // existir, e ele tocava os 3,5 s inteiros por cima da levada).
+                remember(pad, tag)
+                if (chokes[pad] != null) {
+                    scope.launch {
+                        delay((maxOf(0.0, at - sampler.nowSeconds()) * 1000).toLong())
+                        if (isRunning) choke(pad)
+                    }
                 }
             }
             scope.launch {

@@ -3,8 +3,8 @@
      Não edite na mão: mude o catálogo (a fonte é o iOS) e regenere. -->
 <resources>
     <string name="cadentia_about_close">Fertig</string>
-    <string name="cadentia_about_cordas_body">Der Cordas-Modus stammt aus Phelipis App Cordas (github.com/phelipiii/cordas): die physikalisch modellierte Gitarre und die Idee, die Hände per Kamera zu lesen, sind von ihm. Synthese und Geometrie wurden in nativem Swift neu geschrieben.</string>
-    <string name="cadentia_about_cordas_credit">Ursprüngliche Idee und Umsetzung von Phelipi. Mit Erlaubnis nach nativem Swift portiert.</string>
+    <string name="cadentia_about_cordas_body">Der Cordas-Modus stammt aus Phelipis App Cordas (github.com/phelipiii/cordas): die physikalisch modellierte Gitarre und die Idee, die Hände per Kamera zu lesen, sind von ihm. Synthese und Geometrie wurden in nativem Kotlin neu geschrieben.</string>
+    <string name="cadentia_about_cordas_credit">Ursprüngliche Idee und Umsetzung von Phelipi. Mit Erlaubnis nach nativem Kotlin portiert.</string>
     <string name="cadentia_about_cordas_title">Woher der Cordas-Modus kommt</string>
     <string name="cadentia_about_licenses_intro">Cadentia nutzt quelloffene Software Dritter. Unten stehen Copyright-Hinweis und Lizenz jeder Komponente, wie es diese Lizenzen verlangen.</string>
     <string name="cadentia_about_link_community">Community und Support</string>
@@ -13,7 +13,7 @@
     <string name="cadentia_about_link_site">RoqueOS-Website</string>
     <string name="cadentia_about_link_terms">Nutzungsbedingungen</string>
     <string name="cadentia_about_makers_title">Wer dahintersteckt</string>
-    <string name="cadentia_about_phelipi_role">Autor von Cordas. Die physikalisch modellierte Gitarre und die Idee, die Hände über die Kamera zu lesen, stammen von ihm — der Cordas-Modus in Cadentia ist seine Implementierung, mit Genehmigung nach nativem Swift portiert.</string>
+    <string name="cadentia_about_phelipi_role">Autor von Cordas. Die physikalisch modellierte Gitarre und die Idee, die Hände über die Kamera zu lesen, stammen von ihm — der Cordas-Modus in Cadentia ist seine Implementierung, mit Genehmigung nach nativem Kotlin portiert.</string>
     <string name="cadentia_about_privacy_body">Cadentia hat kein eigenes Konto, verlangt keine Registrierung und nutzt weder Tracking noch Werbung. Das Mikrofon nutzt nur das Stimmgerät, live, ohne etwas aufzunehmen. Deine Songs und Aufnahmen bleiben auf dem Gerät. Verbindest du dich mit RoqueOS, speichert die App nur die Zugangsdaten dieser Verbindung, und das Trennen löscht sie.</string>
     <string name="cadentia_about_privacy_title">Datenschutz</string>
     <string name="cadentia_about_rafael_role">Musiker. Cadentia gibt es, weil er darum bat, und die Instrumententrennung war seine Idee. Von ihm kommt der Maßstab dafür, was jemandem mit dem Instrument in der Hand wirklich hilft.</string>

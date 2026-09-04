@@ -3,8 +3,8 @@
      Não edite na mão: mude o catálogo (a fonte é o iOS) e regenere. -->
 <resources>
     <string name="cadentia_about_close">पूर्ण</string>
-    <string name="cadentia_about_cordas_body">कॉर्डास मोड फेलिपी के ऐप Cordas (github.com/phelipiii/cordas) से आया है: भौतिक मॉडलिंग वाला गिटार और कैमरे से हाथ पढ़ने का विचार उन्हीं का है। सिंथेसिस और ज्यामिति को नेटिव Swift में फिर से लिखा गया।</string>
-    <string name="cadentia_about_cordas_credit">मूल विचार और कार्यान्वयन फेलिपी का। अनुमति से नेटिव Swift में पोर्ट किया गया।</string>
+    <string name="cadentia_about_cordas_body">कॉर्डास मोड फेलिपी के ऐप Cordas (github.com/phelipiii/cordas) से आया है: भौतिक मॉडलिंग वाला गिटार और कैमरे से हाथ पढ़ने का विचार उन्हीं का है। सिंथेसिस और ज्यामिति को नेटिव Kotlin में फिर से लिखा गया।</string>
+    <string name="cadentia_about_cordas_credit">मूल विचार और कार्यान्वयन फेलिपी का। अनुमति से नेटिव Kotlin में पोर्ट किया गया।</string>
     <string name="cadentia_about_cordas_title">कॉर्डास मोड कहाँ से आया</string>
     <string name="cadentia_about_licenses_intro">Cadentia तीसरे पक्ष के मुक्त स्रोत सॉफ़्टवेयर का उपयोग करता है। नीचे प्रत्येक का कॉपीराइट सूचना और लाइसेंस है, जैसा कि वे लाइसेंस अपेक्षित करते हैं।</string>
     <string name="cadentia_about_link_community">समुदाय और सहायता</string>
@@ -13,7 +13,7 @@
     <string name="cadentia_about_link_site">RoqueOS वेबसाइट</string>
     <string name="cadentia_about_link_terms">उपयोग की शर्तें</string>
     <string name="cadentia_about_makers_title">इसे कौन बनाता है</string>
-    <string name="cadentia_about_phelipi_role">Cordas के रचयिता। भौतिक मॉडलिंग वाला गिटार और कैमरे से हाथ पढ़ने का विचार उन्हीं का है — Cadentia का Cordas मोड उनका ही कार्यान्वयन है, अनुमति के साथ नेटिव Swift में पोर्ट किया गया।</string>
+    <string name="cadentia_about_phelipi_role">Cordas के रचयिता। भौतिक मॉडलिंग वाला गिटार और कैमरे से हाथ पढ़ने का विचार उन्हीं का है — Cadentia का Cordas मोड उनका ही कार्यान्वयन है, अनुमति के साथ नेटिव Kotlin में पोर्ट किया गया।</string>
     <string name="cadentia_about_privacy_body">Cadentia का अपना कोई खाता नहीं है, पंजीकरण नहीं माँगता, और न ट्रैकिंग न विज्ञापन इस्तेमाल करता है। माइक्रोफ़ोन सिर्फ़ ट्यूनर लाइव इस्तेमाल करता है, कुछ रिकॉर्ड किए बिना। आपके गाने और रिकॉर्डिंग डिवाइस पर ही रहते हैं। RoqueOS से जोड़ने पर ऐप सिर्फ़ उस कनेक्शन का प्रमाण रखता है, और डिस्कनेक्ट करने पर वह मिट जाता है।</string>
     <string name="cadentia_about_privacy_title">निजता</string>
     <string name="cadentia_about_rafael_role">संगीतकार। Cadentia उनके कहने पर बना, और वाद्य पृथक्करण उन्हीं का विचार था। हाथ में वाद्य लेकर अभ्यास करने वाले के लिए वास्तव में क्या काम आता है, उसका पैमाना उन्हीं से आता है।</string>

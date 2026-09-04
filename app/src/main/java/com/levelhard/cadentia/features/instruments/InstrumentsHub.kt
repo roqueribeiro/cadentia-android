@@ -24,10 +24,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -37,6 +39,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -86,10 +89,63 @@ fun InstrumentsHub(
             null -> HubList(onOpen = onDestinationChange)
             InstrumentDestination.Cordas -> CordasScreen(onBack = { onDestinationChange(null) })
             InstrumentDestination.Bass -> CordasScreen(opening = CordaInstrument.baixo, onBack = { onDestinationChange(null) })
-            InstrumentDestination.Piano -> PianoScreen(store)
-            InstrumentDestination.Drums -> DrumsScreen(store)
-            InstrumentDestination.Chords -> StudyScreen(store, StudyKind.Chords)
-            InstrumentDestination.Scales -> StudyScreen(store, StudyKind.Scales)
+            InstrumentDestination.Piano -> DestinationChrome(R.string.music_tabs_piano, CzTokens.gold, onBack = { onDestinationChange(null) }) {
+                PianoScreen(store)
+            }
+            InstrumentDestination.Drums -> DestinationChrome(R.string.music_tabs_drums, CzTokens.danger, onBack = { onDestinationChange(null) }) {
+                DrumsScreen(store)
+            }
+            InstrumentDestination.Chords -> DestinationChrome(R.string.music_tabs_chords, CzTokens.gold, onBack = { onDestinationChange(null) }) {
+                StudyScreen(store, StudyKind.Chords)
+            }
+            InstrumentDestination.Scales -> DestinationChrome(R.string.music_tabs_scales, CzTokens.gold, onBack = { onDestinationChange(null) }) {
+                StudyScreen(store, StudyKind.Scales)
+            }
+        }
+    }
+}
+
+/**
+ * A barra de navegação inline que o `NavigationStack` do iOS dá de graça a
+ * cada destino do hub (`.navigationTitle` + `.inline`): voltar e o título.
+ * Sem ela, Piano, Bateria, Acordes e Escalas abriam sem dizer onde a pessoa
+ * está e só o gesto do sistema voltava (auditoria de 04/09). O Cordas tem a
+ * barra própria (voltar, título, ajuda, painel) e não passa por aqui.
+ */
+@Composable
+private fun DestinationChrome(
+    titleRes: Int,
+    accent: androidx.compose.ui.graphics.Color,
+    onBack: () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    Box(Modifier.fillMaxSize()) {
+        PremiumBackground(accent = accent)
+        Column(Modifier.fillMaxSize()) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, top = 4.dp),
+            ) {
+                IconButton(onClick = onBack, modifier = Modifier.testTag("instruments.back")) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.common_back),
+                        tint = accent,
+                    )
+                }
+                Text(
+                    text = stringResource(titleRes),
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = CzTokens.textPrimary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.weight(1f),
+                )
+                // Espelho do botão de voltar, para o título ficar centrado
+                // como no iOS.
+                Spacer(Modifier.size(48.dp))
+            }
+            Box(Modifier.weight(1f)) { content() }
         }
     }
 }

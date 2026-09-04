@@ -3,8 +3,8 @@
      Não edite na mão: mude o catálogo (a fonte é o iOS) e regenere. -->
 <resources>
     <string name="cadentia_about_close">Listo</string>
-    <string name="cadentia_about_cordas_body">El modo Cordas nació de la app Cordas de Phelipi (github.com/phelipiii/cordas): la guitarra por modelado físico y la idea de leer las manos con la cámara son suyas. La síntesis y la geometría se reescribieron en Swift nativo.</string>
-    <string name="cadentia_about_cordas_credit">Idea e implementación original de Phelipi. Portado a Swift nativo con autorización.</string>
+    <string name="cadentia_about_cordas_body">El modo Cordas nació de la app Cordas de Phelipi (github.com/phelipiii/cordas): la guitarra por modelado físico y la idea de leer las manos con la cámara son suyas. La síntesis y la geometría se reescribieron en Kotlin nativo.</string>
+    <string name="cadentia_about_cordas_credit">Idea e implementación original de Phelipi. Portado a Kotlin nativo con autorización.</string>
     <string name="cadentia_about_cordas_title">De dónde viene el modo Cordas</string>
     <string name="cadentia_about_licenses_intro">Cadentia usa software libre de terceros. Abajo, el aviso de derechos de autor y la licencia de cada uno, como ellas exigen.</string>
     <string name="cadentia_about_link_community">Comunidad y soporte</string>
@@ -13,7 +13,7 @@
     <string name="cadentia_about_link_site">Sitio de RoqueOS</string>
     <string name="cadentia_about_link_terms">Términos de uso</string>
     <string name="cadentia_about_makers_title">Quién lo hace</string>
-    <string name="cadentia_about_phelipi_role">Autor de Cordas. La guitarra por modelado físico y la idea de leer las manos con la cámara son suyas: el modo Cordas de Cadentia es su implementación, portada a Swift nativo con autorización.</string>
+    <string name="cadentia_about_phelipi_role">Autor de Cordas. La guitarra por modelado físico y la idea de leer las manos con la cámara son suyas: el modo Cordas de Cadentia es su implementación, portada a Kotlin nativo con autorización.</string>
     <string name="cadentia_about_privacy_body">Cadentia no tiene cuenta propia, no pide registro y no usa rastreo ni anuncios. El micrófono solo lo usa el afinador, en vivo, sin grabar nada. Tus canciones y grabaciones se quedan en el dispositivo. Si conectas con RoqueOS, la app guarda solo la credencial de esa conexión, y desconectar la borra.</string>
     <string name="cadentia_about_privacy_title">Privacidad</string>
     <string name="cadentia_about_rafael_role">Músico. Cadentia existe porque él lo pidió, y la separación de instrumentos fue idea suya. De él viene la medida de lo que de verdad sirve a quien estudia con el instrumento en la mano.</string>

@@ -52,6 +52,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.platform.LocalView
@@ -59,6 +60,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
@@ -243,22 +245,56 @@ internal fun GuitarChordDiagram(
         val positive = frets.filter { it > 0 }
         val baseFret = if ((positive.maxOrNull() ?: 0) > 4) (positive.minOrNull() ?: 1) else 1
 
+        // O ébano, a pestana e os trastes: o mesmo material do braço das
+        // escalas (port do `ChordDiagram` do iOS). Duas telas irmãs com dois
+        // desenhos diferentes é o que faz um app parecer montado por pessoas
+        // diferentes.
+        val board = Rect(inset, inset, inset + gridWidth, inset + gridHeight)
+        drawRoundRect(
+            brush = Brush.verticalGradient(
+                listOf(Color(0xFF291A0D), Color(0xFF3B2412), Color(0xFF21140A)),
+                startY = board.top, endY = board.bottom,
+            ),
+            topLeft = board.topLeft, size = board.size,
+            cornerRadius = CornerRadius(3.dp.toPx()),
+        )
         for (s in 0 until stringCount) {
             val x = inset + s * stringGap
+            // A corda mais grave é a mais grossa, como no braço.
+            val thickness = (1.9f - s.toFloat() / maxOf(stringCount - 1, 1) * 1.0f).dp.toPx()
             drawLine(
-                Color.White.copy(alpha = 0.35f),
+                Color.Black.copy(alpha = 0.45f),
+                Offset(x + 0.7f.dp.toPx(), inset), Offset(x + 0.7f.dp.toPx(), inset + gridHeight),
+                strokeWidth = thickness + 0.7f.dp.toPx(),
+            )
+            drawLine(
+                Color(0xFFDBDBDB),
                 Offset(x, inset), Offset(x, inset + gridHeight),
-                strokeWidth = 1.dp.toPx(),
+                strokeWidth = thickness,
             )
         }
         for (f in 0..fretCount) {
             val y = inset + f * fretGap
             val isNut = f == 0 && baseFret == 1
-            drawLine(
-                Color.White.copy(alpha = if (isNut) 0.9f else 0.35f),
-                Offset(inset, y), Offset(inset + gridWidth, y),
-                strokeWidth = (if (isNut) 3.dp else 1.dp).toPx(),
-            )
+            if (isNut) {
+                // A pestana: osso.
+                drawLine(
+                    Color(0xFFEDE6D1),
+                    Offset(inset, y), Offset(inset + gridWidth, y),
+                    strokeWidth = 3.5.dp.toPx(),
+                )
+            } else {
+                drawLine(
+                    Color.Black.copy(alpha = 0.5f),
+                    Offset(inset, y), Offset(inset + gridWidth, y),
+                    strokeWidth = 2.dp.toPx(),
+                )
+                drawLine(
+                    Color(0xFFC2C2C2).copy(alpha = 0.8f),
+                    Offset(inset, y - 0.6f.dp.toPx()), Offset(inset + gridWidth, y - 0.6f.dp.toPx()),
+                    strokeWidth = 1.1f.dp.toPx(),
+                )
+            }
         }
         if (baseFret > 1) {
             val label = textMeasurer.measure(
@@ -291,17 +327,24 @@ internal fun GuitarChordDiagram(
                         color = Color.White.copy(alpha = 0.7f),
                         radius = 4.5.dp.toPx(),
                         center = Offset(x, inset - 11.5.dp.toPx()),
-                        style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.5.dp.toPx()),
+                        style = Stroke(width = 1.5.dp.toPx()),
                     )
                 }
                 else -> {
                     val row = fret - baseFret
                     if (row in 0 until fretCount) {
+                        val centre = Offset(x, inset + (row + 0.5f) * fretGap)
+                        val r = 7.5.dp.toPx()
+                        // Sombra, bolinha com gradiente e um fio branco, como o iOS.
+                        drawCircle(Color.Black.copy(alpha = 0.55f), r, centre + Offset(0f, 1.5f.dp.toPx()))
                         drawCircle(
-                            color = accent,
-                            radius = 7.dp.toPx(),
-                            center = Offset(x, inset + (row + 0.5f) * fretGap),
+                            Brush.verticalGradient(
+                                listOf(accent, accent.copy(alpha = 0.72f)),
+                                startY = centre.y - r, endY = centre.y + r,
+                            ),
+                            r, centre,
                         )
+                        drawCircle(Color.White.copy(alpha = 0.55f), r, centre, style = Stroke(1.dp.toPx()))
                     }
                 }
             }
@@ -389,6 +432,8 @@ internal fun ScalesPane(
         )
     }
 
+    // Centrado como no `VStack` do iOS (alinhamento padrão ao centro).
+    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
     ActionPill(
         stringResource(R.string.music_scales_play_scale),
         Icons.Filled.PlayArrow, accent, prominent = true,
@@ -408,6 +453,7 @@ internal fun ScalesPane(
                 play(note.frequency, 0.5)
             }
         }
+    }
     }
 }
 
@@ -443,84 +489,148 @@ internal fun ScaleFretboard(
     }
     val openStrings = openPitchClass.map { MusicNotes.noteNames[it] }
 
-    Box(
-        modifier
-            .clip(RoundedCornerShape(CzTokens.radiusMD))
-            .background(Color.Black.copy(alpha = 0.25f)),
-    ) {
+    // Sem caixa em volta: no iOS o Canvas fica solto no fundo, e é a madeira
+    // que delimita o braço.
+    Box(modifier) {
         Canvas(Modifier.fillMaxSize()) {
             val strings = openPitchClass.size
-            // O baixo tem escala longa e vinte casas; o violão, dezessete. Doze é a volta da oitava e cabe em qualquer um.
+            // O baixo tem escala longa e vinte casas; o violão, dezessete. Doze
+            // é a volta da oitava e cabe em qualquer um.
             val frets = 12
-            val insetX = 38.dp.toPx()
-            val labelRight = 17.dp.toPx()
-            val openDotX = 27.dp.toPx()
-            val insetY = 12.dp.toPx()
-            // Faixa própria para os números das casas, ABAIXO da última corda:
-            // desenhados na borda do canvas eles ficavam por baixo das bolinhas
-            // do mi grave (visto no QA do emulador).
-            // 18 e não 14: a bolinha da tônica tem 6,5 dp de raio e, com o
-            // número 3 dp abaixo da linha, ela cobria o número (QA v6, baixo).
-            val markerBand = 18.dp.toPx()
-            val gridWidth = size.width - insetX - 10.dp.toPx()
-            val gridHeight = size.height - insetY * 2 - markerBand
-            val stringGap = gridHeight / (strings - 1)
-            val fretGap = gridWidth / frets
+            // Port 1:1 do `ScaleFretboard` do iOS 1.16: uma calha à esquerda
+            // para o nome da corda e a nota solta, e uma faixa embaixo para o
+            // número da casa.
+            val gutter = 46.dp.toPx()
+            val insetY = 13.dp.toPx()
+            val footer = 18.dp.toPx()
+            val boardX = gutter
+            val boardWidth = size.width - gutter - 10.dp.toPx()
+            val boardHeight = size.height - insetY * 2 - footer
+            val stringGap = boardHeight / (strings - 1)
+            val fretGap = boardWidth / frets
+            val board = Rect(boardX, insetY, boardX + boardWidth, insetY + boardHeight)
 
+            // O ébano. O braço era linha branca sobre preto: legível e sem
+            // instrumento nenhum ali. Madeira de verdade custa três gradientes
+            // e faz o diagrama pertencer ao mesmo app que desenha o braço do
+            // Cordas.
+            drawRoundRect(
+                brush = Brush.verticalGradient(
+                    listOf(Color(0xFF291A0D), Color(0xFF3D2614), Color(0xFF21140A)),
+                    startY = board.top, endY = board.bottom,
+                ),
+                topLeft = board.topLeft, size = board.size,
+                cornerRadius = CornerRadius(3.dp.toPx()),
+            )
+
+            // Marcadores de casa, ANTES das cordas: ficam embutidos na
+            // madeira, e tudo o que vem depois passa por cima deles.
+            val middle = board.center.y
+            for (marker in listOf(3, 5, 7, 9, 12)) {
+                val x = board.left + (marker - 0.5f) * fretGap
+                val radius = 4.2.dp.toPx()
+                // Na casa doze são dois, um em cima e um embaixo.
+                val centres = if (marker == 12) listOf(middle - stringGap * 0.9f, middle + stringGap * 0.9f) else listOf(middle)
+                for (y in centres) drawCircle(Color(0xFF9E9E9E).copy(alpha = 0.32f), radius, Offset(x, y))
+            }
+
+            // Trastes e pestana.
+            for (f in 0..frets) {
+                val x = board.left + f * fretGap
+                if (f == 0) {
+                    // A pestana: osso, e mais grossa que qualquer traste.
+                    drawLine(Color(0xFFEDE6D1), Offset(x, board.top), Offset(x, board.bottom), strokeWidth = 3.5.dp.toPx())
+                } else {
+                    // Um traste é metal com um brilho em cima e uma sombra
+                    // embaixo. Uma linha cinza chapada é uma grade.
+                    drawLine(Color.Black.copy(alpha = 0.5f), Offset(x, board.top), Offset(x, board.bottom), strokeWidth = 2.2.dp.toPx())
+                    val hx = x - 0.6f.dp.toPx()
+                    drawLine(Color(0xFFC7C7C7).copy(alpha = 0.85f), Offset(hx, board.top), Offset(hx, board.bottom), strokeWidth = 1.2.dp.toPx())
+                }
+            }
+
+            // Cordas: a de cima é a mais aguda, fina; a de baixo, a mais
+            // grave, grossa; as duas mais graves em bronze.
             for (s in 0 until strings) {
-                val y = insetY + s * stringGap
+                val y = board.top + s * stringGap
+                val thickness = (0.9f + s.toFloat() / maxOf(strings - 1, 1) * 1.9f).dp.toPx()
                 drawLine(
-                    Color.White.copy(alpha = 0.3f),
-                    Offset(insetX, y), Offset(insetX + gridWidth, y),
-                    strokeWidth = (if (s < strings / 2) 1.dp else 1.6.dp).toPx(),
+                    Color.Black.copy(alpha = 0.45f),
+                    Offset(board.left, y + 1.dp.toPx()), Offset(board.right, y + 1.dp.toPx()),
+                    strokeWidth = thickness + 0.8f.dp.toPx(),
+                )
+                drawLine(
+                    if (s >= strings - 2) Color(0xFFC7A366) else Color(0xFFDBDBDB),
+                    Offset(board.left, y), Offset(board.right, y),
+                    strokeWidth = thickness,
                 )
                 val label = textMeasurer.measure(
                     openStrings[s],
-                    TextStyle(fontSize = 10.sp, fontWeight = FontWeight.SemiBold),
+                    TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace),
                 )
                 drawText(
                     label,
-                    color = Color.White.copy(alpha = 0.5f),
-                    topLeft = Offset(labelRight - label.size.width, y - label.size.height / 2f),
-                )
-            }
-            for (f in 0..frets) {
-                val x = insetX + f * fretGap
-                drawLine(
-                    Color.White.copy(alpha = if (f == 0) 0.8f else 0.2f),
-                    Offset(x, insetY), Offset(x, insetY + gridHeight),
-                    strokeWidth = (if (f == 0) 2.5.dp else 1.dp).toPx(),
-                )
-            }
-            for (marker in listOf(3, 5, 7, 9, 12)) {
-                val label = textMeasurer.measure(
-                    "$marker",
-                    TextStyle(fontSize = 9.sp, fontWeight = FontWeight.Medium),
-                )
-                drawText(
-                    label,
-                    color = Color.White.copy(alpha = 0.35f),
-                    topLeft = Offset(
-                        insetX + (marker - 0.5f) * fretGap - label.size.width / 2f,
-                        insetY + gridHeight + 8.dp.toPx(),
-                    ),
+                    color = Color.White.copy(alpha = 0.55f),
+                    topLeft = Offset(15.dp.toPx() - label.size.width / 2f, y - label.size.height / 2f),
                 )
             }
 
+            // As notas da escala, com o NOME dentro. Um ponto diz onde pôr o
+            // dedo; o nome diz que nota é, e é a segunda coisa que faz alguém
+            // aprender a escala em vez de decorar um desenho.
             for (s in 0 until strings) {
+                val y = board.top + s * stringGap
                 for (f in 0..frets) {
                     val pitchClass = (openPitchClass[s] + f) % 12
                     val name = MusicNotes.noteNames[pitchClass]
                     if (name !in scaleNotes) continue
-                    val x = if (f == 0) openDotX else insetX + (f - 0.5f) * fretGap
-                    val y = insetY + s * stringGap
+                    val x = if (f == 0) gutter - 15.dp.toPx() else board.left + (f - 0.5f) * fretGap
                     val isRoot = name == root
+                    val radius = (if (isRoot) 10.dp else 8.6.dp).toPx()
+                    val centre = Offset(x, y)
+                    drawCircle(Color.Black.copy(alpha = 0.55f), radius, centre + Offset(0f, 1.5f.dp.toPx()))
+                    if (isRoot) {
+                        drawCircle(
+                            Brush.verticalGradient(
+                                listOf(accent, accent.copy(alpha = 0.72f)),
+                                startY = centre.y - radius, endY = centre.y + radius,
+                            ),
+                            radius, centre,
+                        )
+                    } else {
+                        drawCircle(Color(0xFF212121).copy(alpha = 0.94f), radius, centre)
+                    }
                     drawCircle(
-                        color = if (isRoot) accent else Color.White.copy(alpha = 0.75f),
-                        radius = (if (isRoot) 6.5.dp else 5.dp).toPx(),
-                        center = Offset(x, y),
+                        if (isRoot) Color.White.copy(alpha = 0.85f) else accent.copy(alpha = 0.55f),
+                        radius, centre,
+                        style = Stroke((if (isRoot) 1.6f else 1.2f).dp.toPx()),
+                    )
+                    val label = textMeasurer.measure(
+                        name,
+                        TextStyle(fontSize = 9.5.sp, fontWeight = FontWeight.Black),
+                    )
+                    drawText(
+                        label,
+                        color = if (isRoot) Color.Black else Color.White.copy(alpha = 0.92f),
+                        topLeft = Offset(x - label.size.width / 2f, y - label.size.height / 2f),
                     )
                 }
+            }
+
+            // O número da casa, na faixa de baixo.
+            for (marker in listOf(3, 5, 7, 9, 12)) {
+                val label = textMeasurer.measure(
+                    "$marker",
+                    TextStyle(fontSize = 9.5.sp, fontWeight = FontWeight.Bold),
+                )
+                drawText(
+                    label,
+                    color = Color.White.copy(alpha = 0.42f),
+                    topLeft = Offset(
+                        board.left + (marker - 0.5f) * fretGap - label.size.width / 2f,
+                        board.bottom + footer * 0.62f - label.size.height / 2f,
+                    ),
+                )
             }
         }
     }

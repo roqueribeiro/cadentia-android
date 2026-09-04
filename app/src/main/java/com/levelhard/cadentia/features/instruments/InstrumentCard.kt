@@ -1,6 +1,7 @@
 package com.levelhard.cadentia.features.instruments
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,14 +21,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -103,23 +110,41 @@ fun InstrumentCardView(card: InstrumentCard, modifier: Modifier = Modifier, onCl
             .clickable(onClick = onClick)
             .semantics(mergeDescendants = true) {},
     ) {
-        // A arte ocupa os 62% da direita e some para a esquerda.
+        // A arte ocupa os 62% da direita e some para a esquerda. A máscara vai
+        // NA FOTO (alpha, DstIn), não é um véu escuro por cima: é a foto
+        // nascendo de dentro do fundo do card, como no iOS.
         Row(Modifier.fillMaxSize()) {
             Box(Modifier.weight(0.38f))
-            Box(Modifier.weight(0.62f).fillMaxHeight()) {
-                InstrumentArt(card.id, card.tint, Modifier.fillMaxSize())
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .background(
+            Box(
+                Modifier
+                    .weight(0.62f)
+                    .fillMaxHeight()
+                    .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                    .drawWithContent {
+                        drawContent()
+                        drawRect(
                             Brush.horizontalGradient(
-                                0.0f to CzTokens.stageBottom.copy(alpha = 0.92f),
-                                0.30f to CzTokens.stageBottom.copy(alpha = 0.72f),
-                                0.58f to CzTokens.stageBottom.copy(alpha = 0.20f),
-                                0.80f to Color.Transparent,
+                                0.0f to Color.Transparent,
+                                0.30f to Color.Black.copy(alpha = 0.28f),
+                                0.58f to Color.Black.copy(alpha = 0.80f),
+                                0.80f to Color.Black,
                             ),
-                        ),
-                )
+                            blendMode = BlendMode.DstIn,
+                        )
+                    },
+            ) {
+                val photo = instrumentPhoto(card.id)
+                if (photo != null) {
+                    Image(
+                        painter = painterResource(photo),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                } else {
+                    // Sem foto, o desenho: assumidamente gráfico, o piso.
+                    InstrumentArt(card.id, card.tint, Modifier.fillMaxSize())
+                }
             }
         }
         // Tags em cima, à esquerda.
@@ -163,6 +188,21 @@ fun InstrumentCardView(card: InstrumentCard, modifier: Modifier = Modifier, onCl
             )
         }
     }
+}
+
+/**
+ * A foto de um instrumento no hub, ou null quando ela não existe — port do
+ * `InstrumentArt.photo(id:)`. São as MESMAS imagens do iOS
+ * (`instrument-<id>@2x/@3x.heic`), convertidas para WebP sem perda em
+ * `drawable-xhdpi` (@2x) e `drawable-xxhdpi` (@3x). A foto ganha; o vetor
+ * abaixo é o piso.
+ */
+fun instrumentPhoto(id: String): Int? = when (id) {
+    "piano" -> R.drawable.instrument_piano
+    "cordas" -> R.drawable.instrument_cordas
+    "drums" -> R.drawable.instrument_drums
+    "bass" -> R.drawable.instrument_bass
+    else -> null
 }
 
 /**

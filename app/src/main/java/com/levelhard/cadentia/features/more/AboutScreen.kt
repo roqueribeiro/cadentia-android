@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PanTool
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Forum
+import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -133,6 +134,7 @@ fun AboutScreen() {
                 Section(R.string.cadentia_about_separation_title, R.string.cadentia_about_separation_body)
                 Section(R.string.cadentia_about_privacy_title, R.string.cadentia_about_privacy_body)
                 Section(R.string.cadentia_about_roqueos_title, R.string.cadentia_about_roqueos_body)
+                Section(R.string.cadentia_about_cordas_title, R.string.cadentia_about_cordas_body)
 
                 // Quem faz. O crédito ao Rafael é específico de propósito: ele
                 // não "colaborou", ele pediu o app e teve a ideia da separação.
@@ -162,6 +164,16 @@ fun AboutScreen() {
                             accent = accent,
                             tag = "about.linkedin.rafael",
                         ) { open("https://www.linkedin.com/in/rafael-luques/") }
+                        Divider(color = CzTokens.hairline)
+                        // O autor do Cordas: o violão por modelagem física e a
+                        // ideia de ler as mãos pela câmera são dele.
+                        Person(
+                            name = "Phelipi Dal Olio", // i18n-verbatim: nome próprio
+                            roleRes = R.string.cadentia_about_phelipi_role,
+                            icon = Icons.Filled.GraphicEq,
+                            accent = accent,
+                            tag = "about.linkedin.phelipi",
+                        ) { open("https://www.linkedin.com/in/phelipi/") }
                     }
                 }
 
@@ -341,6 +353,31 @@ private fun LicensesSheet(onDismiss: () -> Unit) {
                 fontSize = 13.sp,
                 color = CzTokens.textSecondary,
             )
+            // O Cordas vem primeiro, como no iOS: é a origem de um modo inteiro.
+            CzCard(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.padding(16.dp),
+                ) {
+                    Text(
+                        text = "Cordas", // i18n-verbatim: nome do projeto
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = CzTokens.textPrimary,
+                    )
+                    Text(
+                        text = "github.com/phelipiii/cordas", // i18n-verbatim: endereço
+                        fontSize = 12.sp,
+                        fontFamily = FontFamily.Monospace,
+                        color = CzTokens.textTertiary,
+                    )
+                    Text(
+                        text = stringResource(R.string.cadentia_about_cordas_credit),
+                        fontSize = 11.sp,
+                        color = CzTokens.textSecondary,
+                    )
+                }
+            }
             CzCard(modifier = Modifier.fillMaxWidth()) {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(10.dp),

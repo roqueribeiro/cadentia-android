@@ -4,8 +4,8 @@
 <resources>
     <string name="app_name" translatable="false">Cadentia</string>
     <string name="cadentia_about_close">Concluir</string>
-    <string name="cadentia_about_cordas_body">O modo Cordas nasceu do app Cordas, do Phelipi (github.com/phelipiii/cordas): o violão por modelagem física e a ideia de ler as mãos pela câmera são dele. A síntese e a geometria foram reescritas em Swift nativo, com o corpo do violão como banco de ressonadores e o rastreamento das mãos pelo Vision da Apple, no próprio aparelho.</string>
-    <string name="cadentia_about_cordas_credit">Ideia e implementação original de Phelipi. Portado para Swift nativo com autorização.</string>
+    <string name="cadentia_about_cordas_body">O modo Cordas nasceu do app Cordas, do Phelipi (github.com/phelipiii/cordas): o violão por modelagem física e a ideia de ler as mãos pela câmera são dele. A síntese e a geometria foram reescritas em Kotlin nativo, com o corpo do violão como banco de ressonadores e o rastreamento das mãos pelo MediaPipe do Google, no próprio aparelho.</string>
+    <string name="cadentia_about_cordas_credit">Ideia e implementação original de Phelipi. Portado para Kotlin nativo com autorização.</string>
     <string name="cadentia_about_cordas_title">De onde veio o modo Cordas</string>
     <string name="cadentia_about_licenses_intro">O Cadentia usa software livre de terceiros. Abaixo, o aviso de direitos autorais e a licença de cada um, como exigido por elas.</string>
     <string name="cadentia_about_link_community">Comunidade e suporte</string>
@@ -14,7 +14,7 @@
     <string name="cadentia_about_link_site">Site do RoqueOS</string>
     <string name="cadentia_about_link_terms">Termos de uso</string>
     <string name="cadentia_about_makers_title">Quem faz</string>
-    <string name="cadentia_about_phelipi_role">Autor do Cordas. O violão por modelagem física e a ideia de ler as mãos pela câmera são dele — o modo Cordas do Cadentia é a implementação dele, portada para Swift nativo com autorização.</string>
+    <string name="cadentia_about_phelipi_role">Autor do Cordas. O violão por modelagem física e a ideia de ler as mãos pela câmera são dele — o modo Cordas do Cadentia é a implementação dele, portada para Kotlin nativo com autorização.</string>
     <string name="cadentia_about_privacy_body">O Cadentia não tem conta própria, não pede cadastro e não usa rastreamento nem anúncio. O microfone só é usado pelo afinador, ao vivo, sem gravar nada. Suas músicas e gravações ficam no aparelho. Se você conectar ao RoqueOS, o app guarda apenas a credencial daquela conexão, e desconectar apaga.</string>
     <string name="cadentia_about_privacy_title">Privacidade</string>
     <string name="cadentia_about_rafael_role">Músico. O Cadentia existe porque ele pediu, e a separação de instrumentos foi ideia dele. É dele que vem a régua do que serve de verdade para quem estuda com o instrumento na mão.</string>

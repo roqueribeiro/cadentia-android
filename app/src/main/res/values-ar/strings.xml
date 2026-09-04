@@ -3,8 +3,8 @@
      Não edite na mão: mude o catálogo (a fonte é o iOS) e regenere. -->
 <resources>
     <string name="cadentia_about_close">تم</string>
-    <string name="cadentia_about_cordas_body">وُلد وضع Cordas من تطبيق Cordas لفيليبي (github.com/phelipiii/cordas): الجيتار بالنمذجة الفيزيائية وفكرة قراءة اليدين بالكاميرا فكرته. أُعيدت كتابة التوليف والهندسة بلغة Swift الأصلية.</string>
-    <string name="cadentia_about_cordas_credit">الفكرة والتنفيذ الأصليان لفيليبي. نُقل إلى Swift الأصلية بإذن.</string>
+    <string name="cadentia_about_cordas_body">وُلد وضع Cordas من تطبيق Cordas لفيليبي (github.com/phelipiii/cordas): الجيتار بالنمذجة الفيزيائية وفكرة قراءة اليدين بالكاميرا فكرته. أُعيدت كتابة التوليف والهندسة بلغة Kotlin الأصلية.</string>
+    <string name="cadentia_about_cordas_credit">الفكرة والتنفيذ الأصليان لفيليبي. نُقل إلى Kotlin الأصلية بإذن.</string>
     <string name="cadentia_about_cordas_title">من أين جاء وضع Cordas</string>
     <string name="cadentia_about_licenses_intro">يستخدم Cadentia برمجيات مفتوحة المصدر من أطراف أخرى. في ما يلي إشعار حقوق النشر ورخصة كل منها، كما تشترط تلك الرخص.</string>
     <string name="cadentia_about_link_community">المجتمع والدعم</string>
@@ -13,7 +13,7 @@
     <string name="cadentia_about_link_site">موقع RoqueOS</string>
     <string name="cadentia_about_link_terms">شروط الاستخدام</string>
     <string name="cadentia_about_makers_title">من يصنعه</string>
-    <string name="cadentia_about_phelipi_role">مؤلف Cordas. الغيتار بالنمذجة الفيزيائية وفكرة قراءة اليدين بالكاميرا من ابتكاره — ووضع Cordas في Cadentia هو تنفيذه، منقولاً إلى Swift الأصلية بإذن منه.</string>
+    <string name="cadentia_about_phelipi_role">مؤلف Cordas. الغيتار بالنمذجة الفيزيائية وفكرة قراءة اليدين بالكاميرا من ابتكاره — ووضع Cordas في Cadentia هو تنفيذه، منقولاً إلى Kotlin الأصلية بإذن منه.</string>
     <string name="cadentia_about_privacy_body">لا يملك Cadentia حساباً خاصاً به، ولا يطلب تسجيلاً، ولا يستخدم تتبعاً ولا إعلانات. الميكروفون يستعمله المِعْيار فقط، مباشرةً، دون تسجيل أي شيء. أغانيك وتسجيلاتك تبقى على الجهاز. وإن وصلته بـ RoqueOS، لا يحفظ التطبيق سوى بيانات ذلك الاتصال، ويمحوها فصلُ الاتصال.</string>
     <string name="cadentia_about_privacy_title">الخصوصية</string>
     <string name="cadentia_about_rafael_role">موسيقي. وُجد Cadentia لأنه طلبه، وفصل الآلات كان فكرته. ومنه يأتي المعيار لما ينفع فعلاً من يتمرّن والآلة في يده.</string>

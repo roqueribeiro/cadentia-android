@@ -17,8 +17,10 @@ android {
         applicationId = "com.levelhard.cadentia"
         minSdk = 29
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        // Acompanha o iOS (1.16.0): a mesma versão nas duas lojas. O
+        // versionCode só cresce.
+        versionCode = 2
+        versionName = "1.16.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         ndk {
@@ -105,7 +107,36 @@ android {
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
+    androidResources {
+        // FLAC já é comprimido; sem deflate o pacote não cresce e a cópia
+        // para filesDir é uma leitura sequencial.
+        noCompress += listOf("flac")
+    }
+
+    // Os bancos de sample vão DENTRO do pacote, como no iOS (App/Resources/
+    // Samples no bundle). `scripts/fetch-samples.mjs` constrói `samples/` na
+    // raiz do repo (gitignored, 38 MB de FLAC dos 7 packs CC0); o build copia
+    // essa pasta para os assets. Sem a pasta o build FALHA em vez de gerar um
+    // app que toca só síntese — foi assim que a loja recebeu um pacote sem os
+    // sons em alta definição (04/09/2026).
+    sourceSets["main"].assets.srcDir(layout.buildDirectory.dir("generated/samples-assets"))
 }
+
+val copySampleAssets by tasks.registering(Copy::class) {
+    val source = rootProject.file("samples")
+    doFirst {
+        check(File(source, "packs.json").isFile) {
+            "samples/packs.json ausente: rode `node scripts/fetch-samples.mjs` antes do build " +
+                "(os 7 packs CC0 vão dentro do app, como no iOS)."
+        }
+    }
+    from(source)
+    into(layout.buildDirectory.dir("generated/samples-assets/samples"))
+}
+tasks.matching { it.name.startsWith("merge") && it.name.endsWith("Assets") }
+    .configureEach { dependsOn(copySampleAssets) }
+tasks.matching { it.name.startsWith("generate") && it.name.endsWith("Assets") }
+    .configureEach { dependsOn(copySampleAssets) }
 
 dependencies {
     implementation(project(":kit"))

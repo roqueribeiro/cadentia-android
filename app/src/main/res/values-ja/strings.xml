@@ -3,8 +3,8 @@
      Não edite na mão: mude o catálogo (a fonte é o iOS) e regenere. -->
 <resources>
     <string name="cadentia_about_close">完了</string>
-    <string name="cadentia_about_cordas_body">Cordas モードは Phelipi のアプリ Cordas (github.com/phelipiii/cordas) から生まれました。物理モデリングのギターと、カメラで手を読み取るという発想は彼のものです。合成と幾何はネイティブ Swift で書き直しました。</string>
-    <string name="cadentia_about_cordas_credit">オリジナルの発想と実装は Phelipi。許可を得てネイティブ Swift に移植。</string>
+    <string name="cadentia_about_cordas_body">Cordas モードは Phelipi のアプリ Cordas (github.com/phelipiii/cordas) から生まれました。物理モデリングのギターと、カメラで手を読み取るという発想は彼のものです。合成と幾何はネイティブ Kotlin で書き直しました。</string>
+    <string name="cadentia_about_cordas_credit">オリジナルの発想と実装は Phelipi。許可を得てネイティブ Kotlin に移植。</string>
     <string name="cadentia_about_cordas_title">Cordas モードの由来</string>
     <string name="cadentia_about_licenses_intro">Cadentiaは第三者のオープンソースソフトウェアを利用しています。以下は、それぞれの著作権表示とライセンスです。ライセンスがそれを求めています。</string>
     <string name="cadentia_about_link_community">コミュニティとサポート</string>
@@ -13,7 +13,7 @@
     <string name="cadentia_about_link_site">RoqueOSのサイト</string>
     <string name="cadentia_about_link_terms">利用規約</string>
     <string name="cadentia_about_makers_title">つくっている人</string>
-    <string name="cadentia_about_phelipi_role">Cordasの作者。物理モデリングによるギターと、カメラで手を読み取るという発想は彼のもの。CadentiaのCordasモードは彼の実装を、許可を得てネイティブSwiftへ移植したものです。</string>
+    <string name="cadentia_about_phelipi_role">Cordasの作者。物理モデリングによるギターと、カメラで手を読み取るという発想は彼のもの。CadentiaのCordasモードは彼の実装を、許可を得てネイティブKotlinへ移植したものです。</string>
     <string name="cadentia_about_privacy_body">Cadentiaは独自のアカウントを持たず、登録を求めず、トラッキングも広告も使いません。マイクはチューナーがその場で使うだけで、録音はしません。曲や録音は端末に残ります。RoqueOSに接続した場合、その接続の資格情報だけを保存し、接続を解除すると消えます。</string>
     <string name="cadentia_about_privacy_title">プライバシー</string>
     <string name="cadentia_about_rafael_role">ミュージシャン。Cadentiaは彼の依頼から生まれ、楽器の分離も彼の発案です。楽器を手にして練習する人に本当に役立つかどうかの基準は、彼から来ています。</string>

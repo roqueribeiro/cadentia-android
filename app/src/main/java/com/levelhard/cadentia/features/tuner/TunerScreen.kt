@@ -191,12 +191,13 @@ fun TunerScreen(store: SettingsStore) {
                                 }
                             }
                         }
+                        Gauge(displayCents, noteDisplay, octaveDisplay, state, isTuned)
+                        // Na ordem do iOS: o anel primeiro, as cordas embaixo dele.
                         StringChips(
                             instrument = instrument,
                             targetNote = targetString?.note,
                             isTuned = isTuned,
                         )
-                        Gauge(displayCents, noteDisplay, octaveDisplay, state, isTuned)
                         TuningGraphView(
                             cents = displayCents,
                             active = state.heldFrequency != null,

@@ -3,8 +3,8 @@
      Não edite na mão: mude o catálogo (a fonte é o iOS) e regenere. -->
 <resources>
     <string name="cadentia_about_close">Готово</string>
-    <string name="cadentia_about_cordas_body">Режим Cordas родился из приложения Cordas Фелипи (github.com/phelipiii/cordas): гитара по физической модели и идея читать руки камерой — его. Синтез и геометрия переписаны на нативном Swift.</string>
-    <string name="cadentia_about_cordas_credit">Оригинальная идея и реализация — Фелипи. Портировано на нативный Swift с разрешения.</string>
+    <string name="cadentia_about_cordas_body">Режим Cordas родился из приложения Cordas Фелипи (github.com/phelipiii/cordas): гитара по физической модели и идея читать руки камерой — его. Синтез и геометрия переписаны на нативном Kotlin.</string>
+    <string name="cadentia_about_cordas_credit">Оригинальная идея и реализация — Фелипи. Портировано на нативный Kotlin с разрешения.</string>
     <string name="cadentia_about_cordas_title">Откуда взялся режим Cordas</string>
     <string name="cadentia_about_licenses_intro">Cadentia использует стороннее программное обеспечение с открытым исходным кодом. Ниже приведены уведомление об авторских правах и лицензия каждого, как того требуют эти лицензии.</string>
     <string name="cadentia_about_link_community">Сообщество и поддержка</string>
@@ -13,7 +13,7 @@
     <string name="cadentia_about_link_site">Сайт RoqueOS</string>
     <string name="cadentia_about_link_terms">Условия использования</string>
     <string name="cadentia_about_makers_title">Кто его делает</string>
-    <string name="cadentia_about_phelipi_role">Автор Cordas. Гитара на физическом моделировании и идея считывать руки камерой — его. Режим Cordas в Cadentia — это его реализация, портированная на нативный Swift с разрешения.</string>
+    <string name="cadentia_about_phelipi_role">Автор Cordas. Гитара на физическом моделировании и идея считывать руки камерой — его. Режим Cordas в Cadentia — это его реализация, портированная на нативный Kotlin с разрешения.</string>
     <string name="cadentia_about_privacy_body">У Cadentia нет своей учётной записи, регистрация не нужна, трекинга и рекламы нет. Микрофон использует только тюнер, вживую, ничего не записывая. Ваши песни и записи остаются на устройстве. При подключении к RoqueOS приложение хранит только учётные данные этого подключения, и отключение их стирает.</string>
     <string name="cadentia_about_privacy_title">Конфиденциальность</string>
     <string name="cadentia_about_rafael_role">Музыкант. Cadentia существует потому, что он попросил, и разделение инструментов было его идеей. Именно он задаёт мерку того, что действительно помогает человеку с инструментом в руках.</string>

@@ -3,8 +3,8 @@
      Não edite na mão: mude o catálogo (a fonte é o iOS) e regenere. -->
 <resources>
     <string name="cadentia_about_close">完成</string>
-    <string name="cadentia_about_cordas_body">Cordas 模式源自 Phelipi 的应用 Cordas (github.com/phelipiii/cordas)：物理建模吉他和用相机读取双手的想法都出自他。合成与几何部分用原生 Swift 重写。</string>
-    <string name="cadentia_about_cordas_credit">原始创意与实现来自 Phelipi。经许可移植为原生 Swift。</string>
+    <string name="cadentia_about_cordas_body">Cordas 模式源自 Phelipi 的应用 Cordas (github.com/phelipiii/cordas)：物理建模吉他和用相机读取双手的想法都出自他。合成与几何部分用原生 Kotlin 重写。</string>
+    <string name="cadentia_about_cordas_credit">原始创意与实现来自 Phelipi。经许可移植为原生 Kotlin。</string>
     <string name="cadentia_about_cordas_title">Cordas 模式的由来</string>
     <string name="cadentia_about_licenses_intro">Cadentia 使用了第三方开源软件。以下是各自的版权声明与许可证，这是这些许可证所要求的。</string>
     <string name="cadentia_about_link_community">社区与支持</string>
@@ -13,7 +13,7 @@
     <string name="cadentia_about_link_site">RoqueOS 网站</string>
     <string name="cadentia_about_link_terms">使用条款</string>
     <string name="cadentia_about_makers_title">是谁在做</string>
-    <string name="cadentia_about_phelipi_role">Cordas 的作者。物理建模吉他与用摄像头识别双手的构想都出自他手——Cadentia 的 Cordas 模式即是他的实现，经授权移植为原生 Swift。</string>
+    <string name="cadentia_about_phelipi_role">Cordas 的作者。物理建模吉他与用摄像头识别双手的构想都出自他手——Cadentia 的 Cordas 模式即是他的实现，经授权移植为原生 Kotlin。</string>
     <string name="cadentia_about_privacy_body">Cadentia 没有自己的账号，不要求注册，也不使用追踪或广告。麦克风只由调音器实时使用，不会录下任何东西。你的音乐和录音留在设备里。如果你连接 RoqueOS，应用只保存那次连接的凭证，断开即清除。</string>
     <string name="cadentia_about_privacy_title">隐私</string>
     <string name="cadentia_about_rafael_role">音乐人。Cadentia 因他的提议而存在，乐器分离也是他的想法。什么才真正对手握乐器练习的人有用，这把尺子来自他。</string>

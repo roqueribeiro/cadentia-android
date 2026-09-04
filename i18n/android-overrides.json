@@ -1,5 +1,5 @@
 {
-  "_comment": "Ajustes APENAS de plataforma sobre o catálogo do iOS: o texto do iOS fala em iPhone e GPU do iPhone; no Android o aparelho é outro. Cada entrada é uma substituição de trecho por chave e idioma; o gerador FALHA se o trecho não existir mais (para o ajuste não sobreviver a um texto que mudou na fonte). Achado do QA no emulador: a tela Sobre dizia 'roda na GPU do próprio iPhone'.",
+  "_comment": "Ajustes APENAS de plataforma sobre o catálogo do iOS: o texto do iOS fala em iPhone e GPU do iPhone; no Android o aparelho é outro. Cada entrada é uma substituição de trecho por chave e idioma; o gerador FALHA se o trecho não existir mais (para o ajuste não sobreviver a um texto que mudou na fonte). Achado do QA no emulador: a tela Sobre dizia 'roda na GPU do próprio iPhone'. 04/09: os créditos do Cordas dizem 'Swift nativo' e 'Vision da Apple'; no Android é Kotlin e MediaPipe.",
   "overrides": [
     {
       "key": "cadentia.about.roqueosBody",
@@ -234,6 +234,198 @@
       "locale": "ar",
       "find": " وiCloud Drive",
       "replace": ""
+    },
+    {
+      "key": "cadentia.about.cordasBody",
+      "locale": "pt-BR",
+      "find": "Swift nativo",
+      "replace": "Kotlin nativo"
+    },
+    {
+      "key": "cadentia.about.cordasBody",
+      "locale": "en",
+      "find": "native Swift",
+      "replace": "native Kotlin"
+    },
+    {
+      "key": "cadentia.about.cordasBody",
+      "locale": "es",
+      "find": "Swift nativo",
+      "replace": "Kotlin nativo"
+    },
+    {
+      "key": "cadentia.about.cordasBody",
+      "locale": "fr",
+      "find": "Swift natif",
+      "replace": "Kotlin natif"
+    },
+    {
+      "key": "cadentia.about.cordasBody",
+      "locale": "de",
+      "find": "nativem Swift",
+      "replace": "nativem Kotlin"
+    },
+    {
+      "key": "cadentia.about.cordasBody",
+      "locale": "hi",
+      "find": "नेटिव Swift",
+      "replace": "नेटिव Kotlin"
+    },
+    {
+      "key": "cadentia.about.cordasBody",
+      "locale": "ru",
+      "find": "Swift",
+      "replace": "Kotlin"
+    },
+    {
+      "key": "cadentia.about.cordasBody",
+      "locale": "zh-Hans",
+      "find": "原生 Swift",
+      "replace": "原生 Kotlin"
+    },
+    {
+      "key": "cadentia.about.cordasBody",
+      "locale": "ar",
+      "find": "Swift الأصلية",
+      "replace": "Kotlin الأصلية"
+    },
+    {
+      "key": "cadentia.about.cordasCredit",
+      "locale": "pt-BR",
+      "find": "Swift nativo",
+      "replace": "Kotlin nativo"
+    },
+    {
+      "key": "cadentia.about.cordasCredit",
+      "locale": "en",
+      "find": "native Swift",
+      "replace": "native Kotlin"
+    },
+    {
+      "key": "cadentia.about.cordasCredit",
+      "locale": "es",
+      "find": "Swift nativo",
+      "replace": "Kotlin nativo"
+    },
+    {
+      "key": "cadentia.about.cordasCredit",
+      "locale": "fr",
+      "find": "Swift natif",
+      "replace": "Kotlin natif"
+    },
+    {
+      "key": "cadentia.about.cordasCredit",
+      "locale": "de",
+      "find": "nativem Swift",
+      "replace": "nativem Kotlin"
+    },
+    {
+      "key": "cadentia.about.cordasCredit",
+      "locale": "hi",
+      "find": "नेटिव Swift",
+      "replace": "नेटिव Kotlin"
+    },
+    {
+      "key": "cadentia.about.cordasCredit",
+      "locale": "ru",
+      "find": "Swift",
+      "replace": "Kotlin"
+    },
+    {
+      "key": "cadentia.about.cordasCredit",
+      "locale": "zh-Hans",
+      "find": "原生 Swift",
+      "replace": "原生 Kotlin"
+    },
+    {
+      "key": "cadentia.about.cordasCredit",
+      "locale": "ar",
+      "find": "Swift الأصلية",
+      "replace": "Kotlin الأصلية"
+    },
+    {
+      "key": "cadentia.about.phelipiRole",
+      "locale": "pt-BR",
+      "find": "Swift nativo",
+      "replace": "Kotlin nativo"
+    },
+    {
+      "key": "cadentia.about.phelipiRole",
+      "locale": "en",
+      "find": "native Swift",
+      "replace": "native Kotlin"
+    },
+    {
+      "key": "cadentia.about.phelipiRole",
+      "locale": "es",
+      "find": "Swift nativo",
+      "replace": "Kotlin nativo"
+    },
+    {
+      "key": "cadentia.about.phelipiRole",
+      "locale": "fr",
+      "find": "Swift natif",
+      "replace": "Kotlin natif"
+    },
+    {
+      "key": "cadentia.about.phelipiRole",
+      "locale": "de",
+      "find": "nativem Swift",
+      "replace": "nativem Kotlin"
+    },
+    {
+      "key": "cadentia.about.phelipiRole",
+      "locale": "hi",
+      "find": "नेटिव Swift",
+      "replace": "नेटिव Kotlin"
+    },
+    {
+      "key": "cadentia.about.phelipiRole",
+      "locale": "ru",
+      "find": "Swift",
+      "replace": "Kotlin"
+    },
+    {
+      "key": "cadentia.about.phelipiRole",
+      "locale": "zh-Hans",
+      "find": "原生 Swift",
+      "replace": "原生 Kotlin"
+    },
+    {
+      "key": "cadentia.about.phelipiRole",
+      "locale": "ar",
+      "find": "Swift الأصلية",
+      "replace": "Kotlin الأصلية"
+    },
+    {
+      "key": "cadentia.about.cordasBody",
+      "locale": "ja",
+      "find": "ネイティブ Swift",
+      "replace": "ネイティブ Kotlin"
+    },
+    {
+      "key": "cadentia.about.cordasCredit",
+      "locale": "ja",
+      "find": "ネイティブ Swift",
+      "replace": "ネイティブ Kotlin"
+    },
+    {
+      "key": "cadentia.about.phelipiRole",
+      "locale": "ja",
+      "find": "ネイティブSwift",
+      "replace": "ネイティブKotlin"
+    },
+    {
+      "key": "cadentia.about.cordasBody",
+      "locale": "pt-BR",
+      "find": "pelo Vision da Apple",
+      "replace": "pelo MediaPipe do Google"
+    },
+    {
+      "key": "cadentia.about.cordasBody",
+      "locale": "en",
+      "find": "by Apple's Vision",
+      "replace": "by Google's MediaPipe"
     }
   ]
 }

@@ -9,10 +9,22 @@ class CadentiaApp : Application() {
     override fun onCreate() {
         super.onCreate()
         // Os bancos de sample entram aqui, antes de qualquer tela existir
-        // (o `CadentiaApp.swift` faz o mesmo). Pack ausente não é erro: o app
-        // volta a tocar com síntese sozinho. NÃO se aquece nada aqui — a
+        // (o `CadentiaApp.swift` faz o mesmo). NÃO se aquece nada aqui — a
         // lição do iOS foi 565 MB decodificados para sobrar órgão e nylon.
-        SampleInstall.install(this)
+        //
+        // Os packs vêm dentro do pacote. Na primeira abertura de cada versão
+        // os 38 MB saem dos assets para `filesDir/samples` numa thread de IO
+        // (cópia de ~1 s que não pode segurar o primeiro quadro); enquanto
+        // isso o app toca com síntese e troca para sample na nota seguinte à
+        // instalação. Nas aberturas seguintes é só ler os manifestos.
+        if (SampleInstall.isBundledInstalled(this)) {
+            SampleInstall.install(this)
+        } else {
+            Thread({
+                SampleInstall.copyBundled(this)
+                SampleInstall.install(this)
+            }, "cadentia-samples-install").apply { isDaemon = true }.start()
+        }
     }
 
     /**

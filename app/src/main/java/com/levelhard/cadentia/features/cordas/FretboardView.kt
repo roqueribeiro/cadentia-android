@@ -3,6 +3,7 @@ package com.levelhard.cadentia.features.cordas
 import android.view.MotionEvent
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.systemGestureExclusion
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -122,6 +123,11 @@ fun FretboardView(model: CordasModel, modifier: Modifier = Modifier) {
             .fillMaxSize()
             .background(Color.Black)
             .onSizeChanged { sizePx = it }
+            // Uma batida que começa na borda da tela é uma batida, não um
+            // "voltar": o iOS desliga o pop interativo do NavigationStack em
+            // cima do braço (`CordasView.swift`), aqui o braço sai da zona de
+            // gesto do sistema. Achado do QA: a batida de borda saía da tela.
+            .systemGestureExclusion()
             .testTag("cordas.neck")
             .semantics {
                 contentDescription = neckLabel

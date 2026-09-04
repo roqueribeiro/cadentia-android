@@ -59,6 +59,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -503,33 +506,76 @@ private fun PerformancePad(
                     ),
                 )
             }
-            // Luz de LED por baixo: sobe da borda inferior.
+            // Vinheta interna: a "profundidade de borracha" que vende o pad
+            // (iOS: traço preto de 10% da largura, desfocado em 7%). Sem
+            // blur de traço no Canvas, o desfoque é um gradiente radial que
+            // escurece do meio para a borda.
+            Canvas(Modifier.fillMaxSize()) {
+                val r = size.minDimension
+                drawRect(
+                    brush = Brush.radialGradient(
+                        0.55f to Color.Transparent,
+                        0.82f to Color.Black.copy(alpha = 0.22f),
+                        1.0f to Color.Black.copy(alpha = 0.55f),
+                        center = Offset(size.width / 2f, size.height / 2f),
+                        radius = r * 0.78f,
+                    ),
+                )
+            }
+            // Luz de LED por baixo: sobe da borda inferior até o meio.
+            // `alpha` ANTES de `background`: o modificador de fundo desenha
+            // dentro da camada de alpha só quando vem depois dela na cadeia.
             Box(
                 Modifier
                     .fillMaxSize()
+                    .alpha(if (isLit) 1f else 0.16f)
                     .background(
                         Brush.verticalGradient(
                             0f to Color.Transparent,
-                            0.5f to color.copy(alpha = if (isLit) 0.12f else 0.02f),
-                            1f to color.copy(alpha = if (isLit) 0.75f else 0.12f),
+                            0.5f to Color.Transparent,
+                            0.75f to color.copy(alpha = 0.12f),
+                            1f to color.copy(alpha = 0.75f),
                         ),
                     ),
             )
-            // Linha emissora do LED na borda de baixo.
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
-                Box(
-                    Modifier
-                        .padding(bottom = 8.dp)
-                        .size(width = 62.dp, height = 3.5.dp)
-                        .clip(CircleShape)
-                        .background(color.copy(alpha = if (isLit) 1f else 0.5f)),
+            // Linha emissora do LED na borda de baixo, com o halo da cor
+            // (o `shadow(color:radius:)` do iOS: 10 aceso, 3 apagado).
+            Canvas(Modifier.fillMaxSize()) {
+                val w = size.width * 0.56f
+                val h = 3.5.dp.toPx()
+                val cx = size.width / 2f
+                val cy = size.height - size.height * 0.075f - h / 2f
+                val halo = (if (isLit) 10.dp else 3.dp).toPx()
+                drawRoundRect(
+                    brush = Brush.radialGradient(
+                        listOf(color.copy(alpha = if (isLit) 0.55f else 0.16f), Color.Transparent),
+                        center = Offset(cx, cy),
+                        radius = w / 2f + halo,
+                    ),
+                    topLeft = Offset(cx - w / 2f - halo, cy - h / 2f - halo),
+                    size = Size(w + halo * 2, h + halo * 2),
+                    cornerRadius = CornerRadius(h + halo),
+                )
+                drawRoundRect(
+                    color = color.copy(alpha = if (isLit) 1f else 0.5f),
+                    topLeft = Offset(cx - w / 2f, cy - h / 2f),
+                    size = Size(w, h),
+                    cornerRadius = CornerRadius(h / 2f),
                 )
             }
-            // Aro: assento escuro.
+            // Lavagem do toque.
+            if (isLit) Box(Modifier.fillMaxSize().background(color.copy(alpha = 0.20f)))
+            // Aro: assento escuro + luz sutil no topo.
             Box(
                 Modifier
                     .fillMaxSize()
                     .border(1.5.dp, Color.Black.copy(alpha = 0.9f), shape),
+            )
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(1.5.dp)
+                    .border(1.dp, Color.White.copy(alpha = 0.08f), shape),
             )
             // Micro-rótulo (maiúsculas, sussurrado; aceso no modo edição).
             Box(Modifier.fillMaxSize().padding(top = 10.dp, start = 6.dp, end = 6.dp), contentAlignment = Alignment.TopCenter) {
