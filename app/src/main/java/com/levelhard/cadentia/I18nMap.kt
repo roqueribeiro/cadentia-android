@@ -3,6 +3,10 @@ package com.levelhard.cadentia
 /** GERADO por scripts/gen-i18n.py — chave do catálogo -> R.string. Não edite. */
 object I18nMap {
     val byKey: Map<String, Int> = mapOf(
+        "cadentia.a11y.edit" to R.string.cadentia_a11y_edit,
+        "cadentia.a11y.redo" to R.string.cadentia_a11y_redo,
+        "cadentia.a11y.share" to R.string.cadentia_a11y_share,
+        "cadentia.a11y.undo" to R.string.cadentia_a11y_undo,
         "cadentia.about.close" to R.string.cadentia_about_close,
         "cadentia.about.cordasBody" to R.string.cadentia_about_cordas_body,
         "cadentia.about.cordasCredit" to R.string.cadentia_about_cordas_credit,

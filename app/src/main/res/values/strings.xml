@@ -3,6 +3,10 @@
      Não edite na mão: mude o catálogo (a fonte é o iOS) e regenere. -->
 <resources>
     <string name="app_name" translatable="false">Cadentia</string>
+    <string name="cadentia_a11y_edit">Editar</string>
+    <string name="cadentia_a11y_redo">Refazer</string>
+    <string name="cadentia_a11y_share">Compartilhar</string>
+    <string name="cadentia_a11y_undo">Desfazer</string>
     <string name="cadentia_about_close">Concluir</string>
     <string name="cadentia_about_cordas_body">O modo Cordas nasceu do app Cordas, do Phelipi (github.com/phelipiii/cordas): o violão por modelagem física e a ideia de ler as mãos pela câmera são dele. A síntese e a geometria foram reescritas em Kotlin nativo, com o corpo do violão como banco de ressonadores e o rastreamento das mãos pelo MediaPipe do Google, no próprio aparelho.</string>
     <string name="cadentia_about_cordas_credit">Ideia e implementação original de Phelipi. Portado para Kotlin nativo com autorização.</string>

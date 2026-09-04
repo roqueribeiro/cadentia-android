@@ -34,6 +34,13 @@ import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
@@ -146,6 +153,31 @@ fun FretboardView(model: CordasModel, modifier: Modifier = Modifier) {
             @Suppress("UNUSED_EXPRESSION") frame
             val current = layout ?: return@Canvas
             FretboardPainter(this, model, current, density, textMeasurer, reduceMotion, mutedLabel).draw()
+        }
+        // Os pads de acorde como botões para o TalkBack (a
+        // `accessibilityRepresentation` do iOS): nós invisíveis sobre cada
+        // pad, sem tocar no caminho de toque, que continua no filtro acima.
+        if (model.mode == CordasModel.Mode.Chords) {
+            layout?.let { current ->
+                for ((index, name) in model.chordNames.withIndex()) {
+                    val rect = current.padGrid.rect(index) ?: continue
+                    val selected = model.chordIndex == index
+                    Box(
+                        Modifier
+                            .offset(rect.x.dp, rect.y.dp)
+                            .size(rect.width.dp, rect.height.dp)
+                            .semantics {
+                                role = Role.Button
+                                contentDescription = name
+                                this.selected = selected
+                                onClick {
+                                    model.setChord(index)
+                                    true
+                                }
+                            },
+                    )
+                }
+            }
         }
     }
 }

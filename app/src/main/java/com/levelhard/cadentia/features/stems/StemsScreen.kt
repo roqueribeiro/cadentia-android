@@ -76,6 +76,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -100,6 +101,21 @@ import com.levelhard.cadentia.kit.Setlist
 import com.levelhard.cadentia.kit.Setlists
 import com.levelhard.cadentia.kit.SongSearch
 import com.levelhard.cadentia.ui.CzCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.rememberStandardBottomSheetState
+import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.BottomSheetScaffold
+import com.levelhard.cadentia.ui.rememberReduceMotion
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.AnimatedContent
 import com.levelhard.cadentia.ui.CzTokens
 import com.levelhard.cadentia.ui.PremiumBackground
 import com.levelhard.cadentia.ui.pageTransition
@@ -276,9 +292,28 @@ fun StemsScreen() {
                             .widthIn(max = 560.dp)
                             .padding(bottom = 60.dp),
                     )
-                    phase is StemsModel.Phase.Ready -> PlayerState(
+                    // O mixer numa folha COM DETENTES por cima do player, sem
+                    // véu: a música segue, a onda continua visível e o
+                    // transporte responde com a folha aberta — o
+                    // `presentationDetents` + `presentationBackgroundInteraction`
+                    // do iOS. Recolhida (300 dp), no meio (62 %) ou inteira.
+                    phase is StemsModel.Phase.Ready -> MixerScaffold(
+                        showMixer = showMixer,
+                        onMixerHidden = {
+                            showMixer = false
+                            model.persistMix()
+                        },
+                        sheet = {
+                            StemMixerContent(
+                                engine = engine, accent = accent, revision = model.revision,
+                                onChanged = { model.persistMix() },
+                            )
+                        },
+                    ) { PlayerState(
                         engine = engine,
                         accent = accent,
+                        songKey = model.currentSongId ?: model.songTitle,
+                        forward = model.lastStep == StemsModel.QueueStep.Forward,
                         songTitle = model.songTitle,
                         queue = model.queue,
                         playhead = playhead,
@@ -301,7 +336,7 @@ fun StemsScreen() {
                         onMixer = { showMixer = true },
                         onQueuePrev = { model.goBackInQueue() },
                         onQueueNext = { model.advanceQueue() },
-                    )
+                    ) }
                     else -> LibraryState(
                         accent = accent,
                         phase = phase,
@@ -340,17 +375,64 @@ fun StemsScreen() {
         }
     }
 
-    if (showMixer) {
-        StemMixerSheet(
-            engine = engine,
-            accent = accent,
-            revision = model.revision,
-            onDismiss = {
-                showMixer = false
-                model.persistMix()
-            },
-            onChanged = { model.persistMix() },
-        )
+}
+
+/**
+ * Folha padrão (não modal) com três detentes sobre o player. O Material 3
+ * dá dois estados (recolhida/expandida); o do meio do iOS (62 %) vira a
+ * altura recolhida generosa, e "inteira" é a expandida. Escondida quando a
+ * pessoa arrasta para baixo, e o estado da tela acompanha.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MixerScaffold(
+    showMixer: Boolean,
+    onMixerHidden: () -> Unit,
+    sheet: @Composable () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    val sheetState = rememberStandardBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        skipHiddenState = false,
+    )
+    val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
+    LaunchedEffect(showMixer) {
+        if (showMixer) sheetState.partialExpand() else if (sheetState.currentValue != SheetValue.Hidden) sheetState.hide()
+    }
+    // Arrastou para baixo até sumir: a tela fica sabendo.
+    LaunchedEffect(sheetState.currentValue) {
+        if (sheetState.currentValue == SheetValue.Hidden && showMixer) onMixerHidden()
+    }
+    BottomSheetScaffold(
+        scaffoldState = scaffoldState,
+        // A folha recolhida tem a altura do conteúdo inteiro deslocada para
+        // baixo; sem o clip ela vaza por trás da barra de abas e aparece na
+        // faixa do gesto de navegação (visto no QA).
+        modifier = Modifier.clipToBounds(),
+        sheetPeekHeight = 300.dp,
+        sheetContainerColor = CzTokens.stageTop,
+        sheetContentColor = CzTokens.textPrimary,
+        sheetShadowElevation = 12.dp,
+        containerColor = Color.Transparent,
+        sheetContent = { sheet() },
+    ) { _ ->
+        // Sem o padding do scaffold: a folha passa POR CIMA do player, como
+        // no iOS, em vez de encolher a onda em 300 dp com a folha escondida.
+        Box(Modifier.fillMaxSize()) { content() }
+    }
+}
+
+/**
+ * Avançar entra pela direita e sai pela esquerda; voltar, o contrário. Com
+ * Reduzir Movimento, só o fade. 400 ms como o `.snappy(duration: 0.4)` do iOS.
+ */
+private fun songTransition(forward: Boolean, reduceMotion: Boolean): AnimatedContentTransitionScope<String>.() -> ContentTransform = {
+    if (reduceMotion) {
+        fadeIn(tween(250)) togetherWith fadeOut(tween(250))
+    } else {
+        val sign = if (forward) 1 else -1
+        (slideInHorizontally(tween(400)) { sign * it } + fadeIn(tween(400))) togetherWith
+            (slideOutHorizontally(tween(400)) { -sign * it } + fadeOut(tween(400)))
     }
 }
 
@@ -474,6 +556,8 @@ private fun BatchBanner(batch: StemsModel.ImportBatch, accent: Color, onDismiss:
 private fun PlayerState(
     engine: StemPlayerEngine,
     accent: Color,
+    songKey: String,
+    forward: Boolean,
     songTitle: String,
     queue: SetQueue?,
     playhead: Double,
@@ -490,6 +574,7 @@ private fun PlayerState(
     onQueueNext: () -> Unit,
 ) {
     @Suppress("UNUSED_EXPRESSION") revision
+    val reduceMotion = rememberReduceMotion()
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -515,21 +600,39 @@ private fun PlayerState(
                     modifier = Modifier.size(18.dp),
                 )
             }
-            Text(
-                text = songTitle,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                color = CzTokens.textPrimary,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .padding(horizontal = 46.dp)
-                    .testTag("stems.title"),
-            )
+            // A troca de música anima pela IDENTIDADE da música (avanço da
+            // fila, pular, voltar, troca manual): avançar entra pela direita,
+            // voltar pela esquerda, como qualquer player — o `songTransition`
+            // do iOS. Com Reduzir Movimento vira um fade.
+            AnimatedContent(
+                targetState = songKey,
+                transitionSpec = songTransition(forward, reduceMotion),
+                label = "stems.title",
+                modifier = Modifier.align(Alignment.Center),
+            ) { _ ->
+                Text(
+                    text = songTitle,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    color = CzTokens.textPrimary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .padding(horizontal = 46.dp)
+                        .testTag("stems.title"),
+                )
+            }
         }
 
         Spacer(Modifier.height(10.dp))
+
+        AnimatedContent(
+            targetState = songKey,
+            transitionSpec = songTransition(forward, reduceMotion),
+            label = "stems.body",
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+        ) { _ ->
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize()) {
 
         // Cromo da fila do repertório, só tocando de um set.
         if (queue != null) {
@@ -751,6 +854,8 @@ private fun PlayerState(
                     color = accent,
                 )
             }
+        }
+        }
         }
     }
 }

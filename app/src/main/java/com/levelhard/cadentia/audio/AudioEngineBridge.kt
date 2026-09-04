@@ -64,6 +64,11 @@ class AudioEngineBridge {
         if (handle != 0L) nativeSchedule(handle, bufferId, atFrame, gain, pan, rate) else 0
 
     /** Muda a taxa de uma voz que já toca: bend e glissando. */
+    /** Ganho e pan de uma voz viva (fader ao vivo); no-op se ela já acabou. */
+    fun setVoiceMix(voiceTag: Long, gain: Float, pan: Float) {
+        if (handle != 0L) nativeSetVoiceMix(handle, voiceTag, gain, pan)
+    }
+
     fun setVoiceRate(voiceTag: Long, rate: Float) {
         if (handle != 0L) nativeSetVoiceRate(handle, voiceTag, rate)
     }
@@ -108,6 +113,7 @@ class AudioEngineBridge {
     private external fun nativeReleaseBuffer(handle: Long, id: Int)
     private external fun nativeSchedule(handle: Long, bufferId: Int, atFrame: Long, gain: Float, pan: Float, rate: Float): Long
     private external fun nativeSetVoiceRate(handle: Long, voiceTag: Long, rate: Float)
+    private external fun nativeSetVoiceMix(handle: Long, voiceTag: Long, gain: Float, pan: Float)
     private external fun nativeSetDrive(handle: Long, enabled: Boolean, amount: Float)
     private external fun nativeSetMasterGain(handle: Long, gain: Float)
     private external fun nativeDamp(handle: Long, voiceTag: Long, overSeconds: Float)

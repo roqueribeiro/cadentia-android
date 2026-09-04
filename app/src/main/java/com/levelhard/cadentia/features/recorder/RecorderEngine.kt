@@ -15,8 +15,6 @@ import java.io.File
 import java.io.RandomAccessFile
 import java.util.UUID
 import kotlin.concurrent.thread
-import kotlin.math.cos
-import kotlin.math.sin
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -116,6 +114,7 @@ class RecorderEngine(context: Context) {
         // Clipes audíveis com leitor aberto; cada um anda por chunks.
         val audible = project.audibleTracks()
         val players = mutableListOf<ClipPlayer>()
+        this.players = players
         for (track in audible) {
             for (clip in track.clips) {
                 if (clip.end <= from + 0.001) continue
@@ -173,9 +172,19 @@ class RecorderEngine(context: Context) {
         return takeName
     }
 
-    // Fader ao vivo: os players guardam a REFERÊNCIA da trilha, então
-    // volume (gain do schedule) e pan valem no próximo chunk (~0,5 s) sem
-    // chamada extra — o que o updateMix do iOS fazia nos mixers.
+    // Fader ao vivo: os players guardam a REFERÊNCIA da trilha, e cada
+    // chunk agendado guarda a tag da voz. Mexer no fader ou no pan chama
+    // [refreshMix], que empurra ganho e pan para as vozes que já estão no
+    // ar (vale no próximo bloco do callback, ~10 ms) — o `updateMix` do iOS
+    // nos mixers, e não "no próximo chunk", que era até 0,5 s depois.
+
+    @Volatile private var players: List<ClipPlayer> = emptyList()
+
+    /** Aplica volume e pan atuais das trilhas às vozes que estão tocando. */
+    fun refreshMix() {
+        if (!isRunning) return
+        for (player in players) player.applyMixToLiveVoices()
+    }
 
     /** Um clipe tocando: anda o próprio relógio de chunks. */
     private inner class ClipPlayer(
@@ -184,6 +193,18 @@ class RecorderEngine(context: Context) {
         val reader: TakeReader,
     ) {
         private var nextChunk = 0
+        /** Tags das vozes agendadas, com o instante em que cada uma acaba (para esquecer as mortas). */
+        private val liveVoices = ArrayList<Pair<Long, Double>>()
+
+        fun applyMixToLiveVoices() {
+            val now = sampler.nowSeconds()
+            synchronized(liveVoices) {
+                liveVoices.removeAll { it.second < now }
+                for ((tag, _) in liveVoices) {
+                    sampler.setVoiceMix(tag, track.volume.toFloat(), track.pan.toFloat())
+                }
+            }
+        }
 
         fun scheduleUpTo(horizonSeconds: Double, from: Double, musicStart: Double) {
             while (true) {
@@ -204,31 +225,28 @@ class RecorderEngine(context: Context) {
                 val pcm = renderChunk(chunkIdx, clipTime, length) ?: continue
                 // O playhead pode já ter comido o começo do chunk (partida no
                 // meio): agendar no passado toca já, então corta o excesso.
-                sampler.schedule(
+                // Mono + pan no motor: é o que deixa o pan mudar com a voz no ar.
+                val tag = sampler.schedule(
                     key = "rec/${clip.id}/$chunkIdx",
                     atSeconds = at,
                     gain = track.volume.toFloat(),
+                    pan = track.pan.toFloat(),
+                    mono = true,
                 ) { pcm }
+                if (tag != 0L) synchronized(liveVoices) { liveVoices += tag to at + length + 0.1 }
             }
         }
 
-        /** Chunk estéreo com fades, ganho do clipe e pan da trilha. */
+        /** Chunk MONO com fades e ganho do clipe; volume e pan da trilha ficam na voz. */
         private fun renderChunk(chunkIdx: Int, clipTime: Double, length: Double): FloatArray? {
             val frames = (length * reader.sampleRate).toInt()
             if (frames <= 0) return null
             val startFrame = ((clip.trimStart + clipTime) * reader.sampleRate).toLong()
             val mono = reader.read(startFrame, frames) ?: return null
-
-            val angle = (track.pan + 1) * Math.PI / 4
-            val panLeft = cos(angle).toFloat()
-            val panRight = sin(angle).toFloat()
-
-            val out = FloatArray(mono.size * 2)
+            val out = FloatArray(mono.size)
             for (i in mono.indices) {
                 val envelope = clip.envelope(clipTime + i / reader.sampleRate.toDouble()).toFloat()
-                val sample = mono[i] * envelope
-                out[2 * i] = sample * panLeft
-                out[2 * i + 1] = sample * panRight
+                out[i] = mono[i] * envelope
             }
             return out
         }

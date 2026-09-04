@@ -2,6 +2,10 @@
 <!-- GERADO por scripts/gen-i18n.py a partir de i18n/Localizable.xcstrings.
      Não edite na mão: mude o catálogo (a fonte é o iOS) e regenere. -->
 <resources>
+    <string name="cadentia_a11y_edit">Modifier</string>
+    <string name="cadentia_a11y_redo">Rétablir</string>
+    <string name="cadentia_a11y_share">Partager</string>
+    <string name="cadentia_a11y_undo">Annuler</string>
     <string name="cadentia_about_close">Terminé</string>
     <string name="cadentia_about_cordas_body">Le mode Cordas vient de l\'app Cordas de Phelipi (github.com/phelipiii/cordas) : la guitare par modélisation physique et l\'idée de lire les mains à la caméra sont de lui. La synthèse et la géométrie ont été réécrites en Kotlin natif.</string>
     <string name="cadentia_about_cordas_credit">Idée et implémentation originales de Phelipi. Porté en Kotlin natif avec autorisation.</string>

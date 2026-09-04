@@ -184,6 +184,15 @@ void AudioEngine::setVoiceRate(int64_t voiceTag, float rate) {
     pushCommand(std::move(c));
 }
 
+void AudioEngine::setVoiceMix(int64_t voiceTag, float gain, float pan) {
+    Command c{};
+    c.type = CmdType::Mix;
+    c.voiceTag = voiceTag;
+    c.a = std::max(0.0f, gain);
+    c.b = std::min(1.0f, std::max(-1.0f, pan));
+    pushCommand(std::move(c));
+}
+
 void AudioEngine::setDrive(bool enabled, float amount) {
     Command c{};
     c.type = CmdType::Drive;
@@ -276,6 +285,16 @@ void AudioEngine::drainCommands() {
                         // Ao sair da taxa 1 a posição fracionária herda a inteira.
                         if (v.rate == 1.0f && c.a != 1.0f) v.fpos = static_cast<double>(v.pos);
                         v.rate = c.a;
+                    }
+                }
+                break;
+            case CmdType::Mix:
+                for (auto& v : mVoices) {
+                    if (v.active && v.tag == c.voiceTag) {
+                        v.gain = c.a;
+                        const float angle = (c.b + 1.0f) * 0.78539816f;
+                        v.panL = std::cos(angle) * 1.41421356f;
+                        v.panR = std::sin(angle) * 1.41421356f;
                     }
                 }
                 break;

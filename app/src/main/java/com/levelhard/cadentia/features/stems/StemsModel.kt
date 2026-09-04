@@ -193,7 +193,14 @@ class StemsModel(context: Context) {
      * elas, busca a origem de novo e separa, o que é o custo de ter apagado o
      * cache, não um erro.
      */
+    /** Para onde a última troca de música foi: a animação da tela entra do lado certo. */
+    enum class QueueStep { Forward, Backward }
+
+    var lastStep: QueueStep by mutableStateOf(QueueStep.Forward)
+        private set
+
     fun reopen(song: RecentSong, autoplay: Boolean = false) {
+        lastStep = QueueStep.Forward
         // Antes de tudo: uma leva de vinte continuando por baixo enquanto esta
         // música baixa são duas separações se encontrando.
         cancelBatch()
@@ -662,7 +669,10 @@ class StemsModel(context: Context) {
     fun goBackInQueue() {
         val active = queue ?: return
         persistMix()
-        active.goBack()?.let { reopenKeepingQueue(it) }
+        active.goBack()?.let {
+            reopenKeepingQueue(it)
+            lastStep = QueueStep.Backward
+        }
         bump()
     }
 

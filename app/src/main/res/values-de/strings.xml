@@ -2,6 +2,10 @@
 <!-- GERADO por scripts/gen-i18n.py a partir de i18n/Localizable.xcstrings.
      Não edite na mão: mude o catálogo (a fonte é o iOS) e regenere. -->
 <resources>
+    <string name="cadentia_a11y_edit">Bearbeiten</string>
+    <string name="cadentia_a11y_redo">Wiederholen</string>
+    <string name="cadentia_a11y_share">Teilen</string>
+    <string name="cadentia_a11y_undo">Rückgängig</string>
     <string name="cadentia_about_close">Fertig</string>
     <string name="cadentia_about_cordas_body">Der Cordas-Modus stammt aus Phelipis App Cordas (github.com/phelipiii/cordas): die physikalisch modellierte Gitarre und die Idee, die Hände per Kamera zu lesen, sind von ihm. Synthese und Geometrie wurden in nativem Kotlin neu geschrieben.</string>
     <string name="cadentia_about_cordas_credit">Ursprüngliche Idee und Umsetzung von Phelipi. Mit Erlaubnis nach nativem Kotlin portiert.</string>

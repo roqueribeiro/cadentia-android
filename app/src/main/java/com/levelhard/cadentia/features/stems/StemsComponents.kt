@@ -266,7 +266,10 @@ private fun blendedColor(levels: Map<String, Float>, tint: Color): Color {
 
 // ---- mixer ----
 
-/** O mixer numa folha — port do `StemMixerSheet`: faders HORIZONTAIS, chave e velocidade. */
+/**
+ * O mixer numa folha — port do `StemMixerSheet`: faders HORIZONTAIS, chave e
+ * velocidade. Folha MODAL, usada quando não há um scaffold por baixo (QA).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StemMixerSheet(
@@ -276,11 +279,29 @@ fun StemMixerSheet(
     onDismiss: () -> Unit,
     onChanged: () -> Unit,
 ) {
-    @Suppress("UNUSED_EXPRESSION") revision
     ModalBottomSheet(onDismissRequest = onDismiss, containerColor = CzTokens.stageTop) {
+        StemMixerContent(engine, accent, revision, onChanged)
+    }
+}
+
+/**
+ * O conteúdo do mixer, para a folha modal ou para a folha com detentes do
+ * player (`BottomSheetScaffold`), onde a música segue tocando e a onda
+ * continua visível por trás — o `presentationBackgroundInteraction` do iOS.
+ */
+@Composable
+fun StemMixerContent(
+    engine: StemPlayerEngine,
+    accent: Color,
+    revision: Int,
+    onChanged: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    @Suppress("UNUSED_EXPRESSION") revision
+    run {
         Column(
             verticalArrangement = Arrangement.spacedBy(14.dp),
-            modifier = Modifier
+            modifier = modifier
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 32.dp),

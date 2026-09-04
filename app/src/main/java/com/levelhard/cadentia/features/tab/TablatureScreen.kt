@@ -469,7 +469,7 @@ private fun Header(
         )
         HeaderIcon(
             icon = Icons.Filled.Share,
-            contentDescription = null, // PENDÊNCIA a11y: sem chave "compartilhar" no catálogo
+            contentDescription = stringResource(R.string.cadentia_a11y_share),
             active = false,
             accent = accent,
             tag = "tab.share",
@@ -477,7 +477,7 @@ private fun Header(
         )
         HeaderIcon(
             icon = Icons.Filled.Edit,
-            contentDescription = null, // PENDÊNCIA a11y: sem chave "editar" no catálogo
+            contentDescription = stringResource(R.string.cadentia_a11y_edit),
             active = isEditing,
             accent = accent,
             tag = "tab.edit",

@@ -2,6 +2,10 @@
 <!-- GERADO por scripts/gen-i18n.py a partir de i18n/Localizable.xcstrings.
      Não edite na mão: mude o catálogo (a fonte é o iOS) e regenere. -->
 <resources>
+    <string name="cadentia_a11y_edit">संपादित करें</string>
+    <string name="cadentia_a11y_redo">फिर से करें</string>
+    <string name="cadentia_a11y_share">साझा करें</string>
+    <string name="cadentia_a11y_undo">पूर्ववत करें</string>
     <string name="cadentia_about_close">पूर्ण</string>
     <string name="cadentia_about_cordas_body">कॉर्डास मोड फेलिपी के ऐप Cordas (github.com/phelipiii/cordas) से आया है: भौतिक मॉडलिंग वाला गिटार और कैमरे से हाथ पढ़ने का विचार उन्हीं का है। सिंथेसिस और ज्यामिति को नेटिव Kotlin में फिर से लिखा गया।</string>
     <string name="cadentia_about_cordas_credit">मूल विचार और कार्यान्वयन फेलिपी का। अनुमति से नेटिव Kotlin में पोर्ट किया गया।</string>

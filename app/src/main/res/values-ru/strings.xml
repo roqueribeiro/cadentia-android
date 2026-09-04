@@ -2,6 +2,10 @@
 <!-- GERADO por scripts/gen-i18n.py a partir de i18n/Localizable.xcstrings.
      Não edite na mão: mude o catálogo (a fonte é o iOS) e regenere. -->
 <resources>
+    <string name="cadentia_a11y_edit">Изменить</string>
+    <string name="cadentia_a11y_redo">Повторить</string>
+    <string name="cadentia_a11y_share">Поделиться</string>
+    <string name="cadentia_a11y_undo">Отменить</string>
     <string name="cadentia_about_close">Готово</string>
     <string name="cadentia_about_cordas_body">Режим Cordas родился из приложения Cordas Фелипи (github.com/phelipiii/cordas): гитара по физической модели и идея читать руки камерой — его. Синтез и геометрия переписаны на нативном Kotlin.</string>
     <string name="cadentia_about_cordas_credit">Оригинальная идея и реализация — Фелипи. Портировано на нативный Kotlin с разрешения.</string>

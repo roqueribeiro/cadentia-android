@@ -152,6 +152,9 @@ class PolyphonicSampler(
     /** Muda a taxa de uma voz no ar: bend e glissando do Cordas. */
     fun setVoiceRate(voiceTag: Long, rate: Float) = engine.setVoiceRate(voiceTag, rate)
 
+    /** Ganho e pan de uma voz viva (o fader do Gravador valendo na hora). */
+    fun setVoiceMix(voiceTag: Long, gain: Float, pan: Float) = engine.setVoiceMix(voiceTag, gain, pan)
+
     /** Barramento elétrico do Cordas (drive + gabinete) antes do reverb. */
     fun setDrive(enabled: Boolean, amount: Float) = engine.setDrive(enabled, amount)
 

@@ -79,6 +79,9 @@ class CordasPreferences(context: Context) {
  * (`mutableStateOf`), o papel do `@Observable` do iOS.
  */
 class CordasModel(context: Context) {
+    init {
+        CordasTelemetryFile.attach(java.io.File(context.applicationContext.filesDir, "cordas-telemetry.log"))
+    }
     enum class Mode(val id: String) {
         /** O telefone de pé É o braço. */
         Frets("frets"),
@@ -493,6 +496,7 @@ class CordasModel(context: Context) {
             "rabo=(${tail.x.toInt()},${tail.y.toInt()}) cabeca=(${head.x.toInt()},${head.y.toInt()}) " +
             "pulsos=$wrists $trackerInfo"
         Log.i(TELEMETRY_TAG, line)
+        CordasTelemetryFile.append(line)
     }
 
     fun handleCamera(hands: List<HandLandmarks>, viewSize: Size, time: Double) {
@@ -564,4 +568,42 @@ interface CordasHaptics {
     fun tchac()
     fun light()
     fun medium()
+}
+
+/**
+ * As mesmas linhas da telemetria, num arquivo do próprio app — port do
+ * `CordasTelemetryFile` do iOS. O logcat some quando o buffer roda e não
+ * sai do aparelho sem um Mac ligado; `filesDir/cordas-telemetry.log`
+ * sobrevive a fechar o app e sai por `adb pull`/`run-as` depois que alguém
+ * tocou com as mãos de verdade. Assíncrono e em lotes: um modo que desenha
+ * a 30 fps não para para tocar em disco.
+ */
+object CordasTelemetryFile {
+    /** Dois minutos a quatro linhas por segundo. */
+    private const val LIMIT = 600
+    private const val BATCH = 20
+    private val pending = ArrayDeque<String>()
+    @Volatile private var file: java.io.File? = null
+
+    fun attach(target: java.io.File) {
+        file = target
+    }
+
+    fun append(line: String) {
+        val snapshot: String
+        synchronized(pending) {
+            pending.addLast(line)
+            while (pending.size > LIMIT) pending.removeFirst()
+            if (pending.size % BATCH != 0) return
+            snapshot = pending.joinToString("\n")
+        }
+        val target = file ?: return
+        Thread({
+            runCatching {
+                val partial = java.io.File(target.path + ".parcial")
+                partial.writeText(snapshot + "\n")
+                partial.renameTo(target)
+            }
+        }, "cordas-telemetry").apply { isDaemon = true }.start()
+    }
 }

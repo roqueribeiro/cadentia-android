@@ -375,7 +375,7 @@ fun RecorderScreen(store: SettingsStore) {
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Remove,
-                            contentDescription = null, // PENDÊNCIA a11y: sem chave "diminuir" no catálogo
+                            contentDescription = stringResource(R.string.music_metronome_decrement),
                             tint = CzTokens.textSecondary,
                             modifier = Modifier.size(14.dp),
                         )
@@ -394,7 +394,7 @@ fun RecorderScreen(store: SettingsStore) {
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Add,
-                            contentDescription = null, // PENDÊNCIA a11y: sem chave "aumentar" no catálogo
+                            contentDescription = stringResource(R.string.music_metronome_increment),
                             tint = CzTokens.textSecondary,
                             modifier = Modifier.size(14.dp),
                         )
@@ -486,7 +486,7 @@ fun RecorderScreen(store: SettingsStore) {
                 @Suppress("UNUSED_EXPRESSION") historyStamp
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Undo,
-                    contentDescription = null, // PENDÊNCIA a11y: sem chave "desfazer" no catálogo
+                    contentDescription = stringResource(R.string.cadentia_a11y_undo),
                     tint = if (history.canUndo) CzTokens.textSecondary else CzTokens.textTertiary.copy(alpha = 0.4f),
                     modifier = Modifier
                         .minimumInteractiveComponentSize()
@@ -504,7 +504,7 @@ fun RecorderScreen(store: SettingsStore) {
                 )
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Redo,
-                    contentDescription = null, // PENDÊNCIA a11y: sem chave "refazer" no catálogo
+                    contentDescription = stringResource(R.string.cadentia_a11y_redo),
                     tint = if (history.canRedo) CzTokens.textSecondary else CzTokens.textTertiary.copy(alpha = 0.4f),
                     modifier = Modifier
                         .minimumInteractiveComponentSize()
@@ -673,6 +673,8 @@ fun RecorderScreen(store: SettingsStore) {
                 onDismiss = { settingsTrackId = null },
                 onChange = { apply ->
                     mutateProject(recordHistory = false) { it.updateTrack(trackId, apply) }
+                    // Fader e pan valem no som já, não no próximo chunk.
+                    engine.refreshMix()
                 },
                 onDelete = {
                     settingsTrackId = null

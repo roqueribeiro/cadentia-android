@@ -2,6 +2,10 @@
 <!-- GERADO por scripts/gen-i18n.py a partir de i18n/Localizable.xcstrings.
      Não edite na mão: mude o catálogo (a fonte é o iOS) e regenere. -->
 <resources>
+    <string name="cadentia_a11y_edit">تعديل</string>
+    <string name="cadentia_a11y_redo">إعادة</string>
+    <string name="cadentia_a11y_share">مشاركة</string>
+    <string name="cadentia_a11y_undo">تراجع</string>
     <string name="cadentia_about_close">تم</string>
     <string name="cadentia_about_cordas_body">وُلد وضع Cordas من تطبيق Cordas لفيليبي (github.com/phelipiii/cordas): الجيتار بالنمذجة الفيزيائية وفكرة قراءة اليدين بالكاميرا فكرته. أُعيدت كتابة التوليف والهندسة بلغة Kotlin الأصلية.</string>
     <string name="cadentia_about_cordas_credit">الفكرة والتنفيذ الأصليان لفيليبي. نُقل إلى Kotlin الأصلية بإذن.</string>

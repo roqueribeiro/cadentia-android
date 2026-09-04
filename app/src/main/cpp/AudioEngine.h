@@ -67,6 +67,9 @@ public:
     void dampAll(float overSeconds);
     // Muda a taxa de uma voz que já toca: é o bend e o glissando do Cordas.
     void setVoiceRate(int64_t voiceTag, float rate);
+    // Ganho e pan de uma voz JÁ tocando (fader ao vivo do Gravador): vale no
+    // próximo bloco do callback, não no próximo chunk agendado.
+    void setVoiceMix(int64_t voiceTag, float gain, float pan);
 
     void setReverb(bool enabled, float mix);       // room do bus (bateria)
     void setDelay(bool enabled, float timeMs, float feedback, float mix);
@@ -87,7 +90,7 @@ private:
     static constexpr int kCmdCapacity = 1024;
     static constexpr int kReleaseCapacity = 1024;
 
-    enum class CmdType { Schedule, Damp, DampAll, Reverb, Delay, Rate, Drive, Master };
+    enum class CmdType { Schedule, Damp, DampAll, Reverb, Delay, Rate, Drive, Master, Mix };
     struct Command {
         CmdType type;
         int64_t atFrame;

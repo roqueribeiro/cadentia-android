@@ -52,6 +52,11 @@ Java_com_levelhard_cadentia_audio_AudioEngineBridge_nativeXRunCount(JNIEnv*, job
     return engine(handle)->xrunCount();
 }
 
+JNIEXPORT void JNICALL
+Java_com_levelhard_cadentia_audio_AudioEngineBridge_nativeSetVoiceMix(JNIEnv*, jobject, jlong handle, jlong voiceTag, jfloat gain, jfloat pan) {
+    engine(handle)->setVoiceMix(voiceTag, gain, pan);
+}
+
 JNIEXPORT jint JNICALL
 Java_com_levelhard_cadentia_audio_AudioEngineBridge_nativeRestartCount(JNIEnv*, jobject, jlong handle) {
     return engine(handle)->restarts();
