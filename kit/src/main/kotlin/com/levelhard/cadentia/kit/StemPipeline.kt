@@ -259,4 +259,89 @@ object StemResampler {
         }
         return out
     }
+
+    /**
+     * O mesmo filtro, em blocos: recebe o áudio decodificado aos poucos e
+     * devolve o que já dá para calcular, guardando só os `TAPS` últimos
+     * samples de história. Existe porque a versão de uma vez só exige a
+     * música inteira em memória, e uma música de 3 minutos em `Float`
+     * encaixotado passava de 250 MB — o app morria de OutOfMemory ao abrir
+     * qualquer música real do RoqueOS (05/09). Para os mesmos dados, produz a
+     * mesma saída que [resample] (teste `streamingMatchesOneShot`).
+     */
+    class Streaming(fromRate: Double, toRate: Double) {
+        private val ratio = fromRate / toRate
+        private val identity = fromRate == toRate
+        private val half = TAPS / 2
+        private val cutoff = minOf(1.0, 1.0 / ratio)
+
+        /** Amostras de entrada ainda necessárias; `pending[0]` é a amostra absoluta `pendingStart`. */
+        private var pending = FloatArray(0)
+        private var pendingSize = 0
+        private var pendingStart = 0L
+        private var totalInput = 0L
+        private var nextOut = 0L
+
+        /** Só para o teste: quantas amostras de entrada estão guardadas. */
+        fun pendingForTest(): Int = pendingSize
+
+        /** Entrega `count` amostras e recebe as saídas já completas (pode ser vazio). */
+        fun push(input: FloatArray, count: Int): FloatArray {
+            if (identity) return input.copyOf(count)
+            append(input, count)
+            totalInput += count
+            val lastAbs = pendingStart + pendingSize - 1
+            return produce { base -> base + half <= lastAbs }
+        }
+
+        /** Fim da música: o que faltava, com o filtro pulando o que não existe, como o [resample]. */
+        fun finish(): FloatArray {
+            if (identity) return FloatArray(0)
+            val outCount = (totalInput / ratio).toLong()
+            return produce { _ -> nextOut < outCount }
+        }
+
+        private fun append(input: FloatArray, count: Int) {
+            if (pendingSize + count > pending.size) {
+                val grown = FloatArray(maxOf(pending.size * 2, pendingSize + count, 1 shl 16))
+                System.arraycopy(pending, 0, grown, 0, pendingSize)
+                pending = grown
+            }
+            System.arraycopy(input, 0, pending, pendingSize, count)
+            pendingSize += count
+        }
+
+        private inline fun produce(canEmit: (base: Long) -> Boolean): FloatArray {
+            var emitted = FloatArray(1024)
+            var n = 0
+            while (true) {
+                val center = nextOut * ratio
+                val base = center.toLong()
+                if (!canEmit(base)) break
+                var acc = 0.0
+                for (k in base - half + 1..base + half) {
+                    if (k < 0 || k >= totalInput) continue
+                    val local = (k - pendingStart).toInt()
+                    if (local < 0 || local >= pendingSize) continue
+                    val x = center - k
+                    val sinc = if (x == 0.0) 1.0 else sin(PI * cutoff * x) / (PI * x) / cutoff
+                    val w = 0.5 + 0.5 * kotlin.math.cos(PI * x / half)
+                    acc += pending[local] * sinc * cutoff * w
+                }
+                if (n == emitted.size) emitted = emitted.copyOf(emitted.size * 2)
+                emitted[n++] = acc.toFloat()
+                nextOut++
+            }
+            // Solta o que nenhuma saída futura alcança mais.
+            val keepFrom = (nextOut * ratio).toLong() - half + 1
+            val drop = (keepFrom - pendingStart).toInt()
+            if (drop > 0) {
+                val remaining = maxOf(pendingSize - drop, 0)
+                System.arraycopy(pending, minOf(drop, pendingSize), pending, 0, remaining)
+                pendingSize = remaining
+                pendingStart += drop
+            }
+            return emitted.copyOf(n)
+        }
+    }
 }

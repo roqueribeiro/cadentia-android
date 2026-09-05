@@ -41,14 +41,44 @@ object StemAudioNormalizer {
             codec.configure(format, null, null, 0)
             codec.start()
 
-            val left = ArrayList<Float>(1 shl 20)
-            val right = ArrayList<Float>(1 shl 20)
             var sourceRate = format.getIntOrDefault(MediaFormat.KEY_SAMPLE_RATE, TARGET_RATE)
             var channels = format.getIntOrDefault(MediaFormat.KEY_CHANNEL_COUNT, 2)
             var pcmEncoding = format.getIntOrDefault(
                 MediaFormat.KEY_PCM_ENCODING,
                 android.media.AudioFormat.ENCODING_PCM_16BIT,
             )
+
+            // Tudo em fluxo: decodifica um buffer, reamostra o que já dá,
+            // escreve no WAV e solta. A versão anterior guardava a música
+            // inteira em `ArrayList<Float>` (Float encaixotado: 20 bytes por
+            // amostra) e uma música de 3 minutos passava de 250 MB — o app
+            // morria de OutOfMemory ao abrir qualquer música real (05/09).
+            output.parentFile?.mkdirs()
+            val writer = StereoWavWriter(output, TARGET_RATE)
+            var resamplers: Pair<StemResampler.Streaming, StemResampler.Streaming>? = null
+            var frames = 0L
+            var left = FloatArray(0)
+            var right = FloatArray(0)
+
+            fun emit(l: FloatArray, r: FloatArray) {
+                val count = minOf(l.size, r.size)
+                if (count == 0) return
+                writer.write(l, r, count)
+                frames += count
+            }
+
+            fun sink(l: FloatArray, r: FloatArray, count: Int) {
+                if (count == 0) return
+                if (sourceRate == TARGET_RATE) {
+                    emit(l.copyOf(count), r.copyOf(count))
+                    return
+                }
+                val pair = resamplers ?: Pair(
+                    StemResampler.Streaming(sourceRate.toDouble(), TARGET_RATE.toDouble()),
+                    StemResampler.Streaming(sourceRate.toDouble(), TARGET_RATE.toDouble()),
+                ).also { resamplers = it }
+                emit(pair.first.push(l, count), pair.second.push(r, count))
+            }
 
             val info = MediaCodec.BufferInfo()
             var inputDone = false
@@ -83,7 +113,13 @@ object StemAudioNormalizer {
                             buffer.position(info.offset)
                             buffer.limit(info.offset + info.size)
                             if (info.size > 0) {
-                                drain(buffer.order(ByteOrder.LITTLE_ENDIAN), pcmEncoding, channels, left, right)
+                                val count = frameCount(info.size, pcmEncoding, channels)
+                                if (left.size < count) {
+                                    left = FloatArray(count)
+                                    right = FloatArray(count)
+                                }
+                                drain(buffer.order(ByteOrder.LITTLE_ENDIAN), pcmEncoding, channels, left, right, count)
+                                sink(left, right, count)
                             }
                             codec.releaseOutputBuffer(outputIndex, false)
                             if ((info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
@@ -92,26 +128,28 @@ object StemAudioNormalizer {
                         }
                     }
                 }
+                resamplers?.let { emit(it.first.finish(), it.second.finish()) }
             } finally {
                 runCatching { codec.stop() }
                 codec.release()
+                writer.finish()
             }
-            if (left.isEmpty()) return false
-
-            var l = left.toFloatArray()
-            var r = right.toFloatArray()
-            if (sourceRate != TARGET_RATE) {
-                l = StemResampler.resample(l, sourceRate.toDouble(), TARGET_RATE.toDouble())
-                r = StemResampler.resample(r, sourceRate.toDouble(), TARGET_RATE.toDouble())
+            if (frames == 0L) {
+                output.delete()
+                return false
             }
-            output.parentFile?.mkdirs()
-            StereoWav.write(l, r, TARGET_RATE, output)
             true
         } catch (_: Exception) {
+            output.delete()
             false
         } finally {
             extractor.release()
         }
+    }
+
+    private fun frameCount(bytes: Int, pcmEncoding: Int, channels: Int): Int {
+        val bytesPerSample = if (pcmEncoding == android.media.AudioFormat.ENCODING_PCM_FLOAT) 4 else 2
+        return bytes / (bytesPerSample * maxOf(channels, 1))
     }
 
     /** Intercalado (16-bit ou float) → dois planos; >2 canais somam nos dois primeiros. */
@@ -119,29 +157,28 @@ object StemAudioNormalizer {
         buffer: java.nio.ByteBuffer,
         pcmEncoding: Int,
         channels: Int,
-        left: ArrayList<Float>,
-        right: ArrayList<Float>,
+        left: FloatArray,
+        right: FloatArray,
+        frames: Int,
     ) {
         val stereo = channels >= 2
         when (pcmEncoding) {
             android.media.AudioFormat.ENCODING_PCM_FLOAT -> {
                 val floats = buffer.asFloatBuffer()
-                val frames = floats.remaining() / channels
                 for (i in 0 until frames) {
                     val base = i * channels
                     val l = floats.get(base)
-                    left.add(l)
-                    right.add(if (stereo) floats.get(base + 1) else l)
+                    left[i] = l
+                    right[i] = if (stereo) floats.get(base + 1) else l
                 }
             }
             else -> {
                 val shorts = buffer.asShortBuffer()
-                val frames = shorts.remaining() / channels
                 for (i in 0 until frames) {
                     val base = i * channels
                     val l = shorts.get(base) / 32768f
-                    left.add(l)
-                    right.add(if (stereo) shorts.get(base + 1) / 32768f else l)
+                    left[i] = l
+                    right[i] = if (stereo) shorts.get(base + 1) / 32768f else l
                 }
             }
         }

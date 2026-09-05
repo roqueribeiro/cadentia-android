@@ -161,6 +161,8 @@ fun StemsScreen() {
     val engine = model.engine
 
     var showMixer by remember { mutableStateOf(false) }
+    /** Dentro de uma pasta do RoqueOS: só o navegador na tela, como o iOS. */
+    var browsingRoque by remember { mutableStateOf(false) }
     var playhead by remember { mutableDoubleStateOf(0.0) }
     var isPlaying by remember { mutableStateOf(false) }
 
@@ -367,6 +369,7 @@ fun StemsScreen() {
                     else -> LibraryState(
                         accent = accent,
                         phase = phase,
+                        browsing = browsingRoque,
                         recent = model.recent,
                         setlists = model.setlists,
                         isReady = { model.isReady(it) },
@@ -381,6 +384,7 @@ fun StemsScreen() {
                                     separate(downloaded.map { (uri, song) -> StemsModel.Pick(uri, song, temporary = true) })
                                 },
                                 downloadingId = model.downloadingId,
+                                onBrowsingChange = { browsingRoque = it },
                             )
                         },
                         onOpenFile = { importer.launch(arrayOf("audio/*")) },
@@ -912,6 +916,7 @@ private fun clock(seconds: Double): String {
 private fun LibraryState(
     accent: Color,
     phase: StemsModel.Phase,
+    browsing: Boolean,
     recent: RecentSongs,
     setlists: Setlists,
     isReady: (RecentSong) -> Boolean,
@@ -1038,7 +1043,9 @@ private fun LibraryState(
             verticalArrangement = Arrangement.spacedBy(14.dp),
             modifier = Modifier.widthIn(max = 560.dp),
         ) {
-            if (phase is StemsModel.Phase.Failed) {
+            // Navegando numa pasta do RoqueOS só o navegador fica na tela
+            // (`crumbs.isEmpty ? sources : browser` do iOS).
+            if (!browsing && phase is StemsModel.Phase.Failed) {
                 CzCard(modifier = Modifier.fillMaxWidth()) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -1082,7 +1089,7 @@ private fun LibraryState(
             }
 
             // Sem nada ainda, o convite (os cartões de origem, logo abaixo, são o botão).
-            if (recent.songs.isEmpty() && setlists.lists.isEmpty() && phase !is StemsModel.Phase.Failed) {
+            if (!browsing && recent.songs.isEmpty() && setlists.lists.isEmpty() && phase !is StemsModel.Phase.Failed) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -1114,7 +1121,7 @@ private fun LibraryState(
             // Acima das origens, como no iOS: quem montou o set de sábado abre o
             // app atrás DELE. A seção só aparece com conteúdo ou com recentes para
             // adicionar (o "+" precisa de onde nascer).
-            if (setlists.lists.isNotEmpty() || recent.songs.isNotEmpty()) {
+            if (!browsing && (setlists.lists.isNotEmpty() || recent.songs.isNotEmpty())) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -1157,7 +1164,7 @@ private fun LibraryState(
             }
 
             // ---- recentes ----
-            if (recent.songs.isNotEmpty()) {
+            if (!browsing && recent.songs.isNotEmpty()) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -1262,7 +1269,7 @@ private fun LibraryState(
             // ---- neste aparelho ----
             // O seletor do sistema, com seleção múltipla: separar uma música ou
             // um repertório inteiro é o mesmo toque.
-            CzCard(modifier = Modifier.fillMaxWidth()) {
+            if (!browsing) CzCard(modifier = Modifier.fillMaxWidth()) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp),

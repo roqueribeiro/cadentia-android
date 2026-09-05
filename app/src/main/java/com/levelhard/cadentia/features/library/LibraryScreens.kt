@@ -34,6 +34,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -88,6 +90,8 @@ fun RoqueOSSection(
     onPick: (RoqueOSLibrary.Item) -> Unit,
     onPickMany: (List<Pair<Uri, RecentSong>>) -> Unit,
     downloadingId: String?,
+    /** true enquanto a pessoa está dentro de uma pasta: a biblioteca esconde o resto, como o iOS. */
+    onBrowsingChange: (Boolean) -> Unit = {},
 ) {
     val phase by account.phase.collectAsState()
     val library = remember(account) { RoqueOSLibrary(account) }
@@ -100,6 +104,7 @@ fun RoqueOSSection(
             onPick = onPick,
             onPickMany = onPickMany,
             downloadingId = downloadingId,
+            onBrowsingChange = onBrowsingChange,
         )
         is RoqueOSAccount.Phase.Waiting -> PairingCard(
             accent = accent,
@@ -346,10 +351,17 @@ private fun ConnectedBrowser(
     onPick: (RoqueOSLibrary.Item) -> Unit,
     onPickMany: (List<Pair<Uri, RecentSong>>) -> Unit,
     downloadingId: String?,
+    onBrowsingChange: (Boolean) -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var crumbs by remember { mutableStateOf(listOf<Crumb>()) }
+    // No iOS o navegador SUBSTITUI a biblioteca enquanto há trilha
+    // (`crumbs.isEmpty ? sources : browser`); aqui a tela de fora esconde o
+    // resto quando avisada. O voltar do sistema sobe uma pasta, como o botão.
+    LaunchedEffect(crumbs.isEmpty()) { onBrowsingChange(crumbs.isNotEmpty()) }
+    DisposableEffect(Unit) { onDispose { onBrowsingChange(false) } }
+
     var items by remember { mutableStateOf(listOf<RoqueOSLibrary.Item>()) }
     var loading by remember { mutableStateOf(false) }
     var problem by remember { mutableStateOf<String?>(null) }
@@ -426,6 +438,12 @@ private fun ConnectedBrowser(
         reload()
     }
 
+    fun back() {
+        crumbs = crumbs.dropLast(1)
+        if (crumbs.isEmpty()) items = emptyList() else reload()
+    }
+    androidx.activity.compose.BackHandler(enabled = crumbs.isNotEmpty()) { back() }
+
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         if (crumbs.isEmpty()) {
             // As fontes, cada uma com o próprio nome (um print de erro precisa
@@ -479,10 +497,7 @@ private fun ConnectedBrowser(
                         .minimumInteractiveComponentSize()
                         .size(34.dp)
                         .background(CzTokens.surface, CircleShape)
-                        .clickable {
-                            crumbs = crumbs.dropLast(1)
-                            if (crumbs.isEmpty()) items = emptyList() else reload()
-                        }
+                        .clickable { back() }
                         .testTag("library.back"),
                 ) {
                     Icon(
