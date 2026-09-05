@@ -17,6 +17,18 @@
 -keep class com.google.android.datatransport.** { *; }
 -dontwarn com.google.android.datatransport.**
 
+# Flogger, que o MediaPipe usa para registrar log: `FluentLogger
+# .forEnclosingClass()` descobre quem chamou ANDANDO A PILHA e comparando o
+# nome da classe. O R8 inlina `findLoggingClass` dentro dele e mescla os
+# frames; o `Graph.<clinit>` então morre com
+# `IllegalStateException: no caller found on the stack for: l7.c`
+# (l7.c = com.google.common.flogger.FluentLogger no mapping) e o app FECHA ao
+# abrir o Cordas na câmera — só na build minificada, por isso passou por todo
+# o QA em debug (achado no aparelho do Roque, 05/09/2026).
+-keep class com.google.common.flogger.** { *; }
+-keepnames class com.google.common.flogger.** { *; }
+-dontwarn com.google.common.flogger.**
+
 # ONNX Runtime: a JNI constrói TensorInfo/OnnxTensor/OrtSession$Result pelo
 # nome (NewObjectV). O R8 apagava o construtor de TensorInfo e a primeira
 # inferência morria com SIGABRT "JNI NewObjectV called with pending
