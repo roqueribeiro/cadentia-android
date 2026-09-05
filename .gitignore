@@ -14,6 +14,7 @@ keystore.properties
 *.onnx
 app/src/main/assets/models/
 # Config do RoqueOS (chave de cliente Firebase), gerada por gen-roqueos-config
+app/src/main/assets/roqueos-config.properties
 app/src/main/res/raw/roqueos_config.json
 # Loja
 store/out/
