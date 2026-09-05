@@ -1,0 +1,1 @@
+1.16.0 (3): the RoqueOS Library arrives on Android. Connect your account and open in Separate the songs already in your RoqueOS: files, mapped disks, the shared folder and Google Drive. Long songs no longer crash the app when separating. Splash spacing fixed.

@@ -1,0 +1,1 @@
+1.16.0 (3): a Biblioteca RoqueOS chegou ao Android. Conecte sua conta e abra no Separar as músicas que já estão no seu RoqueOS: arquivos, discos mapeados, pasta compartilhada e Google Drive. Músicas longas não derrubam mais o app ao separar. Splash com o espaçamento certo.

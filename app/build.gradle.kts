@@ -19,7 +19,7 @@ android {
         targetSdk = 36
         // Acompanha o iOS (1.16.0): a mesma versão nas duas lojas. O
         // versionCode só cresce.
-        versionCode = 2
+        versionCode = 3
         versionName = "1.16.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
