@@ -72,7 +72,9 @@ fun SplashOverlay(onFinish: () -> Unit) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
+            // `VStack(spacing: 22)` do iOS: sem o espaço o nome encostava no
+            // anel (achado do Roque no aparelho, 05/09).
+            verticalArrangement = Arrangement.spacedBy(22.dp, Alignment.CenterVertically),
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Canvas(Modifier.size(110.dp)) {
