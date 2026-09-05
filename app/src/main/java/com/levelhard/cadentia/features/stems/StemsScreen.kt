@@ -34,7 +34,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.MoreHoriz
-import androidx.compose.material.icons.filled.PlaylistAdd
+import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material.icons.filled.Smartphone
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
@@ -457,7 +457,7 @@ private fun MixerScaffold(
  * Avançar entra pela direita e sai pela esquerda; voltar, o contrário. Com
  * Reduzir Movimento, só o fade. 400 ms como o `.snappy(duration: 0.4)` do iOS.
  */
-private fun songTransition(forward: Boolean, reduceMotion: Boolean): AnimatedContentTransitionScope<String>.() -> ContentTransform = {
+private fun <T> songTransition(forward: Boolean, reduceMotion: Boolean): AnimatedContentTransitionScope<T>.() -> ContentTransform = {
     if (reduceMotion) {
         fadeIn(tween(250)) togetherWith fadeOut(tween(250))
     } else {
@@ -637,14 +637,17 @@ private fun PlayerState(
             // fila, pular, voltar, troca manual): avançar entra pela direita,
             // voltar pela esquerda, como qualquer player — o `songTransition`
             // do iOS. Com Reduzir Movimento vira um fade.
+            // O estado leva o TÍTULO junto: assim a música que sai leva o
+            // próprio nome para fora da tela, em vez de já mostrar o novo
+            // (lint UnusedContentLambdaTargetStateParameter).
             AnimatedContent(
-                targetState = songKey,
+                targetState = songKey to songTitle,
                 transitionSpec = songTransition(forward, reduceMotion),
                 label = "stems.title",
                 modifier = Modifier.align(Alignment.Center),
-            ) { _ ->
+            ) { (_, title) ->
                 Text(
-                    text = songTitle,
+                    text = title,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -659,6 +662,10 @@ private fun PlayerState(
 
         Spacer(Modifier.height(10.dp))
 
+        // O corpo é AO VIVO (onda, relógio, transporte do motor): não existe um
+        // "corpo da música anterior" para desenhar enquanto ela sai, então o
+        // parâmetro do estado não tem o que dizer aqui.
+        @Suppress("UnusedContentLambdaTargetStateParameter")
         AnimatedContent(
             targetState = songKey,
             transitionSpec = songTransition(forward, reduceMotion),
@@ -1441,7 +1448,7 @@ private fun SongRow(
             if (setlists.lists.isEmpty()) {
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.cadentia_setlists_add_to), color = CzTokens.textPrimary) },
-                    leadingIcon = { Icon(Icons.Filled.PlaylistAdd, contentDescription = null, tint = accent) },
+                    leadingIcon = { Icon(Icons.AutoMirrored.Filled.PlaylistAdd, contentDescription = null, tint = accent) },
                     onClick = { menu = false; onNewSetlist() },
                 )
             } else {

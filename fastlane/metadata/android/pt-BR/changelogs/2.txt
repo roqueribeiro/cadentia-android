@@ -1,0 +1,1 @@
+1.16: paridade com o iOS. Hub de Instrumentos com Cordas, Piano, Baixo, Bateria, Acordes e Escalas; sons dos instrumentos gravados de verdade (7 bancos); fotos dos instrumentos; áudio continua em segundo plano e para na ligação; repertórios e recentes no Separar; gravador com fader ao vivo; 49 afinações no afinador. Correções de layout e de acessibilidade.

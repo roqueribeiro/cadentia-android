@@ -157,6 +157,10 @@ tasks.matching { it.name.startsWith("merge") && it.name.endsWith("Assets") }
     .configureEach { dependsOn(copySampleAssets) }
 tasks.matching { it.name.startsWith("generate") && it.name.endsWith("Assets") }
     .configureEach { dependsOn(copySampleAssets) }
+// O lint (inclusive o lintVital do assembleRelease) lê a pasta de assets
+// gerada: sem esta dependência o Gradle 9 recusa o build por ordem implícita.
+tasks.matching { it.name.contains("Lint") || it.name.startsWith("lint") }
+    .configureEach { dependsOn(copySampleAssets) }
 
 dependencies {
     implementation(project(":kit"))

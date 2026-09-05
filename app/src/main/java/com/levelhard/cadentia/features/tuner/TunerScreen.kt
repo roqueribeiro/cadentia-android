@@ -450,8 +450,10 @@ private fun TuningButton(label: String, modifier: Modifier = Modifier, onClick: 
                 color = CzTokens.textPrimary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                // Quem encolhe é o texto: o chevron ↕ fica sempre à vista.
-                modifier = Modifier.weight(1f, fill = false),
+                // Teto para o nome longo ("Violão · Drop C"): o chevron ↕ fica
+                // sempre à vista e o nome curto não encolhe (com `weight` o
+                // "Chromatic" saía como "Chro…" na build de release).
+                modifier = Modifier.widthIn(max = 180.dp),
             )
             Icon(
                 imageVector = Icons.Filled.UnfoldMore,

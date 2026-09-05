@@ -1,0 +1,1 @@
+1.16: parity with iOS. Instruments hub with Strings, Piano, Bass, Drums, Chords and Scales; real recorded instrument sounds (7 banks); instrument photos; audio keeps playing in the background and pauses on calls; setlists and recents in Separate; recorder with live faders; 49 tunings in the tuner. Layout and accessibility fixes.
