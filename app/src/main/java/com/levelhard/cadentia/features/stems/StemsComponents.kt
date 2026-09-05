@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.sp
 import com.levelhard.cadentia.R
 import com.levelhard.cadentia.ui.CzCard
 import com.levelhard.cadentia.ui.CzTokens
+import com.levelhard.cadentia.ui.exposeTestTags
 import java.util.Locale
 import kotlin.math.PI
 import kotlin.math.pow
@@ -280,7 +281,7 @@ fun StemMixerSheet(
     onChanged: () -> Unit,
 ) {
     ModalBottomSheet(onDismissRequest = onDismiss, containerColor = CzTokens.stageTop) {
-        StemMixerContent(engine, accent, revision, onChanged)
+        StemMixerContent(engine, accent, revision, onChanged, modifier = Modifier.exposeTestTags())
     }
 }
 
@@ -410,6 +411,7 @@ private fun MixerRow(
                     text = "S", // i18n-verbatim: sigla de solo, igual nos 10
                     active = track.isSoloed,
                     color = CzTokens.gold,
+                    tag = "stems.solo.${track.id}",
                 ) {
                     engine.toggleSolo(track.id)
                     onChanged()
@@ -418,6 +420,7 @@ private fun MixerRow(
                     text = "M", // i18n-verbatim: sigla de mudo, igual nos 10
                     active = track.isMuted,
                     color = CzTokens.danger,
+                    tag = "stems.mute.${track.id}",
                 ) {
                     engine.toggleMute(track.id)
                     onChanged()
@@ -435,10 +438,11 @@ private fun MixerRow(
 }
 
 @Composable
-private fun ToggleTag(text: String, active: Boolean, color: Color, onClick: () -> Unit) {
+private fun ToggleTag(text: String, active: Boolean, color: Color, tag: String, onClick: () -> Unit) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
+            .testTag(tag)
             .size(width = 26.dp, height = 22.dp)
             .background(if (active) color else CzTokens.surface, RoundedCornerShape(5.dp))
             .clickable(onClick = onClick),
@@ -486,25 +490,27 @@ private fun StepperCard(
                     color = CzTokens.textTertiary,
                 )
             }
-            StepButton(icon = true, enabled = canDecrease, onClick = onDecrease)
+            // `stems.key.minus`/`stems.keyValue`/`stems.key.plus`, como no iOS.
+            StepButton(icon = true, enabled = canDecrease, tag = "$tag.minus", onClick = onDecrease)
             Text(
                 text = value,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace,
                 color = if (isDefault) CzTokens.textSecondary else accent,
-                modifier = Modifier.width(52.dp),
+                modifier = Modifier.width(52.dp).testTag("${tag}Value"),
             )
-            StepButton(icon = false, enabled = canIncrease, onClick = onIncrease)
+            StepButton(icon = false, enabled = canIncrease, tag = "$tag.plus", onClick = onIncrease)
         }
     }
 }
 
 @Composable
-private fun StepButton(icon: Boolean, enabled: Boolean, onClick: () -> Unit) {
+private fun StepButton(icon: Boolean, enabled: Boolean, tag: String, onClick: () -> Unit) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
+            .testTag(tag)
             .minimumInteractiveComponentSize()
             .size(30.dp)
             .background(CzTokens.surface, CircleShape)
@@ -512,7 +518,7 @@ private fun StepButton(icon: Boolean, enabled: Boolean, onClick: () -> Unit) {
     ) {
         Icon(
             imageVector = if (icon) Icons.Filled.Remove else Icons.Filled.Add,
-            contentDescription = null, // PENDÊNCIA a11y: sem chave "diminuir/aumentar" no catálogo
+            contentDescription = stringResource(if (icon) R.string.music_metronome_decrement else R.string.music_metronome_increment),
             tint = if (enabled) CzTokens.textSecondary else CzTokens.textTertiary.copy(alpha = 0.4f),
             modifier = Modifier.size(14.dp),
         )

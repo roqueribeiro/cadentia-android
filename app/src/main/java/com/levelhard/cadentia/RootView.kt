@@ -18,6 +18,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.semantics.testTagsAsResourceId
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.res.stringResource
 import com.levelhard.cadentia.features.instruments.InstrumentsHub
 import com.levelhard.cadentia.features.metronome.MetronomeScreen
@@ -74,6 +78,7 @@ enum class MoreDestination(val qaName: String) {
     About("about"),
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun RootView(
     store: SettingsStore,
@@ -86,6 +91,11 @@ fun RootView(
     var instrumentDestination by rememberSaveable { mutableStateOf(initialInstrumentDestination) }
 
     Scaffold(
+        // Os testTags viram resource-id na árvore de acessibilidade: é o que
+        // deixa o androidTest (uiautomator) achar `stems.play` sem depender da
+        // sincronização de idle do Compose, que nunca chega em telas com laço
+        // de redesenho (onda dos stems, braço do Cordas, osciloscópio).
+        modifier = Modifier.semantics { testTagsAsResourceId = true },
         containerColor = CzTokens.stageBottom,
         bottomBar = {
             NavigationBar(
@@ -96,6 +106,8 @@ fun RootView(
                     val accent = entry.accent
                     NavigationBarItem(
                         selected = tab == entry,
+                        // `tabs.<nome>` para o androidTest trocar de aba sem depender do rótulo traduzido.
+                        modifier = Modifier.testTag("tabs.${entry.qaName}"),
                         onClick = {
                             if (tab == entry) {
                                 // Tocar de novo na aba atual volta à raiz dela,

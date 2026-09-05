@@ -56,6 +56,7 @@ import com.levelhard.cadentia.R
 import com.levelhard.cadentia.kit.SampleBank
 import com.levelhard.cadentia.ui.CzCard
 import com.levelhard.cadentia.ui.CzTokens
+import com.levelhard.cadentia.ui.exposeTestTags
 import com.levelhard.cadentia.ui.PremiumBackground
 import com.levelhard.cadentia.ui.WordmarkFamily
 import com.levelhard.cadentia.ui.pageTransition
@@ -338,6 +339,8 @@ private fun LicensesSheet(onDismiss: () -> Unit) {
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
+                .exposeTestTags()
+                .testTag("about.licenses")
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 32.dp),

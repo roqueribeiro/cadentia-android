@@ -185,7 +185,7 @@ internal fun ChordsPane(
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     ActionPill(
                         stringResource(R.string.music_chords_strum),
-                        Icons.Filled.PlayArrow, accent, prominent = true,
+                        Icons.Filled.PlayArrow, accent, prominent = true, tag = "chords.play",
                     ) { playChord(chord, arpeggio = false, play, scope) }
                     ActionPill(
                         stringResource(R.string.music_chords_arpeggio),
@@ -436,7 +436,7 @@ internal fun ScalesPane(
     Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
     ActionPill(
         stringResource(R.string.music_scales_play_scale),
-        Icons.Filled.PlayArrow, accent, prominent = true,
+        Icons.Filled.PlayArrow, accent, prominent = true, tag = "scales.play",
     ) {
         val sequence = notes.toMutableList()
         MusicNotes.noteToMidi(settings.piano.scaleRoot, octaveBase)?.let { rootMidi ->
@@ -662,11 +662,13 @@ internal fun ActionPill(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     accent: Color,
     prominent: Boolean,
+    tag: String? = null,
     onClick: () -> Unit,
 ) {
     Surface(
         onClick = onClick,
         shape = CircleShape,
+        modifier = if (tag != null) Modifier.testTag(tag) else Modifier,
         color = if (prominent) accent else CzTokens.surface,
         contentColor = if (prominent) CzTokens.stageBottom else CzTokens.textPrimary,
         border = if (prominent) null else BorderStroke(1.dp, CzTokens.hairline),

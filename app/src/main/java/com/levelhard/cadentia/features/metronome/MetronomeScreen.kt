@@ -51,6 +51,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -239,12 +240,14 @@ fun MetronomeScreen(store: SettingsStore) {
                         icon = if (isRunning) Icons.Filled.Stop else Icons.Filled.PlayArrow,
                         prominent = true,
                         accent = accent,
+                        tag = "metronome.toggle",
                     ) { toggle() }
                     ActionButton(
                         textRes = R.string.music_metronome_tap,
                         icon = Icons.Filled.TouchApp,
                         prominent = false,
                         accent = accent,
+                        tag = "metronome.tap",
                     ) { tap() }
                 }
 
@@ -377,6 +380,7 @@ fun MetronomeScreen(store: SettingsStore) {
                             ActionButton(
                                 textRes = R.string.music_metronome_start_listening,
                                 icon = Icons.Filled.Mic,
+                                tag = "metronome.bpmDetector.start",
                                 prominent = false,
                                 accent = accent,
                             ) { startDetector() }
@@ -424,6 +428,7 @@ fun MetronomeScreen(store: SettingsStore) {
                                     icon = Icons.Filled.PlayArrow,
                                     prominent = true,
                                     accent = accent,
+                                    tag = "metronome.practiceTimer.start",
                                 ) {
                                     practiceTimer.start(scope, settings.metronome.practiceTimerMinutes) {
                                         stopIfRunning()
@@ -536,11 +541,14 @@ private fun ActionButton(
     prominent: Boolean,
     accent: Color,
     enabled: Boolean = true,
+    tag: String? = null,
     onClick: () -> Unit,
 ) {
     Surface(
         onClick = onClick,
         enabled = enabled,
+        // Os mesmos identificadores dos UITests do iOS, para o androidTest.
+        modifier = if (tag != null) Modifier.testTag(tag) else Modifier,
         shape = CircleShape,
         color = if (prominent) accent.copy(alpha = if (enabled) 1f else 0.4f) else CzTokens.surface,
         contentColor = if (prominent) CzTokens.stageBottom else CzTokens.textPrimary,

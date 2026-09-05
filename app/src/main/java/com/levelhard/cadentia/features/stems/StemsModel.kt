@@ -143,7 +143,14 @@ class StemsModel(context: Context) {
         bump()
     }
 
+    /**
+     * Chamado a cada toque no mixer: grava a mesa da música e faz a tela
+     * recompor. O motor não é estado do Compose — sem o `bump()` o "+" da
+     * velocidade mudava o áudio e o rótulo continuava em 1,00x (achado do
+     * teste instrumentado `stemsRemembersSpeedAcrossRelaunch`).
+     */
     fun persistMix() {
+        bump()
         val songId = currentSongId ?: return
         mixMemory.remember(engine.snapshot(), songId)
         stores.saveMixMemory(mixMemory)

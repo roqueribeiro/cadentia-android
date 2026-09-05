@@ -2,6 +2,44 @@
 
 ## [Não lançado]
 
+### Fase 15 — Testes instrumentados (2026-09-05)
+
+- `app/src/androidTest/CadentiaUITests.kt`: 31 testes em uiautomator
+  espelhando as 29 UITests do iOS (afinador, afinações, metrônomo, hub,
+  bateria, piano, bancos, escalas, Cordas com batida de borda, stems demo,
+  loop A/B, velocidade lembrada, repertórios em ordem, Estúdio, tablatura,
+  gravador, Sobre, Som, troca de aba, HOME e volta). 31/31 verdes no
+  emulador (Medium_Phone, Android 17). Falha grava print e árvore de
+  acessibilidade em `/sdcard/Download/cadentia-ui/`.
+- `testTag` com os nomes do iOS nas telas (`tuner.gauge`, `metronome.toggle`,
+  `drums.pads`, `piano.keyboard`, `stems.*`, `setlist.*`, `about.licenses`…)
+  e `testTagsAsResourceId` na raiz e em cada folha modal
+  (`Modifier.exposeTestTags()`); botão fechar na folha Som (`sound.close`).
+- Defeitos que os testes acharam e foram corrigidos: o "+" de velocidade e
+  tom do mixer mudava o áudio sem atualizar o rótulo (`persistMix` não
+  recompunha); voltar do sistema com o mixer aberto largava a pessoa no
+  launcher (agora fecha o mixer, e no player volta à biblioteca); o topo do
+  mixer escondido aparecia por trás da barra de abas translúcida (o
+  `modifier` do `BottomSheetScaffold` só clipa o corpo); `qa-reset` não
+  apagava memória de mesa nem repertórios (o iOS apaga).
+- `BackHandler` no Cordas engole o voltar por gesto de borda que a batida
+  provoca (a exclusão de gesto é limitada a 200 dp pelo sistema).
+- androidx.test 1.7.0 / espresso 3.7.0 (3.6.1 quebra no Android 16+:
+  `InputManager.getInstance`). Testes rodam contra o `debug`: o runner não
+  sobrevive ao R8 da `qa`.
+
+### Fases 10–14 (2026-09-04, `7e23ba9` … `b4d1af3`)
+
+- Fase 10: 7 packs de sample no APK, fotos dos instrumentos, hub com barra,
+  Estudo com nome da nota, choke do chimbal, Sobre com Cordas/Phelipi.
+- Fase 11: separação real com ONNX Runtime (htdemucs exportado em blocos,
+  sem ConstantFolding: pico 0,8 GB), faixas em AAC, `PeakLimiter`, `StemsQA`.
+- Fase 12: `PlaybackSession` (foco de áudio) + `PlaybackService` (FGS de
+  reprodução com "Parar"); Oboe reabre o stream em `onErrorAfterClose`.
+- Fase 14: fader/pan imediato no Gravador (comando Mix), pads de acorde
+  acessíveis, telemetria do Cordas em arquivo, troca de faixa animada e
+  mixer em `BottomSheetScaffold` com detentes.
+
 ### Fase 9 — Separar 1.16 (2026-09-02)
 
 - Kit: `StemCachePolicy.evictions` — a limpeza só age quando o aparelho

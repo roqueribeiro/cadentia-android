@@ -62,6 +62,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -181,7 +182,7 @@ fun TunerScreen(store: SettingsStore) {
                         ) {
                             TuningButton(
                                 label = instrumentRow?.compactLabel ?: "",
-                                modifier = Modifier.weight(1f, fill = false),
+                                modifier = Modifier.weight(1f, fill = false).testTag("tuner.instrument"),
                             ) { showTunings = true }
                             Spacer(Modifier.weight(1f))
                             ReferenceControl(referenceA) { delta ->
@@ -338,7 +339,7 @@ private fun Gauge(
         active = state.heldFrequency != null,
         isTuned = isTuned,
         accent = CzTokens.tunerGreen,
-        modifier = Modifier.fillMaxWidth().height(320.dp),
+        modifier = Modifier.fillMaxWidth().height(320.dp).testTag("tuner.gauge"),
     )
 }
 
@@ -476,7 +477,7 @@ private fun StringChips(
         horizontalArrangement = Arrangement.spacedBy(5.dp),
         modifier = Modifier.fillMaxWidth(),
     ) {
-        for (note in instrument.strings) {
+        for ((index, note) in instrument.strings.withIndex()) {
             val isTarget = targetNote == note
             val tint = if (isTuned) CzTokens.tunerGreen else CzTokens.gold
             val shape = RoundedCornerShape(CzTokens.radiusSM)
@@ -489,6 +490,7 @@ private fun StringChips(
                 maxLines = 1,
                 modifier = Modifier
                     .weight(1f)
+                    .testTag("tuner.string.$index")
                     .background(if (isTarget) tint.copy(alpha = 0.16f) else CzTokens.surface, shape)
                     .border(1.dp, if (isTarget) tint.copy(alpha = 0.55f) else CzTokens.hairline, shape)
                     .padding(vertical = 8.dp),

@@ -58,7 +58,11 @@ class MainActivity : ComponentActivity() {
         val store = SettingsStore(applicationContext)
         // `-qa-reset` do iOS: testes partem do estado de fábrica (um tap-tempo
         // do run anterior vazaria para as asserções de BPM do próximo).
-        if (qa.reset) store.reset()
+        if (qa.reset) {
+            store.reset()
+            // Como no iOS: memória de mesa e repertórios também voltam a zero.
+            com.levelhard.cadentia.features.stems.StemStores(applicationContext).resetForQA()
+        }
 
         // A chave síntese × sample por família segue as configurações: já na
         // abertura e a cada mudança (a folha de Som vira o interruptor).

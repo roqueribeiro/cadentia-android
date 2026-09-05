@@ -42,6 +42,16 @@ class StemStores(context: Context) {
 
     fun saveSetlists(lists: Setlists) = save(KEY_SETLISTS, Setlists.serializer(), lists)
 
+    /**
+     * `qa-reset`: o mesmo que o `-qa-reset` do iOS apaga — memória de mesa
+     * e repertórios (as Recentes ficam, como lá). Um teste que herda o mix
+     * ou o repertório da rodada anterior não prova nada; 31 rodadas
+     * deixaram 10 "Show de sabado"/"Ordem" na biblioteca.
+     */
+    fun resetForQA() {
+        prefs.edit().remove(KEY_MIX).remove(KEY_SETLISTS).apply()
+    }
+
     private fun <T> load(key: String, serializer: kotlinx.serialization.KSerializer<T>): T? {
         val raw = prefs.getString(key, null) ?: return null
         // Uma entrada ilegível não pode levar a lista inteira: quem não

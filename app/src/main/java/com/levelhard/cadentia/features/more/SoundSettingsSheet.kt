@@ -34,6 +34,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
+import androidx.compose.material3.minimumInteractiveComponentSize
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -51,6 +55,7 @@ import com.levelhard.cadentia.kit.enabledSampleFamilies
 import com.levelhard.cadentia.kit.setSampled
 import com.levelhard.cadentia.settings.SettingsStore
 import com.levelhard.cadentia.ui.CzTokens
+import com.levelhard.cadentia.ui.exposeTestTags
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
@@ -109,19 +114,36 @@ fun SoundSettingsSheet(store: SettingsStore, onDismiss: () -> Unit) {
         Column(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier
+                .exposeTestTags()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 32.dp)
                 .testTag("sound.sheet"),
         ) {
-            Text(
-                text = stringResource(R.string.cadentia_sound_title),
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold,
-                color = CzTokens.textPrimary,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth().padding(bottom = 2.dp),
-            )
+            // Título com o X do iOS (`sound.close`, rótulo "Concluir"): a folha
+            // também fecha por arraste, mas o botão é o que o TalkBack e o
+            // teste alcançam.
+            Box(Modifier.fillMaxWidth().padding(bottom = 2.dp)) {
+                Text(
+                    text = stringResource(R.string.cadentia_sound_title),
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = CzTokens.textPrimary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 40.dp),
+                )
+                Icon(
+                    imageVector = Icons.Filled.Close,
+                    contentDescription = stringResource(R.string.cadentia_about_close),
+                    tint = CzTokens.textSecondary,
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .minimumInteractiveComponentSize()
+                        .size(20.dp)
+                        .clickable(onClick = onDismiss)
+                        .testTag("sound.close"),
+                )
+            }
             Text(
                 text = stringResource(R.string.cadentia_sound_hint),
                 fontSize = 13.sp,

@@ -11,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -175,6 +176,15 @@ fun CordasScreen(opening: CordaInstrument? = null, onBack: () -> Unit) {
         }
     }
     LaunchedEffect(model.mode) { offerCoach(model.mode) }
+
+    // O gesto de voltar do sistema NÃO sai do Cordas com o braço na tela: uma
+    // batida que começa na borda é batida. O `systemGestureExclusion` do braço
+    // só vale para 200 dp de altura (teto do Android), então acima disso o
+    // sistema ainda reconhece o gesto — e aqui ele vira nada. O iOS desliga o
+    // pop interativo do NavigationStack pelo mesmo motivo; a saída é o botão
+    // de voltar da barra (`cordas.back`). Achado do androidTest
+    // `strummingFromTheEdgeNeverLeavesTheCordasScreen` (05/09).
+    BackHandler(enabled = model.mode != CordasModel.Mode.Camera) { }
 
     Box(Modifier.fillMaxSize().pageTransition()) {
         PremiumBackground(accent = accent)

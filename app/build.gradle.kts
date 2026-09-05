@@ -102,6 +102,15 @@ android {
         }
     }
 
+    // Os testes instrumentados rodam contra a build DEBUG (sem R8), como os
+    // UITests do iOS rodam contra a Debug: o APK de teste roda dentro do
+    // processo do app e usa a stdlib do Kotlin e o Compose do app — na build
+    // de QA minificada o runner morria em `kotlin.LazyKt` e o Compose de teste
+    // em `InfiniteAnimationPolicy$DefaultImpls` (emulador, 05/09). Manter
+    // tudo isso no R8 só para testar seria testar outro pacote.
+    // `assembleDebug assembleDebugAndroidTest` → `adb install` dos dois →
+    // `am instrument -w` roda sem Gradle no Mac.
+
     buildFeatures {
         compose = true
         buildConfig = true
@@ -210,8 +219,11 @@ dependencies {
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+    androidTestImplementation("androidx.test.ext:junit:1.3.0")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
+    androidTestImplementation("androidx.test:runner:1.7.0")
+    androidTestImplementation("androidx.test:rules:1.7.0")
+    androidTestImplementation("androidx.test.uiautomator:uiautomator:2.3.0")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }

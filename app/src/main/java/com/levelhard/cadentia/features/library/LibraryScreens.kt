@@ -142,7 +142,8 @@ private fun DisconnectedCard(
     failure: String?,
     onConnect: () -> Unit,
 ) {
-    CzCard(modifier = Modifier.fillMaxWidth()) {
+    // `library.roqueos` é a seção RoqueOS em qualquer estado (o iOS marca a linha da fonte).
+    CzCard(modifier = Modifier.fillMaxWidth().testTag("library.roqueos")) {
         Column(
             verticalArrangement = Arrangement.spacedBy(10.dp),
             modifier = Modifier.padding(16.dp),

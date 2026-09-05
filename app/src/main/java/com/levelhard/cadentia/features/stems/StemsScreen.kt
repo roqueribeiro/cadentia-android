@@ -117,6 +117,7 @@ import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedContent
 import com.levelhard.cadentia.ui.CzTokens
+import com.levelhard.cadentia.ui.exposeTestTags
 import com.levelhard.cadentia.ui.PremiumBackground
 import com.levelhard.cadentia.ui.pageTransition
 import java.util.Locale
@@ -258,6 +259,20 @@ fun StemsScreen() {
     }
     DisposableEffect(Unit) {
         onDispose { model.shutdown() }
+    }
+
+    // O voltar do sistema desce um nível, como o gesto no iOS: fecha o mixer
+    // se ele estiver aberto, senão sai do player para a biblioteca. Sem isto
+    // o voltar com o mixer aberto largava a pessoa na tela inicial do
+    // aparelho (achado do teste instrumentado).
+    val showingPlayer = model.phase is StemsModel.Phase.Ready
+    androidx.activity.compose.BackHandler(enabled = showMixer || showingPlayer) {
+        if (showMixer) {
+            showMixer = false
+            model.persistMix()
+        } else {
+            model.reset()
+        }
     }
 
     Box(Modifier.fillMaxSize().pageTransition()) {
@@ -403,22 +418,25 @@ private fun MixerScaffold(
     LaunchedEffect(sheetState.currentValue) {
         if (sheetState.currentValue == SheetValue.Hidden && showMixer) onMixerHidden()
     }
-    BottomSheetScaffold(
-        scaffoldState = scaffoldState,
-        // A folha recolhida tem a altura do conteúdo inteiro deslocada para
-        // baixo; sem o clip ela vaza por trás da barra de abas e aparece na
-        // faixa do gesto de navegação (visto no QA).
-        modifier = Modifier.clipToBounds(),
-        sheetPeekHeight = 300.dp,
-        sheetContainerColor = CzTokens.stageTop,
-        sheetContentColor = CzTokens.textPrimary,
-        sheetShadowElevation = 12.dp,
-        containerColor = Color.Transparent,
-        sheetContent = { sheet() },
-    ) { _ ->
-        // Sem o padding do scaffold: a folha passa POR CIMA do player, como
-        // no iOS, em vez de encolher a onda em 300 dp com a folha escondida.
-        Box(Modifier.fillMaxSize()) { content() }
+    // A folha escondida fica logo abaixo da borda do scaffold, e a barra de
+    // abas é translúcida: sem o clip o topo do mixer ("Tracks", "Drums")
+    // aparece por trás dela (visto no QA f15k). O clip tem que envolver o
+    // scaffold INTEIRO: o `modifier` do BottomSheetScaffold (M3 1.3) vai só
+    // para a Surface do corpo, e um clipToBounds ali não alcança a folha.
+    Box(Modifier.fillMaxSize().clipToBounds()) {
+        BottomSheetScaffold(
+            scaffoldState = scaffoldState,
+            sheetPeekHeight = 300.dp,
+            sheetContainerColor = CzTokens.stageTop,
+            sheetContentColor = CzTokens.textPrimary,
+            sheetShadowElevation = 12.dp,
+            containerColor = Color.Transparent,
+            sheetContent = { sheet() },
+        ) { _ ->
+            // Sem o padding do scaffold: a folha passa POR CIMA do player, como
+            // no iOS, em vez de encolher a onda em 300 dp com a folha escondida.
+            Box(Modifier.fillMaxSize()) { content() }
+        }
     }
 }
 
@@ -1047,7 +1065,7 @@ private fun LibraryState(
                             unfocusedLabelColor = CzTokens.textTertiary,
                             cursorColor = accent,
                         ),
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).testTag("setlists.name"),
                     )
                     Text(
                         text = stringResource(R.string.cadentia_setlists_new),
@@ -1055,6 +1073,7 @@ private fun LibraryState(
                         fontWeight = FontWeight.SemiBold,
                         color = if (newListName.isNotBlank()) accent else CzTokens.textTertiary,
                         modifier = Modifier
+                            .testTag("setlists.new")
                             .clickable(enabled = newListName.isNotBlank()) {
                                 onCreateSetlist(newListName)
                                 newListName = ""
@@ -1066,10 +1085,11 @@ private fun LibraryState(
                 // cadentia.setlists.empty ("use Adicionar músicas aqui em cima") é
                 // do detalhe de UM repertório sem músicas — aqui apontava para um
                 // botão que não existe (achado do QA no emulador).
-                for (list in setlists.lists) {
+                for ((listIndex, list) in setlists.lists.withIndex()) {
                     SetlistCard(
                         revision = revision,
                         list = list,
+                        index = listIndex,
                         accent = accent,
                         candidates = recent.songs.filter { candidate -> list.songs.none { it.id == candidate.id } },
                         hasRecents = recent.songs.isNotEmpty(),
@@ -1162,12 +1182,13 @@ private fun LibraryState(
                 // seis primeiras era metade do problema que o founder relatou.
                 val collapsed = search.isBlank() && !showingAllRecent && filtered.size > COLLAPSED_RECENT
                 val shown = if (collapsed) filtered.take(COLLAPSED_RECENT) else filtered
-                for (song in shown) {
+                for ((index, song) in shown.withIndex()) {
                     SongRow(
                         revision = revision,
                         song = song,
                         ready = isReady(song),
                         accent = accent,
+                        tag = "library.recent.$index",
                         setlists = setlists,
                         onOpen = { onReopen(song) },
                         onForget = { onForget(song) },
@@ -1215,7 +1236,8 @@ private fun LibraryState(
                         .fillMaxWidth()
                         .clickable(onClick = onOpenFile)
                         .padding(14.dp)
-                        .testTag("stems.choose"),
+                        // O nome do iOS (`library.local`) para o androidTest.
+                        .testTag("library.local"),
                 ) {
                     Icon(
                         imageVector = Icons.Filled.FolderOpen,
@@ -1261,6 +1283,7 @@ private fun SongRow(
     ready: Boolean,
     accent: Color,
     setlists: Setlists,
+    tag: String,
     onOpen: () -> Unit,
     onForget: () -> Unit,
     onAddTo: (String) -> Unit,
@@ -1272,6 +1295,7 @@ private fun SongRow(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         modifier = Modifier
             .fillMaxWidth()
+            .testTag(tag)
             .background(CzTokens.surface, RoundedCornerShape(CzTokens.radiusMD))
             .clickable(onClick = onOpen)
             .padding(horizontal = 14.dp, vertical = 11.dp),
@@ -1342,6 +1366,7 @@ private fun SongRow(
 private fun SetlistCard(
     revision: Int,
     list: Setlist,
+    index: Int,
     accent: Color,
     candidates: List<RecentSong>,
     hasRecents: Boolean,
@@ -1370,7 +1395,7 @@ private fun SetlistCard(
         )
     }
 
-    CzCard(modifier = Modifier.fillMaxWidth()) {
+    CzCard(modifier = Modifier.fillMaxWidth().testTag("setlists.row.$index")) {
         Column(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.padding(12.dp),
@@ -1396,8 +1421,8 @@ private fun SetlistCard(
                     color = CzTokens.textTertiary,
                 )
                 if (list.songs.isNotEmpty()) {
-                    SmallAction(Icons.Filled.PlayArrow, stringResource(R.string.cadentia_setlists_play_ordered), accent, onPlayOrdered)
-                    SmallAction(Icons.Filled.Shuffle, stringResource(R.string.cadentia_setlists_play_shuffled), accent, onPlayShuffled)
+                    SmallAction(Icons.Filled.PlayArrow, stringResource(R.string.cadentia_setlists_play_ordered), accent, "setlist.playOrdered", onPlayOrdered)
+                    SmallAction(Icons.Filled.Shuffle, stringResource(R.string.cadentia_setlists_play_shuffled), accent, "setlist.playShuffled", onPlayShuffled)
                 }
                 SmallAction(Icons.Filled.ContentCopy, stringResource(R.string.cadentia_setlists_duplicate), CzTokens.textSecondary) {
                     onDuplicate(list.name + " 2") // i18n-verbatim: sufixo numérico
@@ -1406,7 +1431,7 @@ private fun SetlistCard(
                     editing = !editing
                     editName = list.name
                 }
-                SmallAction(Icons.Filled.Delete, stringResource(R.string.cadentia_setlists_delete), CzTokens.danger, onDelete)
+                SmallAction(Icons.Filled.Delete, stringResource(R.string.cadentia_setlists_delete), CzTokens.danger, onClick = onDelete)
             }
             if (editing) {
                 Row(
@@ -1484,12 +1509,13 @@ private fun SetlistCard(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
                     )
                 }
-                for (song in list.songs) {
+                for ((songIndex, song) in list.songs.withIndex()) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier
                             .fillMaxWidth()
+                            .testTag("setlist.song.$songIndex")
                             .clickable { onPlayFrom(song) }
                             .padding(vertical = 4.dp),
                     ) {
@@ -1544,6 +1570,7 @@ private fun AddSongsSheet(
         Column(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier
+                .exposeTestTags()
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
@@ -1578,7 +1605,7 @@ private fun AddSongsSheet(
                         unfocusedLabelColor = CzTokens.textTertiary,
                         cursorColor = accent,
                     ),
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().testTag("setlist.search"),
                 )
                 val filtered = SongSearch.filter(candidates, search)
                 if (filtered.isEmpty()) {
@@ -1590,12 +1617,13 @@ private fun AddSongsSheet(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
                     )
                 }
-                for (song in filtered) {
+                for ((songIndex, song) in filtered.withIndex()) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                         modifier = Modifier
                             .fillMaxWidth()
+                            .testTag("setlist.add.$songIndex")
                             .background(CzTokens.surface, RoundedCornerShape(CzTokens.radiusMD))
                             .clickable { onAdd(song) }
                             .padding(horizontal = 12.dp, vertical = 12.dp),
@@ -1631,6 +1659,7 @@ private fun SmallAction(
     icon: ImageVector,
     contentDescription: String,
     tint: Color,
+    tag: String? = null,
     onClick: () -> Unit,
 ) {
     Icon(
@@ -1638,6 +1667,7 @@ private fun SmallAction(
         contentDescription = contentDescription,
         tint = tint,
         modifier = Modifier
+            .then(if (tag != null) Modifier.testTag(tag) else Modifier)
             .size(26.dp)
             .clickable(onClick = onClick)
             .padding(4.dp),

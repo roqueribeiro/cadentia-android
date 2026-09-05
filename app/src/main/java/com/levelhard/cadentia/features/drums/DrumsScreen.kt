@@ -66,6 +66,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -90,6 +91,7 @@ import com.levelhard.cadentia.kit.SampleBank
 import com.levelhard.cadentia.settings.SettingsStore
 import com.levelhard.cadentia.ui.CzCard
 import com.levelhard.cadentia.ui.CzTokens
+import com.levelhard.cadentia.ui.exposeTestTags
 import com.levelhard.cadentia.ui.PremiumBackground
 import com.levelhard.cadentia.ui.pageTransition
 import kotlinx.coroutines.delay
@@ -196,6 +198,7 @@ fun DrumsScreen(store: SettingsStore) {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(9.dp),
                     modifier = Modifier
+                        .testTag("drums.pads")
                         .clip(RoundedCornerShape(26.dp))
                         .background(
                             Brush.verticalGradient(
@@ -239,7 +242,7 @@ fun DrumsScreen(store: SettingsStore) {
                     shape = CircleShape,
                     color = if (patternPads.isEmpty()) accent.copy(alpha = 0.16f) else CzTokens.surface,
                     contentColor = if (patternPads.isEmpty()) accent else CzTokens.textSecondary,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().testTag("drums.presets"),
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -290,6 +293,7 @@ fun DrumsScreen(store: SettingsStore) {
                             shape = CircleShape,
                             color = accent,
                             contentColor = CzTokens.stageBottom,
+                            modifier = Modifier.testTag("drums.toggle"),
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
@@ -682,7 +686,7 @@ private fun DrumPresetSheet(
         onDismissRequest = onDismiss,
         containerColor = CzTokens.stageTop,
     ) {
-        Column(Modifier.padding(bottom = 24.dp)) {
+        Column(Modifier.exposeTestTags().padding(bottom = 24.dp)) {
             Text(
                 text = stringResource(R.string.music_drums_patterns_title),
                 fontSize = 17.sp,
@@ -716,7 +720,7 @@ private fun DrumPresetSheet(
                         shape = RoundedCornerShape(CzTokens.radiusMD),
                         color = CzTokens.surface,
                         contentColor = CzTokens.textPrimary,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().testTag("drums.preset.${pattern.id}"),
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,

@@ -46,6 +46,7 @@ import com.levelhard.cadentia.kit.InstrumentPreset
 import com.levelhard.cadentia.kit.TuningCatalog
 import com.levelhard.cadentia.kit.TuningRow
 import com.levelhard.cadentia.ui.CzTokens
+import com.levelhard.cadentia.ui.exposeTestTags
 
 /**
  * As 49 linhas do catálogo já traduzidas, uma vez por idioma — o
@@ -85,7 +86,7 @@ fun TuningPickerSheet(
     val sections = TuningCatalog.sections(visible) { key -> context.getString(I18nMap.res(key)) }
 
     ModalBottomSheet(onDismissRequest = onDismiss, containerColor = CzTokens.stageTop) {
-        Column(Modifier.fillMaxWidth().heightIn(min = 480.dp)) {
+        Column(Modifier.exposeTestTags().fillMaxWidth().heightIn(min = 480.dp)) {
             Text(
                 text = stringResource(R.string.cadentia_tuner_tunings_title),
                 fontSize = 17.sp,
@@ -124,7 +125,7 @@ fun TuningPickerSheet(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 if (!searching && recents.isNotEmpty()) {
-                    item(key = "header/recent") { SectionHeader(stringResource(R.string.cadentia_tuner_tunings_recent)) }
+                    item(key = "header/recent") { SectionHeader(stringResource(R.string.cadentia_tuner_tunings_recent), tag = "tuning.recents") }
                     // Chave PRÓPRIA para a recente: a mesma afinação existe de novo
                     // lá embaixo na seção dela, e duas chaves iguais no mesmo
                     // contêiner preguiçoso é a linha que some (lição do iOS).
@@ -156,7 +157,7 @@ fun TuningPickerSheet(
 }
 
 @Composable
-private fun SectionHeader(title: String) {
+private fun SectionHeader(title: String, tag: String? = null) {
     Text(
         text = title.uppercase(),
         fontSize = 11.sp,
@@ -164,6 +165,7 @@ private fun SectionHeader(title: String) {
         letterSpacing = 0.9.sp,
         color = CzTokens.textTertiary,
         modifier = Modifier
+            .then(if (tag != null) Modifier.testTag(tag) else Modifier)
             .fillMaxWidth()
             .padding(top = 10.dp)
             .padding(horizontal = 4.dp),
