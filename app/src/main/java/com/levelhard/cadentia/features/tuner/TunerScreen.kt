@@ -27,7 +27,6 @@ import com.levelhard.cadentia.kit.TuningCatalog
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.border
 import androidx.compose.foundation.background
@@ -63,6 +62,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -436,11 +436,12 @@ private fun TuningButton(label: String, modifier: Modifier = Modifier, onClick: 
             horizontalArrangement = Arrangement.spacedBy(6.dp),
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
         ) {
+            // O diapasão do iOS (`tuningfork`), não uma nota.
             Icon(
-                imageVector = Icons.Filled.MusicNote,
+                painter = painterResource(R.drawable.ic_tab_tuner),
                 contentDescription = stringResource(R.string.music_common_select_instrument),
                 tint = CzTokens.gold,
-                modifier = Modifier.size(13.dp),
+                modifier = Modifier.size(14.dp),
             )
             Text(
                 text = label, // i18n-verbatim: já traduzido ("Violão · Drop C")
@@ -449,6 +450,8 @@ private fun TuningButton(label: String, modifier: Modifier = Modifier, onClick: 
                 color = CzTokens.textPrimary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+                // Quem encolhe é o texto: o chevron ↕ fica sempre à vista.
+                modifier = Modifier.weight(1f, fill = false),
             )
             Icon(
                 imageVector = Icons.Filled.UnfoldMore,

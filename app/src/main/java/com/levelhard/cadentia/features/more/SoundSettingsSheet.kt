@@ -19,8 +19,6 @@ import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -54,6 +52,7 @@ import com.levelhard.cadentia.kit.SamplePack
 import com.levelhard.cadentia.kit.enabledSampleFamilies
 import com.levelhard.cadentia.kit.setSampled
 import com.levelhard.cadentia.settings.SettingsStore
+import com.levelhard.cadentia.ui.CzSwitch
 import com.levelhard.cadentia.ui.CzTokens
 import com.levelhard.cadentia.ui.exposeTestTags
 import kotlinx.coroutines.Dispatchers
@@ -201,16 +200,10 @@ private fun FamilyRow(
                     color = if (on) CzTokens.gold else CzTokens.textTertiary,
                 )
             }
-            Switch(
+            CzSwitch(
                 checked = on,
                 onCheckedChange = onToggle,
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = CzTokens.stageBottom,
-                    checkedTrackColor = CzTokens.gold,
-                    uncheckedThumbColor = CzTokens.textSecondary,
-                    uncheckedTrackColor = CzTokens.surface,
-                    uncheckedBorderColor = CzTokens.hairline,
-                ),
+                accent = CzTokens.gold,
                 modifier = Modifier.testTag("sound.${family.id}"),
             )
         }

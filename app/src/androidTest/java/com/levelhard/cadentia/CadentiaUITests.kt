@@ -186,8 +186,16 @@ class CadentiaUITests {
         sleep(900) // a folha assenta no detent de cima
     }
 
+    /** O "+" de Repertórios abre o diálogo de nome (como o `.alert` do iOS); Salvar cria. */
+    private fun createSetlist(name: String) {
+        tap("setlists.new")
+        waitForTag("setlists.name").text = name
+        tap("setlists.confirm")
+        waitForText(name)
+    }
+
     /**
-     * Abre "Adicionar músicas" no cartão do repertório expandido, busca e toca
+     * Abre "Adicionar músicas" na folha do repertório aberto, busca e toca
      * na primeira. Como no iOS, a folha FICA aberta depois de adicionar (dá
      * para adicionar várias); o teste a fecha com o voltar, o que o teste do
      * iOS faz pela barra de navegação. A busca é o que torna o toque
@@ -518,12 +526,9 @@ class CadentiaUITests {
         launch("qa-tab" to "stems", "qa-stems-demo" to true, "qa-reset" to true)
         waitForTag("stems.play", 60_000)
         tap("stems.back")
-        waitForTag("setlists.name").text = "Show de sabado"
-        tap("setlists.new")
-        waitForText("Show de sabado")
-        // Abre o cartão do repertório (o iOS toca na linha) e adiciona a demo.
-        waitForTag("setlists.row.0")
-        waitForText("Show de sabado").click()
+        createSetlist("Show de sabado")
+        // Abre a folha do repertório (o iOS toca na linha) e adiciona a demo.
+        tap("setlists.row.0")
         addToSetlist("Cadentia Demo")
         tap("setlist.song.0")
         waitForTag("stems.play", 30_000)
@@ -535,10 +540,8 @@ class CadentiaUITests {
         launch("qa-tab" to "stems", "qa-stems-demo" to true, "qa-stems-demo2" to true, "qa-reset" to true)
         waitForTag("stems.play", 60_000)
         tap("stems.back")
-        waitForTag("setlists.name").text = "Ordem"
-        tap("setlists.new")
-        waitForTag("setlists.row.0")
-        waitForText("Ordem").click()
+        createSetlist("Ordem")
+        tap("setlists.row.0")
         // "Demo 2" primeiro: "Cadentia Demo" também casa com a segunda demo.
         addToSetlist("Demo 2")
         addToSetlist("Cadentia Demo")

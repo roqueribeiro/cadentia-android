@@ -676,12 +676,15 @@ internal fun ActionPill(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(7.dp),
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+            // O `.glass`/`.glassProminent` do iOS soma o seu próprio
+            // acolchoado ao `padding(16, 10)` do rótulo: o botão sai com
+            // ~50 pt de altura (medido no simulador), não 36.
+            modifier = Modifier.padding(horizontal = 22.dp, vertical = 16.dp),
         ) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(15.dp))
+            Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp))
             Text(
                 text = text,
-                fontSize = 14.sp,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
             )

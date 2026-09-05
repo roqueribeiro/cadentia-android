@@ -721,6 +721,14 @@ class StemsModel(context: Context) {
         bump()
     }
 
+    /** `createWith` do iOS: o repertório nasce já com a música (toque longo numa Recente). */
+    fun createSetlistWith(name: String, song: RecentSong) {
+        val list = setlists.create(name) ?: return
+        setlists.add(song, list.id)
+        stores.saveSetlists(setlists)
+        bump()
+    }
+
     fun addToSetlist(song: RecentSong, listId: String) {
         setlists.add(song, listId)
         stores.saveSetlists(setlists)

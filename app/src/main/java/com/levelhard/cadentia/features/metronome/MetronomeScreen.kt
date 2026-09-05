@@ -32,8 +32,6 @@ import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -62,6 +60,7 @@ import com.levelhard.cadentia.audio.PolyphonicSampler
 import com.levelhard.cadentia.kit.MetronomeClick
 import com.levelhard.cadentia.settings.SettingsStore
 import com.levelhard.cadentia.ui.CzCard
+import com.levelhard.cadentia.ui.CzSlider
 import com.levelhard.cadentia.ui.CzTokens
 import com.levelhard.cadentia.ui.PremiumBackground
 import com.levelhard.cadentia.ui.pageTransition
@@ -217,15 +216,11 @@ fun MetronomeScreen(store: SettingsStore) {
                     StepButton(Icons.Filled.Remove, R.string.music_metronome_decrement) {
                         setBpm(settings.metronome.bpm - 1)
                     }
-                    Slider(
+                    CzSlider(
+                        accent = accent,
                         value = settings.metronome.bpm.toFloat(),
                         onValueChange = { setBpm(Math.round(it)) },
                         valueRange = 40f..240f,
-                        colors = SliderDefaults.colors(
-                            thumbColor = accent,
-                            activeTrackColor = accent,
-                            inactiveTrackColor = CzTokens.surface,
-                        ),
                         modifier = Modifier.weight(1f),
                     )
                     StepButton(Icons.Filled.Add, R.string.music_metronome_increment) {
@@ -297,18 +292,14 @@ fun MetronomeScreen(store: SettingsStore) {
                         }
 
                         Setting(R.string.music_metronome_volume) {
-                            Slider(
+                            CzSlider(
+                                accent = accent,
                                 value = settings.metronome.volume.toFloat(),
                                 onValueChange = { value ->
                                     store.update { it.metronome.volume = value.toDouble() }
                                     engine.volume = value.toDouble()
                                 },
                                 valueRange = 0f..1f,
-                                colors = SliderDefaults.colors(
-                                    thumbColor = accent,
-                                    activeTrackColor = accent,
-                                    inactiveTrackColor = CzTokens.surface,
-                                ),
                             )
                         }
 
@@ -557,12 +548,14 @@ private fun ActionButton(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(7.dp),
-            modifier = Modifier.padding(horizontal = 18.dp, vertical = 11.dp),
+            // `.glassProminent` do iOS: rótulo 16 semibold com padding 24/12
+            // MAIS o acolchoado do estilo — o botão sai com ~60 pt de altura.
+            modifier = Modifier.padding(horizontal = 26.dp, vertical = 18.dp),
         ) {
-            icon?.let { Icon(it, contentDescription = null, modifier = Modifier.size(16.dp)) }
+            icon?.let { Icon(it, contentDescription = null, modifier = Modifier.size(17.dp)) }
             Text(
                 text = stringResource(textRes),
-                fontSize = 14.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
             )

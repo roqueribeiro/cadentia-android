@@ -2,6 +2,37 @@
 
 ## [Não lançado]
 
+### Fase 16 — Tela a tela iOS × Android (2026-09-05)
+
+Quinze pares de prints (simulador iPhone 17 com a 1.16.0 (46) × emulador),
+mesmos launch args, lidos lado a lado. O que divergia e foi alinhado:
+
+- Biblioteca de stems no formato do iOS: "Repertórios" com "+" que abre o
+  diálogo de nome; repertórios em linhas compactas num cartão, e o toque
+  abre a folha do repertório (Fechar, nome, menu com duplicar/renomear/
+  apagar; Tocar em ordem/Embaralhado; Adicionar músicas; músicas numeradas,
+  segurar remove). "Abertas recentemente" em cartão com linhas compactas
+  (ícone da origem, título, estado, play quando pronta), sem campo de busca,
+  segurar abre "Adicionar a repertório"/"Remover"; sem repertório o toque
+  longo vai direto ao nome (`createSetlistWith`). Cartão do RoqueOS com a
+  linha de origem (ícone, título, dica, chevron) e o aviso âmbar embaixo.
+- `DestinationChrome` compartilhado (`ui/`): voltar + título nos destinos
+  do Mais (Gravador, Sobre; Tablatura e Frequência só voltar, como no iOS).
+- `CzSlider` (trilho fino + bolinha branca, o `Slider` do iOS) no metrônomo,
+  bateria, Frequência, gravador, tablatura e painel do Cordas; `CzSwitch`
+  (botão branco constante, trilho no acento) em bateria, Frequência, Som e
+  Cordas; ícones `building.columns`/`arrow.2.clockwise` nas linhas Reverb e
+  Delay.
+- Demo da tablatura = `DemoTab.rostab` do app iOS (4 faixas com Keys, 92
+  BPM, arpejo de Am), não mais a fixture de teste; ícone de metrônomo (não
+  cronômetro) no count-in da tablatura e no chip do gravador.
+- Botões de ação no tamanho do `.glassProminent` (~50–60 pt): metrônomo,
+  bateria, tablatura, Frequência, Acordes/Escalas. Cartões do Mais com o
+  círculo de 54 pt e anel/borda na cor do destino. Chip do afinador com o
+  diapasão e o chevron sempre visível. Título do Cordas centrado. Player de
+  stems com folga antes da barra de abas.
+- Testes instrumentados ajustados ao fluxo novo dos repertórios; 31/31.
+
 ### Fase 15 — Testes instrumentados (2026-09-05)
 
 - `app/src/androidTest/CadentiaUITests.kt`: 31 testes em uiautomator

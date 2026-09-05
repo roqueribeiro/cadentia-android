@@ -42,10 +42,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -82,6 +78,8 @@ import com.levelhard.cadentia.I18nMap
 import com.levelhard.cadentia.LocalQaFlags
 import com.levelhard.cadentia.R
 import com.levelhard.cadentia.kit.cordas.CordaInstrument
+import com.levelhard.cadentia.ui.CzSlider
+import com.levelhard.cadentia.ui.CzSwitch
 import com.levelhard.cadentia.ui.CzTokens
 import com.levelhard.cadentia.ui.PremiumBackground
 import com.levelhard.cadentia.ui.pageTransition
@@ -226,7 +224,11 @@ private fun Header(accent: Color, onBack: () -> Unit, onHelp: () -> Unit, onPane
             fontSize = 17.sp,
             fontWeight = FontWeight.Bold,
             color = CzTokens.textPrimary,
-            modifier = Modifier.weight(1f),
+            // Centrado como no iOS e como os outros destinos do hub: o voltar
+            // pesa 48 dp à esquerda e os dois botões 96 à direita, então o
+            // título ganha 48 dp de folga à esquerda para cair no meio.
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            modifier = Modifier.weight(1f).padding(start = 48.dp),
         )
         IconButton(onClick = onHelp, modifier = Modifier.testTag("cordas.help")) {
             Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = stringResource(R.string.cadentia_cordas_help), tint = accent)
@@ -382,10 +384,10 @@ private fun CordasPanel(model: CordasModel, accent: Color, boardSize: IntSize, o
                     Text(stringResource(R.string.cadentia_cordas_panel_auto_pluck), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = CzTokens.textPrimary)
                     Text(stringResource(R.string.cadentia_cordas_panel_auto_pluck_hint), fontSize = 11.sp, color = CzTokens.textTertiary)
                 }
-                Switch(
+                CzSwitch(
                     checked = model.autoPluck,
                     onCheckedChange = { model.autoPluck = it },
-                    colors = SwitchDefaults.colors(checkedTrackColor = accent),
+                    accent = accent,
                     modifier = Modifier.testTag("cordas.autoPluck"),
                 )
             }
@@ -398,7 +400,7 @@ private fun CordasPanel(model: CordasModel, accent: Color, boardSize: IntSize, o
             PanelSlider(R.string.cadentia_cordas_panel_spread, model.spread, 0.85..1.25, accent) { model.spread = it }
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.cadentia_cordas_panel_nail), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = CzTokens.textPrimary, modifier = Modifier.weight(1f))
-                Switch(checked = model.nailEnabled, onCheckedChange = { model.nailEnabled = it }, colors = SwitchDefaults.colors(checkedTrackColor = accent))
+                CzSwitch(checked = model.nailEnabled, onCheckedChange = { model.nailEnabled = it }, accent = accent)
             }
         }
 
@@ -523,11 +525,11 @@ private fun PanelSlider(
                 color = CzTokens.textTertiary,
             )
         }
-        Slider(
+        CzSlider(
+            accent = accent,
             value = value.toFloat().coerceIn(range.start.toFloat(), range.endInclusive.toFloat()),
             onValueChange = { onChange(it.toDouble()) },
             valueRange = range.start.toFloat()..range.endInclusive.toFloat(),
-            colors = SliderDefaults.colors(thumbColor = accent, activeTrackColor = accent, inactiveTrackColor = Color.White.copy(alpha = 0.12f)),
             modifier = Modifier.height(28.dp),
         )
     }

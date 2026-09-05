@@ -25,6 +25,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
@@ -38,11 +39,7 @@ import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -90,6 +87,8 @@ import com.levelhard.cadentia.kit.DrumSynth
 import com.levelhard.cadentia.kit.SampleBank
 import com.levelhard.cadentia.settings.SettingsStore
 import com.levelhard.cadentia.ui.CzCard
+import com.levelhard.cadentia.ui.CzSlider
+import com.levelhard.cadentia.ui.CzSwitch
 import com.levelhard.cadentia.ui.CzTokens
 import com.levelhard.cadentia.ui.exposeTestTags
 import com.levelhard.cadentia.ui.PremiumBackground
@@ -298,7 +297,7 @@ fun DrumsScreen(store: SettingsStore) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(7.dp),
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 11.dp),
+                                modifier = Modifier.padding(horizontal = 22.dp, vertical = 16.dp), // ~50 pt como o .glassProminent do iOS
                             ) {
                                 Icon(
                                     if (isPlaying) Icons.Filled.Stop else Icons.Filled.PlayArrow,
@@ -358,43 +357,50 @@ fun DrumsScreen(store: SettingsStore) {
                                 tint = CzTokens.textTertiary,
                                 modifier = Modifier.size(16.dp),
                             )
-                            Slider(
+                            CzSlider(
+                                accent = accent,
                                 value = drums.volume.toFloat(),
                                 onValueChange = { value ->
                                     store.update { it.drums.volume = value.toDouble() }
                                     sequencer.volume = value
                                 },
                                 valueRange = 0f..1f,
-                                colors = sliderColors(accent),
                             )
                         }
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
+                            // `building.columns` do iOS antes do rótulo.
+                            Icon(
+                                imageVector = Icons.Filled.AccountBalance,
+                                contentDescription = null,
+                                tint = CzTokens.textSecondary,
+                                modifier = Modifier.size(16.dp),
+                            )
                             Text(
                                 text = stringResource(R.string.music_frequency_reverb),
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = CzTokens.textSecondary,
                             )
-                            Switch(
+                            CzSwitch(
                                 checked = drums.reverbEnabled,
                                 onCheckedChange = { value ->
                                     store.update { it.drums.reverbEnabled = value }
                                     sequencer.sampler.setReverb(value, store.settings.value.drums.reverbMix.toFloat())
                                 },
-                                colors = SwitchDefaults.colors(checkedTrackColor = accent),
+                                accent = accent,
                             )
                             if (drums.reverbEnabled) {
-                                Slider(
+                                CzSlider(
+                                    accent = accent,
                                     value = drums.reverbMix.toFloat(),
                                     onValueChange = { value ->
                                         store.update { it.drums.reverbMix = value.toDouble() }
                                         sequencer.sampler.setReverb(true, value)
                                     },
                                     valueRange = 0f..1f,
-                                    colors = sliderColors(accent),
                                 )
                             } else {
                                 Spacer(Modifier.weight(1f))
@@ -441,13 +447,6 @@ private fun setBpm(store: SettingsStore, sequencer: DrumSequencer, value: Int) {
     store.update { it.drums.bpm = clamped }
     sequencer.bpm = clamped
 }
-
-@Composable
-private fun sliderColors(accent: Color) = SliderDefaults.colors(
-    thumbColor = accent,
-    activeTrackColor = accent,
-    inactiveTrackColor = CzTokens.surface,
-)
 
 /** Família do instrumento → cor do pad (agrupamento visual de hardware). */
 private fun padColor(pad: String): Color = when (pad) {

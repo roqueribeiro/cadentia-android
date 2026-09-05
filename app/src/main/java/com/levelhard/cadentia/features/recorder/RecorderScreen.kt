@@ -44,7 +44,6 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Straighten
-import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -53,8 +52,6 @@ import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -72,10 +69,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -86,6 +85,7 @@ import com.levelhard.cadentia.R
 import com.levelhard.cadentia.kit.RecorderHistory
 import com.levelhard.cadentia.kit.RecorderProject
 import com.levelhard.cadentia.settings.SettingsStore
+import com.levelhard.cadentia.ui.CzSlider
 import com.levelhard.cadentia.ui.CzTokens
 import com.levelhard.cadentia.ui.PremiumBackground
 import com.levelhard.cadentia.ui.pageTransition
@@ -336,7 +336,7 @@ fun RecorderScreen(store: SettingsStore) {
             ) {
                 OptionChip(
                     text = stringResource(R.string.cadentia_recorder_studio_mode),
-                    icon = Icons.Filled.Mic,
+                    icon = rememberVectorPainter(Icons.Filled.Mic),
                     active = studioMode,
                     accent = accent,
                     tag = "recorder.studioMode",
@@ -346,13 +346,13 @@ fun RecorderScreen(store: SettingsStore) {
                 }
                 OptionChip(
                     text = stringResource(R.string.cadentia_recorder_metronome),
-                    icon = Icons.Filled.Timer,
+                    icon = painterResource(R.drawable.ic_tab_metronome), // o metrônomo do iOS, não um cronômetro
                     active = project.metronomeEnabled,
                     accent = accent,
                 ) { mutateProject(recordHistory = false) { it.metronomeEnabled = !it.metronomeEnabled } }
                 OptionChip(
                     text = stringResource(R.string.cadentia_recorder_snap),
-                    icon = Icons.Filled.Straighten,
+                    icon = rememberVectorPainter(Icons.Filled.Straighten),
                     active = snapToGrid,
                     accent = accent,
                 ) { snapToGrid = !snapToGrid }
@@ -404,7 +404,7 @@ fun RecorderScreen(store: SettingsStore) {
                 Box {
                     OptionChip(
                         text = stringResource(R.string.cadentia_recorder_export_mix),
-                        icon = Icons.Filled.IosShare,
+                        icon = rememberVectorPainter(Icons.Filled.IosShare),
                         active = false,
                         accent = accent,
                         enabled = project.tracks.isNotEmpty() && !isExporting,
@@ -983,7 +983,7 @@ private fun TrimHandle(color: Color, xDp: Double, onApply: (Float) -> Unit) {
 @Composable
 private fun OptionChip(
     text: String,
-    icon: ImageVector,
+    icon: androidx.compose.ui.graphics.painter.Painter,
     active: Boolean,
     accent: Color,
     enabled: Boolean = true,
@@ -1000,7 +1000,7 @@ private fun OptionChip(
             .then(if (tag != null) Modifier.testTag(tag) else Modifier),
     ) {
         val tint = if (active) accent else CzTokens.textSecondary
-        Icon(imageVector = icon, contentDescription = null, tint = tint, modifier = Modifier.size(13.dp))
+        Icon(painter = icon, contentDescription = null, tint = tint, modifier = Modifier.size(13.dp))
         Text(
             text = text,
             fontSize = 12.sp,
@@ -1244,15 +1244,11 @@ private fun LabelledSlider(
                 color = CzTokens.textTertiary,
             )
         }
-        Slider(
+        CzSlider(
+            accent = accent,
             value = value,
             onValueChange = onValue,
             valueRange = range,
-            colors = SliderDefaults.colors(
-                thumbColor = accent,
-                activeTrackColor = accent,
-                inactiveTrackColor = CzTokens.surface,
-            ),
         )
     }
 }

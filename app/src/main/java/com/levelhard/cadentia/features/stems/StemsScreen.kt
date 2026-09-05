@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -31,13 +32,22 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.PlaylistAdd
+import androidx.compose.material.icons.filled.RemoveCircleOutline
+import androidx.compose.material.icons.filled.Smartphone
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Forward10
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -79,6 +89,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -377,6 +389,7 @@ fun StemsScreen() {
                         onClearStorage = { model.clearStorage() },
                         onTryAgain = { model.reset() },
                         onCreateSetlist = { model.createSetlist(it) },
+                        onCreateSetlistWith = { name, song -> model.createSetlistWith(name, song) },
                         onAddToSetlist = { song, listId -> model.addToSetlist(song, listId) },
                         onRemoveFromSetlist = { songId, listId -> model.removeFromSetlist(songId, listId) },
                         onDuplicateSetlist = { listId, name -> model.duplicateSetlist(listId, name) },
@@ -598,7 +611,9 @@ private fun PlayerState(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp)
-            .padding(top = 8.dp, bottom = 12.dp)
+            // 24 dp embaixo: no iOS a linha do Mixer não encosta na barra de
+            // abas (comparação tela a tela de 05/09).
+            .padding(top = 8.dp, bottom = 24.dp)
             .widthIn(max = 560.dp),
     ) {
         // Voltar tradicional + título.
@@ -903,6 +918,7 @@ private fun LibraryState(
     onClearStorage: () -> Unit,
     onTryAgain: () -> Unit,
     onCreateSetlist: (String) -> Unit,
+    onCreateSetlistWith: (String, RecentSong) -> Unit,
     onAddToSetlist: (RecentSong, String) -> Unit,
     onRemoveFromSetlist: (String, String) -> Unit,
     onDuplicateSetlist: (String, String) -> Unit,
@@ -913,10 +929,13 @@ private fun LibraryState(
 ) {
     @Suppress("UNUSED_EXPRESSION") revision
     val context = LocalContext.current
-    var search by remember { mutableStateOf("") }
-    var newListName by remember { mutableStateOf("") }
     var showingAllRecent by remember { mutableStateOf(false) }
     var confirmingClear by remember { mutableStateOf(false) }
+    // O repertório aberto (folha com as músicas). Guarda o ID e não a cópia:
+    // renomear ou remover música precisa refletir na folha aberta.
+    var openListId by remember { mutableStateOf<String?>(null) }
+    // Para quê o nome que a pessoa vai digitar serve (`NamingIntent` do iOS).
+    var naming by remember { mutableStateOf<NamingIntent?>(null) }
     // Quanto disco as faixas separadas ocupam. Medido FORA da thread principal:
     // são centenas de arquivos com uma playlist separada, e trabalho de disco
     // no caminho da interface é o defeito que travava a tela da bateria.
@@ -949,6 +968,54 @@ private fun LibraryState(
                     Text(stringResource(R.string.cadentia_setlists_cancel), color = CzTokens.textSecondary)
                 }
             },
+        )
+    }
+
+    // A folha de nome do iOS (`.alert` com TextField): criar, criar já com
+    // uma música, duplicar, renomear.
+    naming?.let { intent ->
+        NameDialog(
+            title = stringResource(
+                when (intent.kind) {
+                    is NamingIntent.Kind.Duplicate -> R.string.cadentia_setlists_duplicate
+                    is NamingIntent.Kind.Rename -> R.string.cadentia_setlists_rename
+                    else -> R.string.cadentia_setlists_new
+                },
+            ),
+            initial = intent.initialName,
+            accent = accent,
+            onConfirm = { name ->
+                when (val kind = intent.kind) {
+                    NamingIntent.Kind.Create -> onCreateSetlist(name)
+                    is NamingIntent.Kind.CreateWith -> onCreateSetlistWith(name, kind.song)
+                    is NamingIntent.Kind.Duplicate -> onDuplicateSetlist(kind.listId, name)
+                    is NamingIntent.Kind.Rename -> onRenameSetlist(kind.listId, name)
+                }
+                naming = null
+            },
+            onDismiss = { naming = null },
+        )
+    }
+
+    // Um repertório aberto: a folha com as músicas na ordem do show.
+    val openList = setlists.lists.firstOrNull { it.id == openListId }
+    if (openListId != null && openList == null) openListId = null
+    if (openList != null) {
+        SetlistDetailSheet(
+            revision = revision,
+            list = openList,
+            accent = accent,
+            recent = recent.songs,
+            isReady = isReady,
+            onAddSong = { onAddToSetlist(it, openList.id) },
+            onPlayOrdered = { openListId = null; onPlaySetlist(openList, SetQueue.Mode.Ordered) },
+            onPlayShuffled = { openListId = null; onPlaySetlist(openList, SetQueue.Mode.Shuffled) },
+            onPlayFrom = { openListId = null; onPlayFromSetlist(openList, it) },
+            onRemoveSong = { onRemoveFromSetlist(it, openList.id) },
+            onDuplicate = { naming = NamingIntent(NamingIntent.Kind.Duplicate(openList.id), openList.name) },
+            onRename = { naming = NamingIntent(NamingIntent.Kind.Rename(openList.id), openList.name) },
+            onDelete = { openListId = null; onDeleteSetlist(openList.id) },
+            onDismiss = { openListId = null },
         )
     }
 
@@ -1039,188 +1106,148 @@ private fun LibraryState(
             // ---- repertórios ----
             // Acima das origens, como no iOS: quem montou o set de sábado abre o
             // app atrás DELE. A seção só aparece com conteúdo ou com recentes para
-            // adicionar (o criar precisa de onde nascer).
+            // adicionar (o "+" precisa de onde nascer).
             if (setlists.lists.isNotEmpty() || recent.songs.isNotEmpty()) {
-                Text(
-                    text = stringResource(R.string.cadentia_setlists_section),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = CzTokens.textTertiary,
-                )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    OutlinedTextField(
-                        value = newListName,
-                        onValueChange = { newListName = it },
-                        label = { Text(stringResource(R.string.cadentia_setlists_name_placeholder)) },
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = CzTokens.textPrimary,
-                            unfocusedTextColor = CzTokens.textPrimary,
-                            focusedBorderColor = accent,
-                            unfocusedBorderColor = CzTokens.hairline,
-                            focusedLabelColor = accent, // rótulo em dourado (primary do tema) sobre borda teal (QA)
-                            unfocusedLabelColor = CzTokens.textTertiary,
-                            cursorColor = accent,
-                        ),
-                        modifier = Modifier.weight(1f).testTag("setlists.name"),
-                    )
-                    Text(
-                        text = stringResource(R.string.cadentia_setlists_new),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = if (newListName.isNotBlank()) accent else CzTokens.textTertiary,
-                        modifier = Modifier
-                            .testTag("setlists.new")
-                            .clickable(enabled = newListName.isNotBlank()) {
-                                onCreateSetlist(newListName)
-                                newListName = ""
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.cadentia_setlists_section),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = CzTokens.textTertiary,
+                        )
+                        Spacer(Modifier.weight(1f))
+                        Icon(
+                            imageVector = Icons.Filled.AddCircle,
+                            contentDescription = stringResource(R.string.cadentia_setlists_new),
+                            tint = accent,
+                            modifier = Modifier
+                                .minimumInteractiveComponentSize()
+                                .size(20.dp)
+                                .clickable { naming = NamingIntent(NamingIntent.Kind.Create) }
+                                .testTag("setlists.new"),
+                        )
+                    }
+                    if (setlists.lists.isNotEmpty()) {
+                        CzCard(modifier = Modifier.fillMaxWidth()) {
+                            Column {
+                                for ((listIndex, list) in setlists.lists.withIndex()) {
+                                    if (listIndex > 0) HorizontalDivider(color = CzTokens.hairline)
+                                    SetlistRow(
+                                        revision = revision,
+                                        list = list,
+                                        accent = accent,
+                                        tag = "setlists.row.$listIndex",
+                                    ) { openListId = list.id }
+                                }
                             }
-                            .padding(8.dp),
-                    )
-                }
-                // Sem repertório nenhum o iOS mostra só o cabeçalho e o criar:
-                // cadentia.setlists.empty ("use Adicionar músicas aqui em cima") é
-                // do detalhe de UM repertório sem músicas — aqui apontava para um
-                // botão que não existe (achado do QA no emulador).
-                for ((listIndex, list) in setlists.lists.withIndex()) {
-                    SetlistCard(
-                        revision = revision,
-                        list = list,
-                        index = listIndex,
-                        accent = accent,
-                        candidates = recent.songs.filter { candidate -> list.songs.none { it.id == candidate.id } },
-                        hasRecents = recent.songs.isNotEmpty(),
-                        onAddSong = { onAddToSetlist(it, list.id) },
-                        onPlayOrdered = { onPlaySetlist(list, SetQueue.Mode.Ordered) },
-                        onPlayShuffled = { onPlaySetlist(list, SetQueue.Mode.Shuffled) },
-                        onPlayFrom = { onPlayFromSetlist(list, it) },
-                        onRemoveSong = { onRemoveFromSetlist(it, list.id) },
-                        onDuplicate = { onDuplicateSetlist(list.id, it) },
-                        onRename = { onRenameSetlist(list.id, it) },
-                        onDelete = { onDeleteSetlist(list.id) },
-                    )
+                        }
+                    }
                 }
             }
 
             // ---- recentes ----
             if (recent.songs.isNotEmpty()) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
-                ) {
-                    Text(
-                        text = stringResource(R.string.cadentia_library_recent),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = CzTokens.textTertiary,
-                    )
-                    Spacer(Modifier.weight(1f))
-                    // Tocável, e não só um rótulo: agora que as faixas FICAM, o
-                    // app pode crescer para gigabytes, e um número que só
-                    // informa deixa a pessoa sem saída a não ser apagar o app.
-                    val used = storage
-                    if (used != null && used.songs > 0) {
-                        val clearHint = stringResource(R.string.cadentia_library_clear_storage_title)
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            modifier = Modifier
-                                .clickable { confirmingClear = true }
-                                .padding(vertical = 8.dp, horizontal = 6.dp)
-                                .semantics { contentDescription = clearHint }
-                                .testTag("library.storageUsed"),
-                        ) {
-                            Text(
-                                text = stringResource(
-                                    R.string.cadentia_library_storage_used,
-                                    used.songs, Formatter.formatFileSize(context, used.bytes),
-                                ),
-                                fontSize = 11.sp,
-                                maxLines = 1,
-                                color = CzTokens.textTertiary,
-                            )
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                contentDescription = null,
-                                tint = CzTokens.textTertiary,
-                                modifier = Modifier.size(12.dp),
-                            )
-                        }
-                    }
-                }
-                OutlinedTextField(
-                    value = search,
-                    onValueChange = { search = it },
-                    label = { Text(stringResource(R.string.cadentia_setlists_search_songs)) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions.Default,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = CzTokens.textPrimary,
-                        unfocusedTextColor = CzTokens.textPrimary,
-                        focusedBorderColor = accent,
-                        unfocusedBorderColor = CzTokens.hairline,
-                        focusedLabelColor = accent, // rótulo em dourado (primary do tema) sobre borda teal (QA)
-                        unfocusedLabelColor = CzTokens.textTertiary,
-                        cursorColor = accent,
-                    ),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                val filtered = SongSearch.filter(recent.songs, search)
-                if (filtered.isEmpty()) {
-                    Text(
-                        text = stringResource(R.string.cadentia_setlists_no_matches),
-                        fontSize = 12.sp,
-                        color = CzTokens.textTertiary,
-                    )
-                }
-                // Seis cabem antes de a lista virar rolagem sem fim; o resto
-                // fica atrás de UM toque, não atrás de um limite (a busca
-                // mostra tudo que casar). Separar uma playlist e só alcançar as
-                // seis primeiras era metade do problema que o founder relatou.
-                val collapsed = search.isBlank() && !showingAllRecent && filtered.size > COLLAPSED_RECENT
-                val shown = if (collapsed) filtered.take(COLLAPSED_RECENT) else filtered
-                for ((index, song) in shown.withIndex()) {
-                    SongRow(
-                        revision = revision,
-                        song = song,
-                        ready = isReady(song),
-                        accent = accent,
-                        tag = "library.recent.$index",
-                        setlists = setlists,
-                        onOpen = { onReopen(song) },
-                        onForget = { onForget(song) },
-                        onAddTo = { listId -> onAddToSetlist(song, listId) },
-                    )
-                }
-                if (search.isBlank() && filtered.size > COLLAPSED_RECENT) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { showingAllRecent = !showingAllRecent }
-                            .padding(horizontal = 14.dp, vertical = 11.dp)
-                            .testTag("library.recent.showAll"),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
                     ) {
-                        Icon(
-                            imageVector = if (showingAllRecent) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                            contentDescription = null,
-                            tint = accent,
-                            modifier = Modifier.size(16.dp),
-                        )
                         Text(
-                            text = if (showingAllRecent) {
-                                stringResource(R.string.cadentia_library_show_fewer)
-                            } else {
-                                stringResource(R.string.cadentia_library_show_all, filtered.size)
-                            },
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = accent,
+                            text = stringResource(R.string.cadentia_library_recent),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = CzTokens.textTertiary,
                         )
+                        Spacer(Modifier.weight(1f))
+                        // Tocável, e não só um rótulo: agora que as faixas FICAM, o
+                        // app pode crescer para gigabytes, e um número que só
+                        // informa deixa a pessoa sem saída a não ser apagar o app.
+                        val used = storage
+                        if (used != null && used.songs > 0) {
+                            val clearHint = stringResource(R.string.cadentia_library_clear_storage_title)
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                modifier = Modifier
+                                    .clickable { confirmingClear = true }
+                                    .padding(vertical = 8.dp, horizontal = 6.dp)
+                                    .semantics { contentDescription = clearHint }
+                                    .testTag("library.storageUsed"),
+                            ) {
+                                Text(
+                                    text = stringResource(
+                                        R.string.cadentia_library_storage_used,
+                                        used.songs, Formatter.formatFileSize(context, used.bytes),
+                                    ),
+                                    fontSize = 11.sp,
+                                    maxLines = 1,
+                                    color = CzTokens.textTertiary,
+                                )
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                    contentDescription = null,
+                                    tint = CzTokens.textTertiary,
+                                    modifier = Modifier.size(12.dp),
+                                )
+                            }
+                        }
+                    }
+                    // Seis cabem antes de a lista virar rolagem sem fim; o resto
+                    // fica atrás de UM toque, não atrás de um limite. Separar uma
+                    // playlist e só alcançar as seis primeiras era metade do
+                    // problema que o founder relatou.
+                    val shown = if (showingAllRecent) recent.songs else recent.songs.take(COLLAPSED_RECENT)
+                    CzCard(modifier = Modifier.fillMaxWidth()) {
+                        Column {
+                            for ((index, song) in shown.withIndex()) {
+                                if (index > 0) HorizontalDivider(color = CzTokens.hairline)
+                                SongRow(
+                                    revision = revision,
+                                    song = song,
+                                    ready = isReady(song),
+                                    accent = accent,
+                                    tag = "library.recent.$index",
+                                    setlists = setlists,
+                                    onOpen = { onReopen(song) },
+                                    onForget = { onForget(song) },
+                                    onAddTo = { listId -> onAddToSetlist(song, listId) },
+                                    onNewSetlist = { naming = NamingIntent(NamingIntent.Kind.CreateWith(song)) },
+                                )
+                            }
+                            if (recent.songs.size > COLLAPSED_RECENT) {
+                                HorizontalDivider(color = CzTokens.hairline)
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { showingAllRecent = !showingAllRecent }
+                                        .padding(horizontal = 14.dp, vertical = 11.dp)
+                                        .testTag("library.recent.showAll"),
+                                ) {
+                                    Icon(
+                                        imageVector = if (showingAllRecent) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                                        contentDescription = null,
+                                        tint = accent,
+                                        modifier = Modifier.size(16.dp),
+                                    )
+                                    Text(
+                                        text = if (showingAllRecent) {
+                                            stringResource(R.string.cadentia_library_show_fewer)
+                                        } else {
+                                            stringResource(R.string.cadentia_library_show_all, recent.songs.size)
+                                        },
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = accent,
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1240,7 +1267,7 @@ private fun LibraryState(
                         .testTag("library.local"),
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.FolderOpen,
+                        imageVector = Icons.Filled.Smartphone, // `iphone` do iOS
                         contentDescription = null,
                         tint = accent,
                         modifier = Modifier.size(22.dp),
@@ -1276,6 +1303,74 @@ private fun LibraryState(
 /** Quantas recentes cabem antes de a lista virar rolagem sem fim. */
 private const val COLLAPSED_RECENT = 6
 
+/** O que uma folha de nome precisa saber: para quê o nome vai servir (port do `NamingIntent`). */
+private class NamingIntent(val kind: Kind, val initialName: String = "") {
+    sealed interface Kind {
+        data object Create : Kind
+        data class CreateWith(val song: RecentSong) : Kind
+        data class Duplicate(val listId: String) : Kind
+        data class Rename(val listId: String) : Kind
+    }
+}
+
+/** O `.alert` com `TextField` do iOS: título, campo, Cancelar e Salvar. */
+@Composable
+private fun NameDialog(
+    title: String,
+    initial: String,
+    accent: Color,
+    onConfirm: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var name by remember { mutableStateOf(initial) }
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) { focus.requestFocus() }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        // Diálogo é outra janela: as tags precisam virar resource-id aqui de novo.
+        modifier = Modifier.exposeTestTags(),
+        containerColor = CzTokens.stageTop,
+        titleContentColor = CzTokens.textPrimary,
+        textContentColor = CzTokens.textSecondary,
+        title = { Text(title) },
+        text = {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text(stringResource(R.string.cadentia_setlists_name_placeholder)) },
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = CzTokens.textPrimary,
+                    unfocusedTextColor = CzTokens.textPrimary,
+                    focusedBorderColor = accent,
+                    unfocusedBorderColor = CzTokens.hairline,
+                    focusedLabelColor = accent,
+                    unfocusedLabelColor = CzTokens.textTertiary,
+                    cursorColor = accent,
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focus)
+                    .testTag("setlists.name"),
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { if (name.isNotBlank()) onConfirm(name) },
+                enabled = name.isNotBlank(),
+                modifier = Modifier.testTag("setlists.confirm"),
+            ) { Text(stringResource(R.string.cadentia_setlists_confirm), color = if (name.isNotBlank()) accent else CzTokens.textTertiary) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cadentia_setlists_cancel), color = CzTokens.textSecondary)
+            }
+        },
+    )
+}
+
+/** Uma Recente: ícone da origem, título, estado e o play quando está pronta (port do `recentRow`). */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun SongRow(
     revision: Int,
@@ -1287,263 +1382,417 @@ private fun SongRow(
     onOpen: () -> Unit,
     onForget: () -> Unit,
     onAddTo: (String) -> Unit,
+    onNewSetlist: () -> Unit,
 ) {
     @Suppress("UNUSED_EXPRESSION") revision // modelo mutável: sem isto o strong skipping pula a recomposição
-    var showAdd by remember { mutableStateOf(false) }
+    var menu by remember { mutableStateOf(false) }
+    Box {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(tag)
+                // Segurar numa recente é o gesto de "guardar num set", como o
+                // `contextMenu` do iOS.
+                .combinedClickable(onClick = onOpen, onLongClick = { menu = true })
+                .padding(horizontal = 14.dp, vertical = 11.dp),
+        ) {
+            Icon(
+                imageVector = when (song.source) {
+                    is RecentSong.Source.Device -> Icons.Filled.Smartphone
+                    else -> Icons.Filled.Cloud
+                },
+                contentDescription = null,
+                tint = accent,
+                modifier = Modifier.size(18.dp),
+            )
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = song.title,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    color = CzTokens.textPrimary,
+                )
+                // Dizer que está pronta vale muito: é a diferença entre tocar na
+                // hora e esperar a separação de novo.
+                Text(
+                    text = stringResource(
+                        if (ready) R.string.cadentia_library_ready_to_play else R.string.cadentia_library_will_separate_again,
+                    ),
+                    fontSize = 10.sp,
+                    color = if (ready) accent.copy(alpha = 0.85f) else CzTokens.textTertiary,
+                )
+            }
+            if (ready) {
+                Icon(
+                    imageVector = Icons.Filled.PlayCircle,
+                    contentDescription = null,
+                    tint = accent,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+        }
+        DropdownMenu(expanded = menu, onDismissRequest = { menu = false }, containerColor = CzTokens.stageTop) {
+            // Sem nenhum repertório ainda, vai DIRETO para o nome: submenu com
+            // um item só é um toque a mais por nada.
+            if (setlists.lists.isEmpty()) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.cadentia_setlists_add_to), color = CzTokens.textPrimary) },
+                    leadingIcon = { Icon(Icons.Filled.PlaylistAdd, contentDescription = null, tint = accent) },
+                    onClick = { menu = false; onNewSetlist() },
+                )
+            } else {
+                for (list in setlists.lists) {
+                    DropdownMenuItem(
+                        text = { Text(list.name, color = CzTokens.textPrimary) },
+                        leadingIcon = { Icon(Icons.AutoMirrored.Filled.QueueMusic, contentDescription = null, tint = accent) },
+                        onClick = { menu = false; onAddTo(list.id) },
+                    )
+                }
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.cadentia_setlists_new), color = CzTokens.textPrimary) },
+                    leadingIcon = { Icon(Icons.Filled.Add, contentDescription = null, tint = accent) },
+                    onClick = { menu = false; onNewSetlist() },
+                )
+            }
+            HorizontalDivider(color = CzTokens.hairline)
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.cadentia_library_remove_from_recent), color = CzTokens.danger) },
+                leadingIcon = { Icon(Icons.Filled.Delete, contentDescription = null, tint = CzTokens.danger) },
+                onClick = { menu = false; onForget() },
+            )
+        }
+    }
+}
+
+/** Uma linha de repertório no cartão da biblioteca (port do `listRow`): nome, contagem, chevron. */
+@Composable
+private fun SetlistRow(revision: Int, list: Setlist, accent: Color, tag: String, onOpen: () -> Unit) {
+    @Suppress("UNUSED_EXPRESSION") revision // modelo mutável: sem isto o strong skipping pula a recomposição
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier
             .fillMaxWidth()
             .testTag(tag)
-            .background(CzTokens.surface, RoundedCornerShape(CzTokens.radiusMD))
             .clickable(onClick = onOpen)
-            .padding(horizontal = 14.dp, vertical = 11.dp),
+            .padding(horizontal = 14.dp, vertical = 12.dp),
     ) {
         Icon(
-            imageVector = if (ready) Icons.Filled.PlayCircle else Icons.Filled.MusicNote,
+            imageVector = Icons.AutoMirrored.Filled.QueueMusic,
             contentDescription = null,
-            tint = if (ready) accent else CzTokens.textTertiary,
+            tint = accent,
             modifier = Modifier.size(18.dp),
         )
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(
-                text = song.title,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                color = CzTokens.textPrimary,
-            )
-            // Dizer que está pronta vale muito: é a diferença entre tocar na
-            // hora e esperar a separação de novo.
-            Text(
-                text = stringResource(
-                    if (ready) R.string.cadentia_library_ready_to_play else R.string.cadentia_library_will_separate_again,
-                ),
-                fontSize = 10.sp,
-                color = if (ready) accent.copy(alpha = 0.85f) else CzTokens.textTertiary,
-            )
-        }
-        if (setlists.lists.isNotEmpty()) {
-            Box {
-                Icon(
-                    imageVector = Icons.Filled.ContentCopy,
-                    contentDescription = stringResource(R.string.cadentia_setlists_add_to),
-                    tint = CzTokens.textTertiary,
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clickable { showAdd = true }
-                        .padding(4.dp),
-                )
-                DropdownMenu(expanded = showAdd, onDismissRequest = { showAdd = false }) {
-                    for (list in setlists.lists) {
-                        DropdownMenuItem(
-                            text = { Text(list.name) },
-                            onClick = {
-                                onAddTo(list.id)
-                                showAdd = false
-                            },
-                        )
-                    }
-                }
-            }
-        }
+        Text(
+            text = list.name,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            color = CzTokens.textPrimary,
+            modifier = Modifier.weight(1f),
+        )
+        // Contagem como número puro: legenda com plural em dez idiomas é
+        // custo sem retorno quando o número sozinho já diz tudo.
+        Text(
+            text = "${list.songs.size}",
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Monospace,
+            color = CzTokens.textTertiary,
+        )
         Icon(
-            imageVector = Icons.Filled.Delete,
-            contentDescription = stringResource(R.string.cadentia_library_remove_from_recent),
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
             tint = CzTokens.textTertiary,
-            modifier = Modifier
-                .minimumInteractiveComponentSize()
-                .size(24.dp)
-                .clickable(onClick = onForget)
-                .padding(4.dp),
+            modifier = Modifier.size(14.dp),
         )
     }
 }
 
+/**
+ * Um repertório aberto — port do `SetlistDetailSheet`: tocar em ordem ou
+ * embaralhado em cima de tudo, "Adicionar músicas", e as músicas na ordem do
+ * show. Duplicar, renomear e apagar ficam no menu do canto.
+ */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
-private fun SetlistCard(
+private fun SetlistDetailSheet(
     revision: Int,
     list: Setlist,
-    index: Int,
     accent: Color,
-    candidates: List<RecentSong>,
-    hasRecents: Boolean,
+    recent: List<RecentSong>,
+    isReady: (RecentSong) -> Boolean,
     onAddSong: (RecentSong) -> Unit,
     onPlayOrdered: () -> Unit,
     onPlayShuffled: () -> Unit,
     onPlayFrom: (RecentSong) -> Unit,
     onRemoveSong: (String) -> Unit,
-    onDuplicate: (String) -> Unit,
-    onRename: (String) -> Unit,
+    onDuplicate: () -> Unit,
+    onRename: () -> Unit,
     onDelete: () -> Unit,
+    onDismiss: () -> Unit,
 ) {
     @Suppress("UNUSED_EXPRESSION") revision // modelo mutável: sem isto o strong skipping pula a recomposição
-    var expanded by remember { mutableStateOf(false) }
-    var editing by remember { mutableStateOf(false) }
-    var editName by remember { mutableStateOf(list.name) }
     var adding by remember { mutableStateOf(false) }
+    var menu by remember { mutableStateOf(false) }
 
     if (adding) {
         AddSongsSheet(
             accent = accent,
-            candidates = candidates,
-            hasRecents = hasRecents,
+            candidates = recent.filter { candidate -> list.songs.none { it.id == candidate.id } },
+            hasRecents = recent.isNotEmpty(),
             onAdd = onAddSong,
             onDismiss = { adding = false },
         )
     }
 
-    CzCard(modifier = Modifier.fillMaxWidth().testTag("setlists.row.$index")) {
+    androidx.compose.material3.ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = CzTokens.stageTop,
+    ) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier
+                .exposeTestTags()
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 32.dp),
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
+            // A barra da folha: Fechar, o nome do set, o menu.
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = stringResource(R.string.cadentia_about_close),
+                    fontSize = 14.sp,
+                    color = accent,
+                    modifier = Modifier
+                        .clickable(onClick = onDismiss)
+                        .padding(vertical = 8.dp, horizontal = 4.dp)
+                        .testTag("setlist.close"),
+                )
                 Text(
                     text = list.name,
-                    fontSize = 15.sp,
+                    fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center,
                     color = CzTokens.textPrimary,
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable { expanded = !expanded },
+                    modifier = Modifier.weight(1f),
                 )
-                Text(
-                    text = "${list.songs.size}",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = CzTokens.textTertiary,
-                )
-                if (list.songs.isNotEmpty()) {
-                    SmallAction(Icons.Filled.PlayArrow, stringResource(R.string.cadentia_setlists_play_ordered), accent, "setlist.playOrdered", onPlayOrdered)
-                    SmallAction(Icons.Filled.Shuffle, stringResource(R.string.cadentia_setlists_play_shuffled), accent, "setlist.playShuffled", onPlayShuffled)
-                }
-                SmallAction(Icons.Filled.ContentCopy, stringResource(R.string.cadentia_setlists_duplicate), CzTokens.textSecondary) {
-                    onDuplicate(list.name + " 2") // i18n-verbatim: sufixo numérico
-                }
-                SmallAction(Icons.Filled.Edit, stringResource(R.string.cadentia_setlists_rename), CzTokens.textSecondary) {
-                    editing = !editing
-                    editName = list.name
-                }
-                SmallAction(Icons.Filled.Delete, stringResource(R.string.cadentia_setlists_delete), CzTokens.danger, onClick = onDelete)
-            }
-            if (editing) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    OutlinedTextField(
-                        value = editName,
-                        onValueChange = { editName = it },
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = CzTokens.textPrimary,
-                            unfocusedTextColor = CzTokens.textPrimary,
-                            focusedBorderColor = accent,
-                            unfocusedBorderColor = CzTokens.hairline,
-                            focusedLabelColor = accent, // rótulo em dourado (primary do tema) sobre borda teal (QA)
-                            unfocusedLabelColor = CzTokens.textTertiary,
-                            cursorColor = accent,
-                        ),
-                        modifier = Modifier.weight(1f),
-                    )
-                    Text(
-                        text = stringResource(R.string.cadentia_setlists_confirm),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = accent,
-                        modifier = Modifier
-                            .clickable {
-                                onRename(editName)
-                                editing = false
-                            }
-                            .padding(6.dp),
-                    )
-                }
-            }
-            if (expanded) {
-                // "Adicionar músicas" de verdade (o botão do detalhe do iOS):
-                // abre a folha com as Recentes que ainda não estão na lista.
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(CzTokens.surface, RoundedCornerShape(CzTokens.radiusMD))
-                        .clickable { adding = true }
-                        .padding(horizontal = 12.dp, vertical = 10.dp)
-                        .testTag("setlist.addSongs"),
-                ) {
+                Box {
                     Icon(
-                        imageVector = Icons.Filled.AddCircle,
-                        contentDescription = null,
+                        imageVector = Icons.Filled.MoreHoriz,
+                        contentDescription = stringResource(R.string.cadentia_setlists_rename),
                         tint = accent,
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Text(
-                        text = stringResource(R.string.cadentia_setlists_add_songs),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = CzTokens.textPrimary,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        contentDescription = null,
-                        tint = CzTokens.textTertiary,
-                        modifier = Modifier.size(16.dp),
-                    )
-                }
-                if (list.songs.isEmpty()) {
-                    Text(
-                        text = stringResource(R.string.cadentia_setlists_empty),
-                        fontSize = 12.sp,
-                        color = CzTokens.textTertiary,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
-                    )
-                }
-                for ((songIndex, song) in list.songs.withIndex()) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("setlist.song.$songIndex")
-                            .clickable { onPlayFrom(song) }
-                            .padding(vertical = 4.dp),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.MusicNote,
-                            contentDescription = null,
-                            tint = CzTokens.textTertiary,
-                            modifier = Modifier.size(13.dp),
+                            .minimumInteractiveComponentSize()
+                            .size(22.dp)
+                            .clickable { menu = true }
+                            .testTag("setlist.menu"),
+                    )
+                    DropdownMenu(expanded = menu, onDismissRequest = { menu = false }, containerColor = CzTokens.stageTop) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.cadentia_setlists_duplicate), color = CzTokens.textPrimary) },
+                            leadingIcon = { Icon(Icons.Filled.ContentCopy, contentDescription = null, tint = CzTokens.textSecondary) },
+                            onClick = { menu = false; onDuplicate() },
                         )
-                        Text(
-                            text = song.title,
-                            fontSize = 13.sp,
-                            maxLines = 1,
-                            color = CzTokens.textSecondary,
-                            modifier = Modifier.weight(1f),
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.cadentia_setlists_rename), color = CzTokens.textPrimary) },
+                            leadingIcon = { Icon(Icons.Filled.Edit, contentDescription = null, tint = CzTokens.textSecondary) },
+                            onClick = { menu = false; onRename() },
                         )
-                        Icon(
-                            imageVector = Icons.Filled.Delete,
-                            contentDescription = stringResource(R.string.cadentia_setlists_remove_song),
-                            tint = CzTokens.textTertiary,
-                            modifier = Modifier
-                                .size(20.dp)
-                                .clickable { onRemoveSong(song.id) }
-                                .padding(3.dp),
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.cadentia_setlists_delete), color = CzTokens.danger) },
+                            leadingIcon = { Icon(Icons.Filled.Delete, contentDescription = null, tint = CzTokens.danger) },
+                            onClick = { menu = false; onDelete() },
                         )
                     }
                 }
             }
+
+            // Os dois jeitos de tocar o set, em cima de tudo: é para isso que
+            // a folha abre num dia de show.
+            if (list.songs.isNotEmpty()) {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                    PlayAction(
+                        text = stringResource(R.string.cadentia_setlists_play_ordered),
+                        icon = Icons.Filled.PlayArrow,
+                        prominent = true,
+                        accent = accent,
+                        tag = "setlist.playOrdered",
+                        modifier = Modifier.weight(1f),
+                        onClick = onPlayOrdered,
+                    )
+                    PlayAction(
+                        text = stringResource(R.string.cadentia_setlists_play_shuffled),
+                        icon = Icons.Filled.Shuffle,
+                        prominent = false,
+                        accent = accent,
+                        tag = "setlist.playShuffled",
+                        modifier = Modifier.weight(1f),
+                        onClick = onPlayShuffled,
+                    )
+                }
+            }
+
+            // O caminho EXPLÍCITO de encher o set. O toque longo nas Recentes
+            // continua como atalho, mas atalho não pode ser o único caminho.
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(CzTokens.surface, RoundedCornerShape(CzTokens.radiusMD))
+                    .clickable { adding = true }
+                    .padding(horizontal = 14.dp, vertical = 13.dp)
+                    .testTag("setlist.addSongs"),
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.AddCircle,
+                    contentDescription = null,
+                    tint = accent,
+                    modifier = Modifier.size(16.dp),
+                )
+                Text(
+                    text = stringResource(R.string.cadentia_setlists_add_songs),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = CzTokens.textPrimary,
+                    modifier = Modifier.weight(1f),
+                )
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = CzTokens.textTertiary,
+                    modifier = Modifier.size(14.dp),
+                )
+            }
+
+            if (list.songs.isEmpty()) {
+                Text(
+                    text = stringResource(R.string.cadentia_setlists_empty),
+                    fontSize = 13.sp,
+                    color = CzTokens.textSecondary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(top = 40.dp, bottom = 16.dp).padding(horizontal = 24.dp),
+                )
+            } else {
+                CzCard(modifier = Modifier.fillMaxWidth()) {
+                    Column {
+                        for ((songIndex, song) in list.songs.withIndex()) {
+                            if (songIndex > 0) HorizontalDivider(color = CzTokens.hairline)
+                            SetlistSongRow(
+                                song = song,
+                                position = songIndex + 1,
+                                ready = isReady(song),
+                                accent = accent,
+                                tag = "setlist.song.$songIndex",
+                                onPlay = { onPlayFrom(song) },
+                                onRemove = { onRemoveSong(song.id) },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Tocar em ordem (cheio) e embaralhado (translúcido), como no iOS. */
+@Composable
+private fun PlayAction(
+    text: String,
+    icon: ImageVector,
+    prominent: Boolean,
+    accent: Color,
+    tag: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    val tint = if (prominent) CzTokens.stageBottom else accent
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+        modifier = modifier
+            .background(if (prominent) accent else accent.copy(alpha = 0.16f), RoundedCornerShape(CzTokens.radiusMD))
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp, horizontal = 8.dp)
+            .testTag(tag),
+    ) {
+        Icon(imageVector = icon, contentDescription = null, tint = tint, modifier = Modifier.size(16.dp))
+        Text(text = text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = tint, maxLines = 1)
+    }
+}
+
+/** Uma música do set (port do `songRow`): a ordem de longe, o estado, o play; segurar remove. */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun SetlistSongRow(
+    song: RecentSong,
+    position: Int,
+    ready: Boolean,
+    accent: Color,
+    tag: String,
+    onPlay: () -> Unit,
+    onRemove: () -> Unit,
+) {
+    var menu by remember { mutableStateOf(false) }
+    Box {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(tag)
+                .combinedClickable(onClick = onPlay, onLongClick = { menu = true })
+                .padding(horizontal = 14.dp, vertical = 11.dp),
+        ) {
+            // O número da ordem: num set de show, "qual é a próxima" é a
+            // pergunta que a tela responde de longe.
+            Text(
+                text = "$position",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Monospace,
+                color = CzTokens.textTertiary,
+                modifier = Modifier.width(22.dp),
+            )
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = song.title,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    color = CzTokens.textPrimary,
+                )
+                Text(
+                    text = stringResource(
+                        if (ready) R.string.cadentia_library_ready_to_play else R.string.cadentia_library_will_separate_again,
+                    ),
+                    fontSize = 10.sp,
+                    color = if (ready) accent.copy(alpha = 0.85f) else CzTokens.textTertiary,
+                )
+            }
+            Icon(
+                imageVector = Icons.Filled.PlayCircle,
+                contentDescription = null,
+                tint = accent,
+                modifier = Modifier.size(20.dp),
+            )
+        }
+        DropdownMenu(expanded = menu, onDismissRequest = { menu = false }, containerColor = CzTokens.stageTop) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.cadentia_setlists_remove_song), color = CzTokens.danger) },
+                leadingIcon = { Icon(Icons.Filled.RemoveCircleOutline, contentDescription = null, tint = CzTokens.danger) },
+                onClick = { menu = false; onRemove() },
+            )
         }
     }
 }

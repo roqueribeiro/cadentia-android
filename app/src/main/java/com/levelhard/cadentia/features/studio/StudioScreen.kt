@@ -21,15 +21,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.Autorenew
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -63,6 +61,8 @@ import com.levelhard.cadentia.kit.MusicNotes
 import com.levelhard.cadentia.kit.ToneSynth
 import com.levelhard.cadentia.settings.SettingsStore
 import com.levelhard.cadentia.ui.CzCard
+import com.levelhard.cadentia.ui.CzSlider
+import com.levelhard.cadentia.ui.CzSwitch
 import com.levelhard.cadentia.ui.CzTokens
 import com.levelhard.cadentia.ui.PremiumBackground
 import com.levelhard.cadentia.ui.pageTransition
@@ -176,11 +176,11 @@ fun StudioScreen(store: SettingsStore) {
                 // ---- controles de frequência ----
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     // Slider log: mesmo curso por oitava, 20 Hz – 20 kHz.
-                    Slider(
+                    CzSlider(
+                        accent = accent,
                         value = (log2(studio.hz / 20) / log2(1000.0)).toFloat(),
                         onValueChange = { setHz(20 * 1000.0.pow(it.toDouble())) },
                         valueRange = 0f..1f,
-                        colors = sliderColors(accent),
                     )
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -241,7 +241,7 @@ fun StudioScreen(store: SettingsStore) {
                             modifier = Modifier
                                 .background(accent, RoundedCornerShape(50))
                                 .clickable { toggle() }
-                                .padding(horizontal = 22.dp, vertical = 11.dp)
+                                .padding(horizontal = 24.dp, vertical = 16.dp) // ~50 pt como o .glassProminent do iOS
                                 .testTag("studio.toggle"),
                         ) {
                             Icon(
@@ -266,11 +266,11 @@ fun StudioScreen(store: SettingsStore) {
                             tint = CzTokens.textTertiary,
                             modifier = Modifier.size(16.dp),
                         )
-                        Slider(
+                        CzSlider(
+                            accent = accent,
                             value = studio.volume.toFloat(),
                             onValueChange = { value -> applyLive { it.studio.volume = value.toDouble() } },
                             valueRange = 0f..1f,
-                            colors = sliderColors(accent),
                             modifier = Modifier.weight(1f),
                         )
                     }
@@ -300,13 +300,13 @@ fun StudioScreen(store: SettingsStore) {
                                     color = accent,
                                     modifier = Modifier.width(58.dp),
                                 )
-                                Slider(
+                                CzSlider(
+                                    accent = accent,
                                     value = studio.binauralOffset.toFloat(),
                                     onValueChange = { value ->
                                         applyLive { it.studio.binauralOffset = kotlin.math.round(value).toDouble() }
                                     },
                                     valueRange = 1f..40f,
-                                    colors = sliderColors(accent),
                                     modifier = Modifier.weight(1f),
                                 )
                             }
@@ -326,7 +326,7 @@ fun StudioScreen(store: SettingsStore) {
                         modifier = Modifier.padding(16.dp),
                     ) {
                         ToggleRow(
-                            icon = null,
+                            icon = Icons.Filled.AccountBalance, // `building.columns` do iOS
                             text = stringResource(R.string.music_frequency_reverb),
                             checked = studio.reverbEnabled,
                             accent = accent,
@@ -340,7 +340,7 @@ fun StudioScreen(store: SettingsStore) {
                             ) { value -> applyLive { it.studio.reverbMix = value.toDouble() } }
                         }
                         ToggleRow(
-                            icon = null,
+                            icon = Icons.Filled.Autorenew, // `arrow.trianglehead.2.clockwise` do iOS
                             text = stringResource(R.string.music_frequency_delay),
                             checked = studio.delayEnabled,
                             accent = accent,
@@ -379,13 +379,6 @@ private val presets = listOf(
     528.0 to "music.frequency.presets.miracle",
     1000.0 to "music.frequency.presets.reference1k",
     8000.0 to "music.frequency.presets.treble8k",
-)
-
-@Composable
-private fun sliderColors(accent: Color) = SliderDefaults.colors(
-    thumbColor = accent,
-    activeTrackColor = accent,
-    inactiveTrackColor = CzTokens.surface,
 )
 
 @Composable
@@ -434,14 +427,7 @@ private fun ToggleRow(
             color = CzTokens.textSecondary,
             modifier = Modifier.weight(1f),
         )
-        Switch(
-            checked = checked,
-            onCheckedChange = onChecked,
-            colors = SwitchDefaults.colors(
-                checkedTrackColor = accent,
-                checkedThumbColor = Color.White,
-            ),
-        )
+        CzSwitch(checked = checked, onCheckedChange = onChecked, accent = accent)
     }
 }
 
@@ -464,11 +450,11 @@ private fun LabeledSlider(
             color = CzTokens.textTertiary,
             modifier = Modifier.width(76.dp),
         )
-        Slider(
+        CzSlider(
+            accent = accent,
             value = value,
             onValueChange = onValue,
             valueRange = range,
-            colors = sliderColors(accent),
             modifier = Modifier.weight(1f),
         )
     }

@@ -5,7 +5,11 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -47,8 +51,8 @@ import com.levelhard.cadentia.MoreDestination
 import com.levelhard.cadentia.R
 import com.levelhard.cadentia.kit.SampleBank
 import com.levelhard.cadentia.kit.enabledSampleFamilies
-import com.levelhard.cadentia.ui.CzCard
 import com.levelhard.cadentia.ui.CzTokens
+import com.levelhard.cadentia.ui.DestinationChrome
 import com.levelhard.cadentia.ui.PremiumBackground
 import com.levelhard.cadentia.ui.WordmarkFamily
 import com.levelhard.cadentia.ui.pageTransition
@@ -81,13 +85,25 @@ fun MoreScreen(
     ) { dest ->
         when (dest) {
             null -> MoreList(store = store, onOpen = onDestinationChange)
-            MoreDestination.Recorder ->
-                com.levelhard.cadentia.features.recorder.RecorderScreen(store)
-            MoreDestination.Tablature ->
-                com.levelhard.cadentia.features.tab.TablatureScreen(store)
-            MoreDestination.Studio ->
-                com.levelhard.cadentia.features.studio.StudioScreen(store)
-            MoreDestination.About -> AboutScreen()
+            // A barra de voltar + título que o `NavigationStack` do iOS dá a
+            // cada destino do Mais. Tablatura e Frequência mostram só o
+            // voltar, como lá (a Tablatura tem o nome da música no cabeçalho).
+            MoreDestination.Recorder -> DestinationChrome(
+                stringResource(R.string.cadentia_recorder_title), CzTokens.recorderCyan,
+                onBack = { onDestinationChange(null) }, backTag = "more.back",
+            ) { com.levelhard.cadentia.features.recorder.RecorderScreen(store) }
+            MoreDestination.Tablature -> DestinationChrome(
+                null, CzTokens.tabIndigo,
+                onBack = { onDestinationChange(null) }, backTag = "more.back",
+            ) { com.levelhard.cadentia.features.tab.TablatureScreen(store) }
+            MoreDestination.Studio -> DestinationChrome(
+                null, CzTokens.studioPurple,
+                onBack = { onDestinationChange(null) }, backTag = "more.back",
+            ) { com.levelhard.cadentia.features.studio.StudioScreen(store) }
+            MoreDestination.About -> DestinationChrome(
+                stringResource(R.string.cadentia_about_title), CzTokens.stemsTeal,
+                onBack = { onDestinationChange(null) }, backTag = "more.back",
+            ) { AboutScreen() }
         }
     }
 }
@@ -193,39 +209,57 @@ private fun FeatureCard(
     onClick: () -> Unit,
 ) {
     val title = stringResource(titleRes)
-    CzCard(modifier = Modifier.fillMaxWidth().testTag(tag)) {
+    // Port do `featureCardBody`: círculo de 54 pt com anel na cor do destino,
+    // e a borda do cartão puxando essa cor no canto de cima.
+    val shape = RoundedCornerShape(CzTokens.radiusLG)
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag(tag)
+            .background(
+                Brush.linearGradient(listOf(Color.White.copy(alpha = 0.07f), Color.White.copy(alpha = 0.03f))),
+                shape,
+            )
+            .border(
+                1.dp,
+                Brush.linearGradient(listOf(color.copy(alpha = 0.35f), CzTokens.hairline)),
+                shape,
+            )
+            .clip(shape),
+    ) {
         Row(
             modifier = Modifier
                 .clickable(onClickLabel = title, onClick = onClick)
                 .fillMaxWidth()
-                .padding(horizontal = 18.dp, vertical = 18.dp),
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(contentAlignment = Alignment.Center) {
-                Canvas(Modifier.size(46.dp)) {
-                    drawCircle(
-                        brush = Brush.radialGradient(
-                            listOf(color.copy(alpha = 0.30f), Color.Transparent),
-                        ),
-                    )
-                }
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(54.dp)
+                    .background(color.copy(alpha = 0.16f), CircleShape)
+                    .border(1.dp, color.copy(alpha = 0.4f), CircleShape),
+            ) {
                 Icon(
                     painter = painterResource(iconRes),
                     contentDescription = null,
                     tint = color,
-                    modifier = Modifier.size(26.dp),
+                    modifier = Modifier.size(24.dp),
                 )
             }
             Spacer(Modifier.size(14.dp))
             Column(Modifier.weight(1f)) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleMedium,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
                     color = CzTokens.textPrimary,
                 )
                 Text(
                     text = detail,
-                    style = MaterialTheme.typography.labelMedium,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
                     color = CzTokens.textTertiary,
                 )
             }

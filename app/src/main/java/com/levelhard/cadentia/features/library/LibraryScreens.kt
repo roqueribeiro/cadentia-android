@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.FolderShared
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.MusicNote
@@ -145,23 +146,27 @@ private fun DisconnectedCard(
     // `library.roqueos` é a seção RoqueOS em qualquer estado (o iOS marca a linha da fonte).
     CzCard(modifier = Modifier.fillMaxWidth().testTag("library.roqueos")) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.padding(vertical = 4.dp),
         ) {
-            Text(
-                text = stringResource(R.string.cadentia_library_connect_roque_o_s),
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = CzTokens.textPrimary,
-            )
-            Text(
-                text = stringResource(
-                    if (configured) R.string.cadentia_library_connect_hint
-                    else R.string.cadentia_library_not_configured,
-                ),
-                fontSize = 12.sp,
-                color = CzTokens.textSecondary,
-            )
+            // A mesma linha de origem do iOS (ícone, título, dica, chevron);
+            // sem configuração, a linha não leva a lugar nenhum e o aviso
+            // âmbar embaixo explica por quê.
+            SourceRow(
+                icon = Icons.Filled.Link,
+                title = stringResource(R.string.cadentia_library_connect_roque_o_s),
+                detail = stringResource(R.string.cadentia_library_connect_hint),
+                accent = accent,
+            ) { if (configured) onConnect() }
+            if (!configured) {
+                Text(
+                    text = stringResource(R.string.cadentia_library_not_configured),
+                    fontSize = 11.sp,
+                    color = CzTokens.warnAmber,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 12.dp),
+                )
+            }
             if (failure != null && failure != "nao configurado") {
                 Text(
                     text = stringResource(R.string.cadentia_library_connect_failed) +
@@ -169,18 +174,24 @@ private fun DisconnectedCard(
                     fontSize = 10.sp,
                     fontFamily = FontFamily.Monospace,
                     color = CzTokens.warnAmber,
+                    modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 12.dp),
                 )
             }
             if (configured) {
+                // O botão "Conectar" do iOS: largura toda, acento translúcido.
                 Text(
                     text = stringResource(R.string.cadentia_library_connect),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = Color.Black,
+                    color = accent,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     modifier = Modifier
-                        .background(accent, RoundedCornerShape(50))
+                        .padding(horizontal = 14.dp)
+                        .padding(bottom = 14.dp)
+                        .fillMaxWidth()
+                        .background(accent.copy(alpha = 0.18f), RoundedCornerShape(CzTokens.radiusMD))
                         .clickable(onClick = onConnect)
-                        .padding(horizontal = 16.dp, vertical = 9.dp)
+                        .padding(vertical = 10.dp)
                         .testTag("library.connect"),
                 )
             }

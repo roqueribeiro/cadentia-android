@@ -26,8 +26,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -52,6 +50,7 @@ import com.levelhard.cadentia.kit.DrumSynth
 import com.levelhard.cadentia.kit.InstrumentVoice
 import com.levelhard.cadentia.kit.Tablature
 import com.levelhard.cadentia.ui.CzCard
+import com.levelhard.cadentia.ui.CzSlider
 import com.levelhard.cadentia.ui.CzTokens
 
 /** Chip de cápsula compartilhado pelas sheets da tablatura. */
@@ -143,15 +142,11 @@ fun TabMixerSheet(
                                 tint = CzTokens.textTertiary,
                                 modifier = Modifier.size(16.dp),
                             )
-                            Slider(
+                            CzSlider(
+                                accent = accent,
                                 value = track.volume.toFloat(),
                                 onValueChange = { onChange(index, it.toDouble(), track.muted, track.soloed) },
                                 valueRange = 0f..1f,
-                                colors = SliderDefaults.colors(
-                                    thumbColor = accent,
-                                    activeTrackColor = accent,
-                                    inactiveTrackColor = CzTokens.surface,
-                                ),
                                 modifier = Modifier.weight(1f),
                             )
                         }

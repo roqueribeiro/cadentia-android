@@ -4,11 +4,11 @@
   "meta": {
     "title": "Cadentia Demo",
     "author": "RoqueOS",
-    "createdAt": "2026-07-29T02:13:33.122Z",
-    "updatedAt": "2026-07-29T02:13:33.123Z"
+    "createdAt": "2026-07-29T02:13:33.124Z",
+    "updatedAt": "2026-07-29T02:13:33.125Z"
   },
   "transport": {
-    "bpm": 100,
+    "bpm": 92,
     "timeSignature": [
       4,
       4
@@ -20,33 +20,68 @@
     "delayTime": 400,
     "delayFeedback": 0.4
   },
-  "repeatBlocks": [
-    {
-      "id": "rb_ms5gakar_l2th5",
-      "startIdx": 0,
-      "endIdx": 1,
-      "count": 2
-    }
-  ],
+  "repeatBlocks": [],
   "chordMarks": [
     {
-      "id": "cm_ms5gakar_67ooo",
+      "id": "cm_ms5gakat_9iy9g",
       "measureIdx": 0,
       "col": 0,
       "chordId": "Am",
       "displayName": "Am"
     },
     {
-      "id": "cm_ms5gakar_txzl0",
-      "measureIdx": 2,
+      "id": "cm_ms5gakat_p42oj",
+      "measureIdx": 1,
       "col": 0,
       "chordId": "F",
       "displayName": "F"
+    },
+    {
+      "id": "cm_ms5gakat_lp929",
+      "measureIdx": 2,
+      "col": 0,
+      "chordId": "C",
+      "displayName": "C"
+    },
+    {
+      "id": "cm_ms5gakat_wazrj",
+      "measureIdx": 3,
+      "col": 0,
+      "chordId": "G",
+      "displayName": "G"
+    },
+    {
+      "id": "cm_ms5gakat_5lqcy",
+      "measureIdx": 4,
+      "col": 0,
+      "chordId": "Am",
+      "displayName": "Am"
+    },
+    {
+      "id": "cm_ms5gakat_vwrkl",
+      "measureIdx": 5,
+      "col": 0,
+      "chordId": "F",
+      "displayName": "F"
+    },
+    {
+      "id": "cm_ms5gakat_8vy42",
+      "measureIdx": 6,
+      "col": 0,
+      "chordId": "G",
+      "displayName": "G"
+    },
+    {
+      "id": "cm_ms5gakat_gebet",
+      "measureIdx": 7,
+      "col": 0,
+      "chordId": "Am",
+      "displayName": "Am"
     }
   ],
   "tracks": [
     {
-      "id": "ada37b2c-316e-49b8-ab0c-900b9da6b4b2",
+      "id": "45517b78-ce87-452a-a2d7-94c27379d9a8",
       "name": "Guitar",
       "type": "guitar",
       "instrumentId": "guitar-standard",
@@ -114,9 +149,7 @@
             {
               "stringIndex": 0,
               "steps": [
-                {
-                  "v": 5
-                },
+                null,
                 null,
                 null,
                 null,
@@ -137,11 +170,11 @@
             {
               "stringIndex": 1,
               "steps": [
-                null,
-                null,
                 {
-                  "v": 5
+                  "v": 0
                 },
+                null,
+                null,
                 null,
                 null,
                 null,
@@ -162,17 +195,8 @@
               "steps": [
                 null,
                 null,
-                null,
-                null,
                 {
-                  "v": 7,
-                  "dur": 4
-                },
-                null,
-                null,
-                null,
-                {
-                  "v": 5
+                  "v": 2
                 },
                 null,
                 null,
@@ -180,6 +204,14 @@
                 null,
                 null,
                 null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 2
+                },
                 null
               ]
             },
@@ -190,6 +222,9 @@
                 null,
                 null,
                 null,
+                {
+                  "v": 2
+                },
                 null,
                 null,
                 null,
@@ -197,8 +232,9 @@
                 null,
                 null,
                 null,
-                null,
-                null,
+                {
+                  "v": 2
+                },
                 null,
                 null,
                 null
@@ -213,11 +249,15 @@
                 null,
                 null,
                 null,
+                {
+                  "v": 1
+                },
                 null,
                 null,
                 null,
-                null,
-                null,
+                {
+                  "v": 1
+                },
                 null,
                 null,
                 null,
@@ -227,379 +267,6 @@
             },
             {
               "stringIndex": 5,
-              "steps": [
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-              ]
-            }
-          ]
-        },
-        {
-          "stepsPerMeasure": 16,
-          "strings": [
-            {
-              "stringIndex": 0,
-              "steps": [
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-              ]
-            },
-            {
-              "stringIndex": 1,
-              "steps": [
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-              ]
-            },
-            {
-              "stringIndex": 2,
-              "steps": [
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                {
-                  "v": 8,
-                  "a": {
-                    "pm": true
-                  }
-                },
-                null,
-                null,
-                null,
-                {
-                  "v": 7
-                },
-                null,
-                null,
-                null
-              ]
-            },
-            {
-              "stringIndex": 3,
-              "steps": [
-                {
-                  "v": 7
-                },
-                null,
-                null,
-                null,
-                {
-                  "v": 5
-                },
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-              ]
-            },
-            {
-              "stringIndex": 4,
-              "steps": [
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-              ]
-            },
-            {
-              "stringIndex": 5,
-              "steps": [
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-              ]
-            }
-          ]
-        },
-        {
-          "stepsPerMeasure": 16,
-          "strings": [
-            {
-              "stringIndex": 0,
-              "steps": [
-                {
-                  "v": 5
-                },
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-              ]
-            },
-            {
-              "stringIndex": 1,
-              "steps": [
-                null,
-                null,
-                null,
-                null,
-                {
-                  "v": 7
-                },
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-              ]
-            },
-            {
-              "stringIndex": 2,
-              "steps": [
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                {
-                  "v": 9,
-                  "dur": 4,
-                  "tup": 3
-                },
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-              ]
-            },
-            {
-              "stringIndex": 3,
-              "steps": [
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-              ]
-            },
-            {
-              "stringIndex": 4,
-              "steps": [
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-              ]
-            },
-            {
-              "stringIndex": 5,
-              "steps": [
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-              ]
-            }
-          ]
-        },
-        {
-          "stepsPerMeasure": 16,
-          "repeats": 2,
-          "strings": [
-            {
-              "stringIndex": 0,
-              "steps": [
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-              ]
-            },
-            {
-              "stringIndex": 1,
-              "steps": [
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-              ]
-            },
-            {
-              "stringIndex": 2,
-              "steps": [
-                {
-                  "v": 5
-                },
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-              ]
-            },
-            {
-              "stringIndex": 3,
               "steps": [
                 null,
                 null,
@@ -620,9 +287,14 @@
                 null,
                 null
               ]
-            },
+            }
+          ]
+        },
+        {
+          "stepsPerMeasure": 16,
+          "strings": [
             {
-              "stringIndex": 4,
+              "stringIndex": 0,
               "steps": [
                 null,
                 null,
@@ -633,6 +305,104 @@
                 null,
                 null,
                 null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 1,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 2,
+              "steps": [
+                {
+                  "v": 3
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 3
+                },
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 3,
+              "steps": [
+                null,
+                null,
+                {
+                  "v": 2
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 2
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 2
+                },
+                null
+              ]
+            },
+            {
+              "stringIndex": 4,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
                 null,
                 null,
                 null,
@@ -651,7 +421,9 @@
                 null,
                 null,
                 null,
-                null,
+                {
+                  "v": 0
+                },
                 null,
                 null,
                 null,
@@ -664,11 +436,949 @@
               ]
             }
           ]
+        },
+        {
+          "stepsPerMeasure": 16,
+          "strings": [
+            {
+              "stringIndex": 0,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 1,
+              "steps": [
+                {
+                  "v": 3
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 2,
+              "steps": [
+                null,
+                null,
+                {
+                  "v": 2
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 2
+                },
+                null
+              ]
+            },
+            {
+              "stringIndex": 3,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 4,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 5,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ]
+        },
+        {
+          "stepsPerMeasure": 16,
+          "strings": [
+            {
+              "stringIndex": 0,
+              "steps": [
+                {
+                  "v": 3
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 1,
+              "steps": [
+                null,
+                null,
+                {
+                  "v": 2
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 2,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 3,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null
+              ]
+            },
+            {
+              "stringIndex": 4,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 5,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 3
+                },
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ]
+        },
+        {
+          "stepsPerMeasure": 16,
+          "strings": [
+            {
+              "stringIndex": 0,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 1,
+              "steps": [
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 2,
+              "steps": [
+                {
+                  "v": 2
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 2
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 2
+                },
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 3,
+              "steps": [
+                {
+                  "v": 2
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 2
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 2
+                },
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 4,
+              "steps": [
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 5,
+              "steps": [
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ]
+        },
+        {
+          "stepsPerMeasure": 16,
+          "strings": [
+            {
+              "stringIndex": 0,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 1,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 2,
+              "steps": [
+                {
+                  "v": 3
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 3
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 3
+                },
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 3,
+              "steps": [
+                {
+                  "v": 2
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 2
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 2
+                },
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 4,
+              "steps": [
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 5,
+              "steps": [
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ]
+        },
+        {
+          "stepsPerMeasure": 16,
+          "strings": [
+            {
+              "stringIndex": 0,
+              "steps": [
+                {
+                  "v": 3
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 3
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 3
+                },
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 1,
+              "steps": [
+                {
+                  "v": 2
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 2
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 2
+                },
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 2,
+              "steps": [
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 3,
+              "steps": [
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 4,
+              "steps": [
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 5,
+              "steps": [
+                {
+                  "v": 3
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 3
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 3
+                },
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ]
+        },
+        {
+          "stepsPerMeasure": 16,
+          "strings": [
+            {
+              "stringIndex": 0,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 1,
+              "steps": [
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 2,
+              "steps": [
+                {
+                  "v": 2
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 2
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 2
+                },
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 3,
+              "steps": [
+                {
+                  "v": 2
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 2
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 2
+                },
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 4,
+              "steps": [
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 5,
+              "steps": [
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ]
         }
       ]
     },
     {
-      "id": "9c87d7de-2dff-4765-b120-25f358ae3ef9",
+      "id": "90d3002f-86b7-4acc-b154-cdb559420a59",
       "name": "Bass",
       "type": "bass",
       "instrumentId": "bass-4",
@@ -720,9 +1430,6 @@
             {
               "stringIndex": 0,
               "steps": [
-                {
-                  "v": 5
-                },
                 null,
                 null,
                 null,
@@ -730,92 +1437,6 @@
                 null,
                 null,
                 null,
-                {
-                  "v": 5
-                },
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-              ]
-            },
-            {
-              "stringIndex": 1,
-              "steps": [
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-              ]
-            },
-            {
-              "stringIndex": 2,
-              "steps": [
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-              ]
-            },
-            {
-              "stringIndex": 3,
-              "steps": [
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-              ]
-            }
-          ]
-        },
-        {
-          "stepsPerMeasure": 16,
-          "strings": [
-            {
-              "stringIndex": 0,
-              "steps": [
-                {
-                  "v": 3
-                },
                 null,
                 null,
                 null,
@@ -826,95 +1447,23 @@
                 {
                   "v": 3
                 },
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
                 null
               ]
             },
             {
               "stringIndex": 1,
               "steps": [
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-              ]
-            },
-            {
-              "stringIndex": 2,
-              "steps": [
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-              ]
-            },
-            {
-              "stringIndex": 3,
-              "steps": [
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-              ]
-            }
-          ]
-        },
-        {
-          "stepsPerMeasure": 16,
-          "strings": [
-            {
-              "stringIndex": 0,
-              "steps": [
                 {
-                  "v": 5
+                  "v": 0
                 },
                 null,
                 null,
                 null,
                 null,
                 null,
-                null,
+                {
+                  "v": 0
+                },
                 null,
                 {
                   "v": 7
@@ -929,7 +1478,7 @@
               ]
             },
             {
-              "stringIndex": 1,
+              "stringIndex": 2,
               "steps": [
                 null,
                 null,
@@ -940,6 +1489,82 @@
                 null,
                 null,
                 null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 3,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ]
+        },
+        {
+          "stepsPerMeasure": 16,
+          "strings": [
+            {
+              "stringIndex": 0,
+              "steps": [
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null
+              ]
+            },
+            {
+              "stringIndex": 1,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 3
+                },
                 null,
                 null,
                 null,
@@ -995,11 +1620,66 @@
         },
         {
           "stepsPerMeasure": 16,
-          "repeats": 2,
           "strings": [
             {
               "stringIndex": 0,
               "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 1,
+              "steps": [
+                {
+                  "v": 3
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 3
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null
+              ]
+            },
+            {
+              "stringIndex": 2,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
                 {
                   "v": 5
                 },
@@ -1009,6 +1689,340 @@
                 null,
                 null,
                 null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 3,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ]
+        },
+        {
+          "stepsPerMeasure": 16,
+          "strings": [
+            {
+              "stringIndex": 0,
+              "steps": [
+                {
+                  "v": 3
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 3
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 3
+                },
+                null
+              ]
+            },
+            {
+              "stringIndex": 1,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 2,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 3,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ]
+        },
+        {
+          "stepsPerMeasure": 16,
+          "strings": [
+            {
+              "stringIndex": 0,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 3
+                },
+                null
+              ]
+            },
+            {
+              "stringIndex": 1,
+              "steps": [
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null,
+                {
+                  "v": 7
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 2,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 3,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ]
+        },
+        {
+          "stepsPerMeasure": 16,
+          "strings": [
+            {
+              "stringIndex": 0,
+              "steps": [
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 0
+                },
+                null
+              ]
+            },
+            {
+              "stringIndex": 1,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 3
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 2,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 3,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ]
+        },
+        {
+          "stepsPerMeasure": 16,
+          "strings": [
+            {
+              "stringIndex": 0,
+              "steps": [
+                {
+                  "v": 3
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 3
+                },
                 null,
                 null,
                 null,
@@ -1031,8 +2045,103 @@
                 null,
                 null,
                 null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 2,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
                 {
-                  "v": 5
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 2
+                },
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 3,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ]
+        },
+        {
+          "stepsPerMeasure": 16,
+          "strings": [
+            {
+              "stringIndex": 0,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 1,
+              "steps": [
+                {
+                  "v": 0
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 7
                 },
                 null,
                 null,
@@ -1090,7 +2199,7 @@
       ]
     },
     {
-      "id": "f88842d8-4c32-4e9e-8a94-32e25c1fb5ce",
+      "id": "d96e0df2-9f16-4679-b652-9069cf36673d",
       "name": "Drums",
       "type": "drums",
       "instrumentId": null,
@@ -1155,10 +2264,6 @@
                 null,
                 null,
                 null,
-                {
-                  "v": 1
-                },
-                null,
                 null,
                 null,
                 {
@@ -1170,6 +2275,209 @@
                 {
                   "v": 1
                 },
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 1,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 2,
+              "steps": [
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null
+              ]
+            },
+            {
+              "stringIndex": 3,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 4,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 5,
+              "steps": [
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 6,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 7,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ]
+        },
+        {
+          "stepsPerMeasure": 16,
+          "strings": [
+            {
+              "stringIndex": 0,
+              "steps": [
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
                 null,
                 null,
                 null
@@ -1356,10 +2664,6 @@
                 null,
                 null,
                 null,
-                {
-                  "v": 1
-                },
-                null,
                 null,
                 null,
                 {
@@ -1371,6 +2675,8 @@
                 {
                   "v": 1
                 },
+                null,
+                null,
                 null,
                 null,
                 null
@@ -1557,10 +2863,6 @@
                 null,
                 null,
                 null,
-                {
-                  "v": 1
-                },
-                null,
                 null,
                 null,
                 {
@@ -1572,6 +2874,8 @@
                 {
                   "v": 1
                 },
+                null,
+                null,
                 null,
                 null,
                 null
@@ -1590,15 +2894,21 @@
                 null,
                 null,
                 null,
-                null,
-                null,
-                null,
+                {
+                  "v": 1
+                },
                 null,
                 {
                   "v": 1
                 },
                 null,
+                {
+                  "v": 1
+                },
                 null,
+                {
+                  "v": 1
+                },
                 null
               ]
             },
@@ -1720,6 +3030,211 @@
                 null,
                 null,
                 null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 7,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null
+              ]
+            }
+          ]
+        },
+        {
+          "stepsPerMeasure": 16,
+          "strings": [
+            {
+              "stringIndex": 0,
+              "steps": [
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null
+              ]
+            },
+            {
+              "stringIndex": 1,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 2,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 3,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 4,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 5,
+              "steps": [
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 6,
+              "steps": [
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
                 null
               ]
             },
@@ -1748,7 +3263,6 @@
         },
         {
           "stepsPerMeasure": 16,
-          "repeats": 2,
           "strings": [
             {
               "stringIndex": 0,
@@ -1759,10 +3273,6 @@
                 null,
                 null,
                 null,
-                {
-                  "v": 1
-                },
-                null,
                 null,
                 null,
                 {
@@ -1776,6 +3286,10 @@
                 },
                 null,
                 null,
+                null,
+                {
+                  "v": 1
+                },
                 null
               ]
             },
@@ -1807,37 +3321,21 @@
             {
               "stringIndex": 2,
               "steps": [
-                {
-                  "v": 1
-                },
                 null,
-                {
-                  "v": 1
-                },
                 null,
-                {
-                  "v": 1
-                },
                 null,
-                {
-                  "v": 1
-                },
                 null,
-                {
-                  "v": 1
-                },
                 null,
-                {
-                  "v": 1
-                },
                 null,
-                {
-                  "v": 1
-                },
                 null,
-                {
-                  "v": 1
-                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
                 null
               ]
             },
@@ -1907,7 +3405,676 @@
             {
               "stringIndex": 6,
               "steps": [
+                {
+                  "v": 1
+                },
                 null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null
+              ]
+            },
+            {
+              "stringIndex": 7,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ]
+        },
+        {
+          "stepsPerMeasure": 16,
+          "strings": [
+            {
+              "stringIndex": 0,
+              "steps": [
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null
+              ]
+            },
+            {
+              "stringIndex": 1,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 2,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 3,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 4,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 5,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 6,
+              "steps": [
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null
+              ]
+            },
+            {
+              "stringIndex": 7,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ]
+        },
+        {
+          "stepsPerMeasure": 16,
+          "strings": [
+            {
+              "stringIndex": 0,
+              "steps": [
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null
+              ]
+            },
+            {
+              "stringIndex": 1,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 2,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 3,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 4,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 5,
+              "steps": [
+                {
+                  "v": 1
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 6,
+              "steps": [
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null,
+                {
+                  "v": 1
+                },
+                null
+              ]
+            },
+            {
+              "stringIndex": 7,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cc72dbf5-2da5-4ab5-9fc8-e6be8cf8bf1e",
+      "name": "Keys",
+      "type": "keys",
+      "instrumentId": null,
+      "tuning": [],
+      "kitId": null,
+      "voiceId": "acoustic-piano",
+      "volume": 0.8,
+      "muted": false,
+      "soloed": false,
+      "rowsMeta": [
+        {
+          "label": "RH 1",
+          "stringIndex": 0,
+          "baseMidi": 84,
+          "hand": "right"
+        },
+        {
+          "label": "RH 2",
+          "stringIndex": 1,
+          "baseMidi": 77,
+          "hand": "right"
+        },
+        {
+          "label": "RH 3",
+          "stringIndex": 2,
+          "baseMidi": 72,
+          "hand": "right"
+        },
+        {
+          "label": "RH 4",
+          "stringIndex": 3,
+          "baseMidi": 67,
+          "hand": "right"
+        },
+        {
+          "label": "LH 1",
+          "stringIndex": 4,
+          "baseMidi": 60,
+          "hand": "left"
+        },
+        {
+          "label": "LH 2",
+          "stringIndex": 5,
+          "baseMidi": 53,
+          "hand": "left"
+        },
+        {
+          "label": "LH 3",
+          "stringIndex": 6,
+          "baseMidi": 48,
+          "hand": "left"
+        },
+        {
+          "label": "LH 4",
+          "stringIndex": 7,
+          "baseMidi": 36,
+          "hand": "left"
+        }
+      ],
+      "measures": [
+        {
+          "stepsPerMeasure": 16,
+          "strings": [
+            {
+              "stringIndex": 0,
+              "steps": [
+                {
+                  "v": 76
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 72
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 1,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 2,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 3,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 4,
+              "steps": [
+                {
+                  "v": 60
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 5,
+              "steps": [
+                {
+                  "v": 57
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 6,
+              "steps": [
+                {
+                  "v": 52
+                },
                 null,
                 null,
                 null,
@@ -1928,7 +4095,1306 @@
             {
               "stringIndex": 7,
               "steps": [
+                {
+                  "v": 45
+                },
                 null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ]
+        },
+        {
+          "stepsPerMeasure": 16,
+          "strings": [
+            {
+              "stringIndex": 0,
+              "steps": [
+                {
+                  "v": 74
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 69
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 1,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 2,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 3,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 4,
+              "steps": [
+                {
+                  "v": 60
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 5,
+              "steps": [
+                {
+                  "v": 57
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 6,
+              "steps": [
+                {
+                  "v": 48
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 7,
+              "steps": [
+                {
+                  "v": 41
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ]
+        },
+        {
+          "stepsPerMeasure": 16,
+          "strings": [
+            {
+              "stringIndex": 0,
+              "steps": [
+                {
+                  "v": 76
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 79
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 1,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 2,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 3,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 4,
+              "steps": [
+                {
+                  "v": 64
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 5,
+              "steps": [
+                {
+                  "v": 60
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 6,
+              "steps": [
+                {
+                  "v": 55
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 7,
+              "steps": [
+                {
+                  "v": 48
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ]
+        },
+        {
+          "stepsPerMeasure": 16,
+          "strings": [
+            {
+              "stringIndex": 0,
+              "steps": [
+                {
+                  "v": 74
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 1,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 2,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 3,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 4,
+              "steps": [
+                {
+                  "v": 59
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 5,
+              "steps": [
+                {
+                  "v": 55
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 6,
+              "steps": [
+                {
+                  "v": 50
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 7,
+              "steps": [
+                {
+                  "v": 43
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ]
+        },
+        {
+          "stepsPerMeasure": 16,
+          "strings": [
+            {
+              "stringIndex": 0,
+              "steps": [
+                {
+                  "v": 76
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 72
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 69
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 71
+                },
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 1,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 2,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 3,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 4,
+              "steps": [
+                {
+                  "v": 60
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 5,
+              "steps": [
+                {
+                  "v": 57
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 6,
+              "steps": [
+                {
+                  "v": 52
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 7,
+              "steps": [
+                {
+                  "v": 45
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ]
+        },
+        {
+          "stepsPerMeasure": 16,
+          "strings": [
+            {
+              "stringIndex": 0,
+              "steps": [
+                {
+                  "v": 72
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 69
+                },
+                null,
+                null,
+                null,
+                {
+                  "v": 65
+                },
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 1,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 2,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 3,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 4,
+              "steps": [
+                {
+                  "v": 60
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 5,
+              "steps": [
+                {
+                  "v": 57
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 6,
+              "steps": [
+                {
+                  "v": 48
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 7,
+              "steps": [
+                {
+                  "v": 41
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ]
+        },
+        {
+          "stepsPerMeasure": 16,
+          "strings": [
+            {
+              "stringIndex": 0,
+              "steps": [
+                {
+                  "v": 74
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                {
+                  "v": 71
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 1,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 2,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 3,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 4,
+              "steps": [
+                {
+                  "v": 59
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 5,
+              "steps": [
+                {
+                  "v": 55
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 6,
+              "steps": [
+                {
+                  "v": 50
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 7,
+              "steps": [
+                {
+                  "v": 43
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ]
+        },
+        {
+          "stepsPerMeasure": 16,
+          "strings": [
+            {
+              "stringIndex": 0,
+              "steps": [
+                {
+                  "v": 69
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 1,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 2,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 3,
+              "steps": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 4,
+              "steps": [
+                {
+                  "v": 60
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 5,
+              "steps": [
+                {
+                  "v": 57
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 6,
+              "steps": [
+                {
+                  "v": 52
+                },
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            {
+              "stringIndex": 7,
+              "steps": [
+                {
+                  "v": 45
+                },
                 null,
                 null,
                 null,

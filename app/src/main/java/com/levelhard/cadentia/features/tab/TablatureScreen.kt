@@ -36,7 +36,6 @@ import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.RepeatOn
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -58,8 +57,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -963,7 +964,7 @@ private fun Transport(
             modifier = Modifier
                 .background(accent, RoundedCornerShape(50))
                 .clickable(onClick = onToggle)
-                .padding(horizontal = 16.dp, vertical = 11.dp)
+                .padding(horizontal = 22.dp, vertical = 16.dp) // ~50 pt como o .glassProminent do iOS
                 .testTag("tab.toggle"),
         ) {
             Icon(
@@ -981,14 +982,14 @@ private fun Transport(
             )
         }
         RoundToggle(
-            icon = Icons.Filled.Timer,
+            icon = painterResource(R.drawable.ic_tab_metronome), // o metrônomo do iOS, não um cronômetro
             active = countInEnabled,
             accent = accent,
             tag = "tab.countin",
             onClick = onCountIn,
         )
         RoundToggle(
-            icon = Icons.Filled.Repeat,
+            icon = rememberVectorPainter(Icons.Filled.Repeat),
             active = loopEnabled,
             accent = accent,
             tag = "tab.loop",
@@ -1016,7 +1017,7 @@ private fun Transport(
 
 @Composable
 private fun RoundToggle(
-    icon: ImageVector,
+    icon: androidx.compose.ui.graphics.painter.Painter,
     active: Boolean,
     accent: Color,
     tag: String,
@@ -1031,7 +1032,7 @@ private fun RoundToggle(
             .testTag(tag),
     ) {
         Icon(
-            imageVector = icon,
+            painter = icon,
             contentDescription = null,
             tint = if (active) accent else CzTokens.textTertiary,
             modifier = Modifier.size(18.dp),
