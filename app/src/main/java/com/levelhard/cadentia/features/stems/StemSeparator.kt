@@ -4,13 +4,16 @@ import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
 import android.content.Context
+import android.content.res.AssetFileDescriptor
 import android.util.Log
 import com.levelhard.cadentia.kit.DemucsSpectrogram
 import com.levelhard.cadentia.kit.StemPipeline
 import java.io.File
 import java.io.RandomAccessFile
+import java.io.FileInputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.nio.channels.FileChannel
 import java.nio.FloatBuffer
 
 /**
@@ -18,9 +21,19 @@ import java.nio.FloatBuffer
  * `Separator.mlmodelc` no bundle do iOS (`StemsModel.swift:176`).
  *
  * O arquivo tem 174 MB (htdemucs em ONNX fp32, `scripts/convert-stem-model.py`)
- * e não vai no pacote: chega por download na primeira separação
- * ([StemModelDownloader]) ou, no QA, por `adb push` + `run-as cp` para
- * `filesDir/models/`. Ausente, a tela mostra `modelMissing`, como o iOS sem o
+ * e tem três caminhos, nesta ordem:
+ *
+ * 1. **Dentro do pacote**, em `assets/separator.onnx`, que é o caminho normal
+ *    e o mesmo do iOS (`Separator.mlpackage`, 103 MB, dentro do bundle). Fica
+ *    fora do git; o build copia de `model/separator.onnx` (ver
+ *    `app/build.gradle.kts`). Guardado sem deflate, então o `openFd` devolve
+ *    deslocamento e tamanho e o modelo abre por mmap, sem cópia para o disco.
+ * 2. **Baixado** para `filesDir/models/` na primeira separação
+ *    ([StemModelDownloader]), que é como uma build sideloaded sem o asset
+ *    ainda consegue separar.
+ * 3. **QA**, por `adb push` + `run-as cp` para o mesmo `filesDir/models/`.
+ *
+ * Sem nenhum dos três a tela mostra `modelMissing`, como o iOS sem o
  * `.mlmodelc`.
  */
 object StemModelStore {
@@ -30,8 +43,21 @@ object StemModelStore {
 
     fun file(context: Context): File = File(directory(context), FILE_NAME)
 
+    /**
+     * O descritor do modelo embarcado, ou null se esta build não o tem. O
+     * `openFd` só funciona porque o `.onnx` está em `noCompress`: para um
+     * asset deflatado ele lança `FileNotFoundException`, que aqui vira
+     * "não tem", não erro.
+     */
+    fun bundled(context: Context): AssetFileDescriptor? =
+        runCatching { context.assets.openFd(FILE_NAME) }.getOrNull()
+
+    fun isBundled(context: Context): Boolean =
+        bundled(context)?.use { it.declaredLength > 1_000_000 } ?: false
+
     /** O iOS: `isAvailable` é só "o arquivo existe". Aqui também exige que não seja um download pela metade. */
-    fun isAvailable(context: Context): Boolean = file(context).let { it.isFile && it.length() > 1_000_000 }
+    fun isAvailable(context: Context): Boolean =
+        isBundled(context) || file(context).let { it.isFile && it.length() > 1_000_000 }
 }
 
 /**
@@ -46,7 +72,21 @@ object StemModelStore {
  *
  * As duas saídas são SOMADAS, não escolhidas (a mesma linha do iOS).
  */
-class OnnxStemBackend(modelFile: File) : StemPipeline.StemBackend, AutoCloseable {
+class OnnxStemBackend private constructor(
+    private val origin: String,
+    private val sizeBytes: Long,
+    /**
+     * Quando o modelo vem do pacote: a região do APK mapeada em memória de
+     * onde a sessão lê os pesos. Soltada assim que a sessão abre — ver o
+     * `init`.
+     */
+    private var mapped: ByteBuffer?,
+    private val path: String?,
+) : StemPipeline.StemBackend, AutoCloseable {
+    /** O modelo baixado ou empurrado pelo QA, em `filesDir/models/`. */
+    constructor(modelFile: File) :
+        this(modelFile.name, modelFile.length(), null, modelFile.absolutePath)
+
     private val environment: OrtEnvironment = OrtEnvironment.getEnvironment()
     private val session: OrtSession
     private val spectrogram = DemucsSpectrogram()
@@ -81,8 +121,64 @@ class OnnxStemBackend(modelFile: File) : StemPipeline.StemBackend, AutoCloseable
             // plano inteiro (+460 MB medidos) sem ganhar tempo.
             setMemoryPatternOptimization(false)
         }
-        session = environment.createSession(modelFile.absolutePath, options)
-        Log.i(TAG, "modelo aberto: ${modelFile.name} (${modelFile.length() / 1_000_000} MB), entradas ${session.inputNames}")
+        val fromPackage = mapped != null
+        session = when {
+            mapped != null -> environment.createSession(mapped, options)
+            path != null -> environment.createSession(path, options)
+            else -> error("OnnxStemBackend sem modelo")
+        }
+        // O ORT copia os pesos para as estruturas dele durante o
+        // createSession, então o mapeamento não serve mais para nada e só
+        // inflaria o pico. Medido na JVM do container (x86_64, mesmo modelo,
+        // mesma janela, VmHWM do processo):
+        //   modelo em arquivo solto                     pico 670 MB
+        //   mmap do pacote, mapeamento mantido vivo     pico 835 MB
+        //   mmap do pacote, mapeamento solto aqui       pico 673 MB
+        // No emulador arm64 (ART, não a JVM) o mesmo caminho deu 983 MB
+        // contra os 801 MB medidos com o modelo em arquivo, ou seja: aqui o
+        // `System.gc()` NÃO garantiu o desmapeamento. São páginas de arquivo
+        // limpas, que o kernel recupera sob pressão antes de matar o
+        // processo, então isto é pico de RSS, não risco de OOM — mas é honesto
+        // dizer que na JVM o truque funciona e no ART ainda não foi provado.
+        mapped = null
+        System.gc()
+        Log.i(
+            TAG,
+            "modelo aberto: $origin (${sizeBytes / 1_000_000} MB, " +
+                "${if (fromPackage) "mmap do pacote" else "arquivo em disco"}), entradas ${session.inputNames}",
+        )
+    }
+
+    companion object {
+        const val TAG = "CadentiaStems"
+
+        /**
+         * Abre o modelo de onde ele estiver. O do pacote vem primeiro: é o
+         * caminho normal, e mapear a região do APK evita a cópia de 174 MB
+         * que a alternativa (extrair o asset para o filesDir) custaria em
+         * disco e em tempo na primeira separação.
+         */
+        fun open(context: Context): OnnxStemBackend {
+            val fd = StemModelStore.bundled(context)
+            if (fd != null) {
+                fd.use { descriptor ->
+                    val buffer = FileInputStream(descriptor.fileDescriptor).use { stream ->
+                        stream.channel.map(
+                            FileChannel.MapMode.READ_ONLY,
+                            descriptor.startOffset,
+                            descriptor.declaredLength,
+                        )
+                    }
+                    return OnnxStemBackend(
+                        origin = StemModelStore.FILE_NAME,
+                        sizeBytes = descriptor.declaredLength,
+                        mapped = buffer,
+                        path = null,
+                    )
+                }
+            }
+            return OnnxStemBackend(StemModelStore.file(context))
+        }
     }
 
     override fun separateSegment(chunk: Array<FloatArray>): Array<Array<FloatArray>> {
@@ -149,9 +245,6 @@ class OnnxStemBackend(modelFile: File) : StemPipeline.StemBackend, AutoCloseable
         session.close()
     }
 
-    companion object {
-        const val TAG = "CadentiaStems"
-    }
 }
 
 /**

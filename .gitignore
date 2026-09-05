@@ -26,3 +26,7 @@ artifacts/
 __pycache__/
 # Sessões do compilador Kotlin (lock local)
 .kotlin/
+
+# O modelo de separação (174 MB) fica fora do git, como o .mlpackage no iOS.
+# Vem de scripts/convert-stem-model.py e o build copia para os assets.
+model/

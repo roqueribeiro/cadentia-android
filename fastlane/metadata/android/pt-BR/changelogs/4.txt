@@ -1,0 +1,1 @@
+1.16.0 (4): Separar instrumentos funciona sem baixar nada — o modelo de separação agora vem dentro do app, como no iPhone. O Cordas pela câmera não fecha mais o app. Ícone do Gravador redesenhado.

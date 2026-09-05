@@ -19,7 +19,7 @@ android {
         targetSdk = 36
         // Acompanha o iOS (1.16.0): a mesma versão nas duas lojas. O
         // versionCode só cresce.
-        versionCode = 3
+        versionCode = 4
         versionName = "1.16.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -131,6 +131,11 @@ android {
         // FLAC já é comprimido; sem deflate o pacote não cresce e a cópia
         // para filesDir é uma leitura sequencial.
         noCompress += listOf("flac")
+        // O separator.onnx precisa ficar SEM deflate no pacote: é assim que o
+        // `assets.openFd` devolve um descritor com deslocamento e tamanho, e o
+        // ONNX Runtime abre o modelo por mmap direto do APK, sem copiar 174 MB
+        // para o filesDir. Comprimido, o openFd lança e sobraria extrair.
+        noCompress += listOf("onnx")
     }
 
     // Os bancos de sample vão DENTRO do pacote, como no iOS (App/Resources/
@@ -140,6 +145,14 @@ android {
     // app que toca só síntese — foi assim que a loja recebeu um pacote sem os
     // sons em alta definição (04/09/2026).
     sourceSets["main"].assets.srcDir(layout.buildDirectory.dir("generated/samples-assets"))
+
+    // O modelo de separação (174 MB) também vai DENTRO do pacote, como o
+    // `Separator.mlpackage` de 103 MB no bundle do iOS. Fica fora do git; o
+    // caminho vem de `-Pcadentia.stemModel=`, de `CADENTIA_STEM_MODEL` ou de
+    // `model/separator.onnx` na raiz do repo. Diferente dos samples, a
+    // AUSÊNCIA não quebra o build: quem clona sem o modelo compila e a tela
+    // avisa, exatamente como o iOS sem o `.mlpackage`.
+    sourceSets["main"].assets.srcDir(layout.buildDirectory.dir("generated/stem-model-assets"))
 }
 
 val copySampleAssets by tasks.registering(Copy::class) {
@@ -153,14 +166,29 @@ val copySampleAssets by tasks.registering(Copy::class) {
     from(source)
     into(layout.buildDirectory.dir("generated/samples-assets/samples"))
 }
+val stemModelFile: java.io.File? =
+    (providers.gradleProperty("cadentia.stemModel").orNull
+        ?: System.getenv("CADENTIA_STEM_MODEL"))
+        ?.let(::File)
+        ?: rootProject.file("model/separator.onnx").takeIf { it.isFile }
+
+val copyStemModel by tasks.registering(Copy::class) {
+    val source = stemModelFile
+    onlyIf { source != null && source.isFile }
+    if (source != null && source.isFile) {
+        from(source) { rename { "separator.onnx" } }
+    }
+    into(layout.buildDirectory.dir("generated/stem-model-assets"))
+}
+
 tasks.matching { it.name.startsWith("merge") && it.name.endsWith("Assets") }
-    .configureEach { dependsOn(copySampleAssets) }
+    .configureEach { dependsOn(copySampleAssets, copyStemModel) }
 tasks.matching { it.name.startsWith("generate") && it.name.endsWith("Assets") }
-    .configureEach { dependsOn(copySampleAssets) }
+    .configureEach { dependsOn(copySampleAssets, copyStemModel) }
 // O lint (inclusive o lintVital do assembleRelease) lê a pasta de assets
 // gerada: sem esta dependência o Gradle 9 recusa o build por ordem implícita.
 tasks.matching { it.name.contains("Lint") || it.name.startsWith("lint") }
-    .configureEach { dependsOn(copySampleAssets) }
+    .configureEach { dependsOn(copySampleAssets, copyStemModel) }
 
 dependencies {
     implementation(project(":kit"))

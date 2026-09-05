@@ -1,0 +1,1 @@
+1.16.0 (4): Separate instruments works with no download — the separation model now ships inside the app, as it does on iPhone. Cordas camera no longer closes the app. Redrawn Recorder icon.

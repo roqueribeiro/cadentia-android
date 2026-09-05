@@ -638,7 +638,7 @@ class StemsModel(context: Context) {
             }
         }
         withContext(Dispatchers.Default) {
-            val backend = separatorBackend ?: OnnxStemBackend(StemModelStore.file(appContext)).also { separatorBackend = it }
+            val backend = separatorBackend ?: OnnxStemBackend.open(appContext).also { separatorBackend = it }
             try {
                 StemSeparator.separate(backend, input, into, progress) { isActive }
             } catch (_: InterruptedException) {
