@@ -54,7 +54,13 @@ class StemsModel(context: Context) {
         data object Preparing : Phase()
         data class Separating(val done: Int, val total: Int) : Phase()
         data object Ready : Phase()
-        data class Failed(val detail: String) : Phase()
+        /**
+         * `blocked` = tentar outra música não muda nada (o modelo não está
+         * nesta build). A tela então diz o que é, em vez de convidar a pessoa
+         * a tentar de novo para receber o mesmo erro (achado do Roque no
+         * aparelho, 05/09/2026).
+         */
+        data class Failed(val detail: String, val blocked: Boolean = false) : Phase()
 
         /** Enquanto o app está separando: a tela do trabalho, e não a biblioteca nem o player. */
         val isWorking: Boolean get() = this is Preparing || this is Separating
@@ -144,6 +150,14 @@ class StemsModel(context: Context) {
     }
 
     /**
+     * Dá para separar nesta build? Ou o modelo já está no aparelho, ou existe
+     * uma URL para baixá-lo. Sem os dois, a tela avisa ANTES de a pessoa
+     * gastar download e normalização para receber um erro no fim.
+     */
+    val separationAvailable: Boolean
+        get() = StemModelStore.isAvailable(appContext) || StemModelDownloader.isConfigured
+
+    /**
      * Chamado a cada toque no mixer: grava a mesa da música e faz a tela
      * recompor. O motor não é estado do Compose — sem o `bump()` o "+" da
      * velocidade mudava o áudio e o rótulo continuava em 1,00x (achado do
@@ -206,7 +220,22 @@ class StemsModel(context: Context) {
     var lastStep: QueueStep by mutableStateOf(QueueStep.Forward)
         private set
 
+    /**
+     * Sem modelo e sem URL, o trabalho inteiro é perdido: a pessoa espera o
+     * download da música e a normalização para receber o erro no fim. Este
+     * guarda para no primeiro toque, dizendo o que é (05/09/2026).
+     */
+    private fun blockedWithoutModel(song: RecentSong): Boolean {
+        if (cache.isComplete(song.id) || separationAvailable) return false
+        cancelBatch()
+        songTitle = song.title
+        phase = Phase.Failed(appContext.getString(R.string.cadentia_stems_model_missing), blocked = true)
+        Log.i(TAG, "separação indisponível nesta build: ${song.title} não vai ser separada")
+        return true
+    }
+
     fun reopen(song: RecentSong, autoplay: Boolean = false) {
+        if (blockedWithoutModel(song)) return
         lastStep = QueueStep.Forward
         // Antes de tudo: uma leva de vinte continuando por baixo enquanto esta
         // música baixa são duas separações se encontrando.
@@ -230,7 +259,7 @@ class StemsModel(context: Context) {
                         onFailure = { error ->
                             if (error is CancellationException) throw error
                             Log.w(TAG, "rebaixar falhou: ${error.message}")
-                            phase = Phase.Failed(reason(error))
+                            phase = Phase.Failed(reason(error), blocked = isBlocking(error))
                         },
                     )
                 }
@@ -284,6 +313,8 @@ class StemsModel(context: Context) {
             source = item.recentSource(),
             lastOpenedEpochMillis = System.currentTimeMillis(),
         )
+        // Antes de baixar 11 MB do RoqueOS: esta build sabe separar?
+        if (blockedWithoutModel(song)) return
         cancelBatch()
         if (cache.isComplete(song.id)) {
             openCached(song)
@@ -304,7 +335,7 @@ class StemsModel(context: Context) {
                 throw error
             } catch (error: Exception) {
                 downloadingId = null
-                phase = Phase.Failed(reason(error))
+                phase = Phase.Failed(reason(error), blocked = isBlocking(error))
             }
         }
     }
@@ -315,6 +346,7 @@ class StemsModel(context: Context) {
      * um gigabyte.
      */
     fun open(pick: Pick) {
+        if (blockedWithoutModel(pick.song)) return
         cancelBatch()
         songTitle = pick.song.title
         workStartedAt = System.currentTimeMillis()
@@ -350,7 +382,7 @@ class StemsModel(context: Context) {
                 // O erro REAL, não um genérico: sem isto a falha vira "não deu"
                 // e o motivo (formato, modelo ausente, download parcial) fica invisível.
                 Log.w(TAG, "falhou: ${error.message}")
-                phase = Phase.Failed(reason(error))
+                phase = Phase.Failed(reason(error), blocked = isBlocking(error))
             } finally {
                 if (needsService) finishJob()
             }
@@ -392,6 +424,7 @@ class StemsModel(context: Context) {
      */
     fun openMany(picks: List<Pick>) {
         if (picks.isEmpty()) return
+        if (picks.none { cache.isComplete(it.song.id) } && blockedWithoutModel(picks[0].song)) return
         if (picks.size == 1) {
             open(picks[0])
             return
@@ -795,6 +828,9 @@ class StemsModel(context: Context) {
             failed = titles.takeLast(failed.coerceIn(0, total)), titles = titles,
         )
     }
+
+    /** Erro que nenhuma outra música resolve: falta o modelo nesta build. */
+    private fun isBlocking(error: Throwable): Boolean = error is StemsError.ModelMissing
 
     private fun reason(error: Throwable): String = when (error) {
         is StemsError.ModelMissing -> appContext.getString(R.string.cadentia_stems_model_missing)

@@ -370,6 +370,7 @@ fun StemsScreen() {
                         accent = accent,
                         phase = phase,
                         browsing = browsingRoque,
+                        canSeparate = model.separationAvailable,
                         recent = model.recent,
                         setlists = model.setlists,
                         isReady = { model.isReady(it) },
@@ -917,6 +918,8 @@ private fun LibraryState(
     accent: Color,
     phase: StemsModel.Phase,
     browsing: Boolean,
+    /** false = esta build não sabe separar (sem modelo e sem URL); a tela avisa. */
+    canSeparate: Boolean,
     recent: RecentSongs,
     setlists: Setlists,
     isReady: (RecentSong) -> Boolean,
@@ -1043,6 +1046,33 @@ private fun LibraryState(
             verticalArrangement = Arrangement.spacedBy(14.dp),
             modifier = Modifier.widthIn(max = 560.dp),
         ) {
+            // Esta build sabe separar? Se não, o aviso fica no TOPO da aba, e
+            // não no fim de um download inútil. Quem já tem faixas em disco
+            // continua tocando normalmente (achado do Roque, 05/09/2026).
+            if (!browsing && !canSeparate) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(CzTokens.warnAmber.copy(alpha = 0.12f), RoundedCornerShape(CzTokens.radiusMD))
+                        .padding(horizontal = 14.dp, vertical = 12.dp)
+                        .testTag("stems.noModel"),
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Warning,
+                        contentDescription = null,
+                        tint = CzTokens.warnAmber,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.cadentia_stems_model_missing),
+                        fontSize = 12.sp,
+                        color = CzTokens.textSecondary,
+                    )
+                }
+            }
+
             // Navegando numa pasta do RoqueOS só o navegador fica na tela
             // (`crumbs.isEmpty ? sources : browser` do iOS).
             if (!browsing && phase is StemsModel.Phase.Failed) {
@@ -1060,14 +1090,19 @@ private fun LibraryState(
                             tint = CzTokens.warnAmber,
                             modifier = Modifier.size(28.dp),
                         )
+                        // Falha bloqueante (o modelo não está nesta build): o
+                        // motivo VIRA o título, e "Tentar outra" sai — outra
+                        // música daria exatamente o mesmo erro.
                         Text(
-                            text = stringResource(R.string.cadentia_stems_failed),
+                            text = if (phase.blocked) phase.detail else stringResource(R.string.cadentia_stems_failed),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.SemiBold,
+                            textAlign = TextAlign.Center,
                             color = CzTokens.textPrimary,
+                            modifier = if (phase.blocked) Modifier.testTag("stems.failureReason") else Modifier,
                         )
                         // O motivo técnico curto enquanto a feature é nova.
-                        if (phase.detail.isNotEmpty()) {
+                        if (!phase.blocked && phase.detail.isNotEmpty()) {
                             Text(
                                 text = phase.detail,
                                 fontSize = 10.sp,
@@ -1077,13 +1112,15 @@ private fun LibraryState(
                                 modifier = Modifier.testTag("stems.failureReason"),
                             )
                         }
-                        Text(
-                            text = stringResource(R.string.cadentia_stems_try_again),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = accent,
-                            modifier = Modifier.clickable(onClick = onTryAgain),
-                        )
+                        if (!phase.blocked) {
+                            Text(
+                                text = stringResource(R.string.cadentia_stems_try_again),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = accent,
+                                modifier = Modifier.clickable(onClick = onTryAgain),
+                            )
+                        }
                     }
                 }
             }
